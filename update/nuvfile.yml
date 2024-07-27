@@ -35,7 +35,14 @@ env:
 tasks:
   hi: echo hi
 
+
   cli:
+    desc: update cli
+    silent: true
+    cmd:
+      - echo Updating CLI (TODO)
+
+  cli-old:
     desc: update the cli
     silent: true
     cmds:
