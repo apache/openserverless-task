@@ -1,6 +1,6 @@
 {
-    "version": "0.1.0-testing",
-    "config": {
-        "key": "value"
+    "version": "0.1.0-testing.2407302124",
+    "images": {
+       "operator": "sciabarracom/openserverless-operator:0.1.0-testing.2407271600"
     }
 }
