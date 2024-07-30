@@ -19,8 +19,6 @@
 version: "3"
 tasks:
 
-  info:
-    desc: info
-    cmds:
-    - 7zz | grep 7-Zip
-
+  tests:
+    desc: tests
+ 

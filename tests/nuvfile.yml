@@ -1,0 +1,7 @@
+version: 3
+tasks:
+
+  7zz: 
+    desc: 7zz test
+    cmds:
+    - 7zz | grep 7-Zip
