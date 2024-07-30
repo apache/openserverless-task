@@ -1,7 +1,49 @@
 version: 3
 tasks:
 
-  7zz: 
+  all:
+    desc: All tests
+    silent: true
+    cmds:
+    - task: 7zz
+    - task: coreutils
+    - task: bun
+    - task: kubectl
+    - task: kind
+    - task: k3sup
+
+  7zz:
+    silent: true
     desc: 7zz test
     cmds:
     - 7zz | grep 7-Zip
+
+  coreutils:
+    silent: true
+    desc: Coreutils test
+    cmds:
+    - coreutils | grep '(multi-call binary)'
+
+  bun:
+    silent: true
+    desc: Bun test
+    cmds:
+    - bun | grep 'Bun is'
+
+  kubectl:
+    silent: true
+    desc: Kubectl test
+    cmds:
+    - echo kubectl $(kubectl version)
+
+  kind:
+    silent: true
+    desc: Kind test
+    cmds:
+    - kind --version
+
+  k3sup:
+    silent: true
+    desc: k3sup test
+    cmds:
+    - echo k3sup $(k3sup version | grep 'Version:')
