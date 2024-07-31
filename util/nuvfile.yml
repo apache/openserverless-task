@@ -1,0 +1,16 @@
+version: 3
+
+tasks:
+
+  update-cli:
+    desc: update CLI (TODO)
+    silent: true
+    cmds:
+    - echo "your ops is outdated, please update it"
+    - false
+
+  check-operator-version:
+    desc: check running operator version and warns it is obsolete (TODO)
+    silent: true
+    cmds:
+    - echo "TODO checking the running operator version"
