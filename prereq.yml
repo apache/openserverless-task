@@ -73,6 +73,7 @@ tasks:
   coreutils:
     desc: coreutils
     vars:
+      # when changing this add the list of utilites to nuvroot.json in config.ops.coreutils
       VERSION: "0.0.27"
       SUFFIX:
         sh: |
