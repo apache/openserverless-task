@@ -19,6 +19,12 @@
 version: "3"
 tasks:
 
+  version:
+    desc: version
+    silent: true
+    cmds:
+      - echo ops v$NUV_VERSION
+
   tests:
     desc: tests
  
