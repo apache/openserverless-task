@@ -678,7 +678,7 @@ tasks:
     - task: read
       vars:
         MSG: "Redis Database Volume size"
-        VAR: "STORAGE_VOLUMESIZE_REDIS"
+        VAR: "STORAGE_SIZE_REDIS"
         HINT: | 
               Specifies an integer value
         VAL: "{{.__redis}}"
@@ -686,7 +686,7 @@ tasks:
     - task: read
       vars:
         MSG: "MongoDB Database Volume size"
-        VAR: "STORAGE_VOLUMESIZE_MONGODB"
+        VAR: "STORAGE_SIZE_MONGODB"
         HINT: | 
               Specifies an integer value
         VAL: "{{.__mongodb}}"
@@ -694,7 +694,7 @@ tasks:
     - task: read
       vars:
         MSG: "Postgres Database Volume size"
-        VAR: "STORAGE_VOLUMESIZE_POSTGRES"
+        VAR: "STORAGE_SIZE_POSTGRES"
         HINT: | 
               Specifies an integer value
         VAL: "{{.__postgres}}"
@@ -702,7 +702,7 @@ tasks:
     - task: read
       vars:
         MSG: "Minio Storage Volume size"
-        VAR: "STORAGE_VOLUMESIZE_MINIO"
+        VAR: "STORAGE_SIZE_MINIO"
         HINT: | 
               Specifies an integer value
         VAL: "{{.__storage}}"
@@ -710,7 +710,7 @@ tasks:
     - task: read
       vars:
         MSG: "Promehteus Volume size"
-        VAR: "STORAGE_VOLUMESIZE_MONITORING"
+        VAR: "STORAGE_SIZE_MONITORING"
         HINT: | 
               Specifies an integer value
         VAL: "{{.__alerting}}"

@@ -148,7 +148,7 @@ spec:
         mem-lim: "$OPENWHISK_INVOKER_RES_MAX_MEM"       
   redis:
     persistence-enabled: ${REDIS_PERSISTENCE_ENABLED:-true}
-    volume-size: ${STORAGE_VOLUMESIZE_REDIS:-25}
+    volume-size: ${STORAGE_SIZE_REDIS:-25}
     default:
       password: $SECRET_REDIS_DEFAULT
     nuvolaris:
@@ -156,7 +156,7 @@ spec:
       password: $SECRET_REDIS_NUVOLARIS
   mongodb:
     host: mongodb
-    volume-size: ${STORAGE_VOLUMESIZE_MONGODB:-50}
+    volume-size: ${STORAGE_SIZE_MONGODB:-50}
     admin: 
       user: whisk_admin
       password: $SECRET_MONGODB_ADMIN
@@ -171,7 +171,7 @@ spec:
       console-enabled: ${MINIO_CONFIG_INGRESS_CONSOLE:-false}
       s3-hostname: ${MINIO_CONFIG_INGRESS_S3_HOSTNAME:-auto}
       console-hostname: ${MINIO_CONFIG_INGRESS_CONSOLE_HOSTNAME:-auto}
-    volume-size: ${STORAGE_VOLUMESIZE_MINIO:-50}
+    volume-size: ${STORAGE_SIZE_MINIO:-50}
     admin:
       user: minioadmin
       password: $SECRET_MINIO_ADMIN    
@@ -179,7 +179,7 @@ spec:
       user: nuvolaris
       password: $SECRET_MINIO_NUVOLARIS
   postgres:    
-    volume-size: ${STORAGE_VOLUMESIZE_POSTGRES:-50}
+    volume-size: ${STORAGE_SIZE_POSTGRES:-50}
     replicas: ${POSTGRES_CONFIG_REPLICAS:-2}
     admin:      
       password: $SECRET_POSTGRES_ADMIN
@@ -192,10 +192,10 @@ spec:
       schedule: "${POSTGRES_CONFIG_BACKUP_SCHEDULE:-0 */1 * * *}"
   monitoring:
     prometheus:
-      volume-size: ${STORAGE_VOLUMESIZE_MONITORING:-30}
+      volume-size: ${STORAGE_SIZE_MONITORING:-30}
     alert-manager:
       enabled: ${OPERATOR_COMPONENT_AM:-false}
-      volume-size: ${STORAGE_VOLUMESIZE_MONITORING:-30}
+      volume-size: ${STORAGE_SIZE_MONITORING:-30}
       slack:        
         enabled: ${OPERATOR_CONFIG_ALERTSLACK:-false}
         default: true 
