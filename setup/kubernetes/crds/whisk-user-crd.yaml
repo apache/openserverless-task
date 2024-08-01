@@ -1,0 +1,230 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: whisksusers.nuvolaris.org
+  namespace: nuvolaris
+spec:
+  scope: Namespaced
+  group: nuvolaris.org
+  names:
+    kind: WhiskUser
+    plural: whisksusers
+    singular: whiskuser
+    shortNames:
+      - wsku
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources: { status: { } } 
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                email:
+                  description: user email address
+                  type: string
+                password:
+                  description: user password used when logging in the user via the nuv tool
+                  type: string
+                namespace:
+                  description: ow namespace assigned to the user
+                  type: string 
+                auth:
+                  description: ow auth used to authenticate the user
+                  type: string
+                apihost:
+                  description: hostname to be used to give access to ow api and eventually static content for the created user. Defaulted to auto if omitted. In such case it will be <user>.<apihost from global config>
+                  type: string                                   
+                redis:
+                  description: used to configure a user ACL to allow access to prefixed keys into the internal REDIS instance
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    enabled:
+                      description: boolean flag to enable redis. default to false
+                      type: boolean
+                    prefix:
+                      description: redis key prefixused to configure a user custom made ACL
+                      type: string
+                    password:
+                      description: user redis password
+                      type: string
+                    quota:
+                      description: maximum quota assignable in mb. Defaults to auto which will not set any specific quota
+                      type: string                      
+                  required:
+                  - enabled
+                  - prefix
+                  - password                       
+                object-storage:
+                  description: used to setup nuvolaris MINIO instance with custom user resources
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    password:
+                      description: password to access the internal MINIO instance
+                      type: string
+                    quota:
+                      description: maximum quota assignable in mb to each defined bucket. Defaults to auto which will not set any specific quota
+                      type: string
+                    data:
+                      description: used to configure the user MINIO dedicated buckets
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                      properties:
+                        enabled:
+                          description: boolean flag to configure a MINIO data bucket for the user. defaulted to false
+                          type: boolean
+                        bucket:
+                          description: MINIO data bucket name
+                          type: string
+                      required:
+                      - enabled 
+                      - bucket 
+                    route:
+                      description: used to configure a user MINIO static web content provider bucket
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                      properties:
+                        enabled:
+                          description: boolean flag to activate the user static content bucket
+                          type: boolean
+                        bucket:
+                          description: name of the bucket
+                          type: string                                                    
+                      required:
+                      - enabled 
+                      - bucket
+                  required:
+                  - password                     
+                mongodb:
+                  description: used to configure a user dedicated mongodb database
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    enabled:
+                      description: boolean flag to enable mongodb configuration. Defaulted to false
+                      type: boolean
+                    database:
+                      description: user dedicated mongodb dataabase name
+                      type: string
+                    password:
+                      description: user mongodb password
+                      type: string
+                    quota:
+                      description: maximum quota assignable in mb. Defaults to auto which will not set any specific quota
+                      type: string                      
+                  required:
+                  - enabled 
+                  - database 
+                  - password
+                postgres:
+                  description: used to configure a user dedicated postgres database
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    enabled:
+                      description: boolean flag to enable postgres configuration. Defaulted to false
+                      type: boolean
+                    database:
+                      description: user dedicated postgres database
+                      type: string
+                    password:
+                      description: user mongodb password
+                      type: string
+                    quota:
+                      description: maximum quota assignable in mb. Defaults to auto which will not set any specific quota
+                      type: string                       
+                  required:
+                  - enabled
+                  - database 
+                  - password                      
+              required:
+                - email
+                - password
+                - namespace
+                - auth
+            status:
+              x-kubernetes-preserve-unknown-fields: true
+              # type: object
+              # properties:
+              #   wsk_user_create:
+              #     type: object
+              #     properties:
+              #       couchdb:
+              #         type: string
+              #       mongodb:
+              #         type: string
+              #       redis:
+              #         type: string
+              #       object-storage:
+              #         type: string
+              #       route:
+              #         type: string                            
+      additionalPrinterColumns:
+        - name: CouchDB
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_user_create.couchdb
+          description: CouchDB
+        - name: MongoDB
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_user_create.mongodb
+          description: MongoDB
+        - name: Redis
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_user_create.redis
+          description: Redis
+        - name: ObjectStorage
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_user_create.storage_data
+          description: ObjectStorage
+        - name: Route
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_user_create.storage_route
+          description: Route                         

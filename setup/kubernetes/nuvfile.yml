@@ -1,0 +1,318 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  RETRY: 100
+  TIMEOUT: 10s
+  CONTEXT: ""
+
+env:
+  KUBECONFIG:
+    sh: |
+      if test -e $(realpath "$NUV_TMP/kubeconfig")
+      then echo $(realpath "$NUV_TMP/kubeconfig")
+      else echo ~/.kube/config
+      fi
+# sets memory parameter for the controller invoker and corresponding pods
+  OPENWHISK_CONTROLLER_JAVA_OPTS: 
+    sh: |
+      if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
+      then echo -Xmx2G
+      else echo -Xmx"$OPENWHISK_CONTROLLER_JVMGB"G
+      fi
+  OPENWHISK_INVOKER_JAVA_OPTS: 
+    sh: |
+      if [ -z "$OPENWHISK_INVOKER_JVMGB" ]
+      then echo -Xmx2G
+      else echo -Xmx"$OPENWHISK_INVOKER_JVMGB"G
+      fi
+  OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY: 
+    sh: |
+      if [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
+      then echo 2048m
+      else pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((pool*1024))m
+      fi
+  OPENWHISK_CONTROLLER_RES_MIN_MEM: 
+    sh: |
+      if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
+      then echo 2G
+      else echo "$OPENWHISK_CONTROLLER_JVMGB"G
+      fi
+  OPENWHISK_CONTROLLER_RES_MAX_MEM: 
+    sh: |
+      if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
+      then echo 3G
+      else mem=$OPENWHISK_CONTROLLER_JVMGB; echo $((mem+1))G
+      fi
+  OPENWHISK_INVOKER_RES_MIN_MEM: 
+    sh: |
+      if [ -z "$OPENWHISK_INVOKER_JVMGB" ]
+      then echo 3G 
+      else mem=$OPENWHISK_INVOKER_JVMGB; echo $((mem))G
+      fi
+  OPENWHISK_INVOKER_RES_MAX_MEM: 
+    sh: | 
+      if [ -z "$OPENWHISK_INVOKER_JVMGB" ] && [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
+      then echo 4G
+      else mem=$OPENWHISK_INVOKER_JVMGB; pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((mem+1))G
+      fi
+
+  OPERATOR_VOLUME_STORAGE_CLASS:
+    sh: |
+      echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")    
+
+tasks:
+  status:
+    desc: show nuvolaris cluster status
+    silent: true
+    cmds:
+      - echo "=== Nuvolaris Deployment"
+      - "kubectl -n nuvolaris get sts,po,svc"
+
+  info:
+    desc: show nuvolaris cluster info
+    silent: true
+    cmds:
+      - |
+        echo "=== KUBECONFIG and Current Context "
+        echo $KUBECONFIG
+        kubectl config get-contexts
+        echo "=== Nodes"
+        kubectl -n nuvolaris get no
+        echo "=== kubectl version"
+        kubectl version --short 2>/dev/null
+
+  crd:
+    #desc get crd
+    silent: true
+    cmds:
+      - kubectl get wsk/controller -n nuvolaris -o yaml
+
+  wait:
+    #desc: wait for an object to reach a condition
+    silent: true
+    cmds:
+      - test -n "{{.OBJECT}}" || die "use OBJECT=<to-wait-for>"
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do echo "$((N++)) waiting for {{.OBJECT}}"
+           if kubectl -n nuvolaris get {{.OBJECT}} 2>/dev/null
+           then RES=true ; break
+           fi
+           sleep {{.TIMEOUT}}
+        done
+        $RES
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do 
+          echo "$((N++)) waiting for {{.OBJECT}} ready"
+          if kubectl -n nuvolaris wait --for=condition=Ready {{.OBJECT}} --timeout={{.TIMEOUT}} 2>/dev/null
+          then RES=true ; break
+          fi
+        done
+        $RES
+
+  context:
+    desc: select the context to use
+    silent: true
+    cmds:
+      - |
+        if test -n "{{.CONTEXT}}"
+        then  if kubectl config use-context "{{.CONTEXT}}"
+              then kubectl config get-contexts
+              else false
+              fi
+        else echo Using current context
+            kubectl config get-contexts
+        fi
+
+  runtimes:
+    silent: true
+    cmds:
+      - |-
+        cat <<EOF >_runtimes.yaml
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: openwhisk-runtimes
+          namespace: nuvolaris
+        data:
+          runtimes.json: |-
+        EOF
+      - awk '{ print "        " $0}' <"{{.ENT_RUNTIMES}}" >>_runtimes.yaml
+      - kubectl -n nuvolaris apply -f _runtimes.yaml
+    vars:
+      ENT_RUNTIMES:
+        sh: |
+          echo runtimes.json
+      RUNTIMES:
+        sh: |          
+          if test -e "$NUV_TMP/runtimes.json"
+          then echo "$NUV_TMP/runtimes.json"
+          else echo "$NUV_ROOT/runtimes.json"
+          fi
+
+  prepare:
+    #desc: prepare the environment
+    ignore_error: true
+    silent: true
+    cmds:
+      #- "cat common/*.yaml roles/*.yaml crds/*.yaml"
+      - "kubectl apply  -f common -f roles -f crds"
+
+  operator:
+    #desc: deploy operator
+    silent: true
+    cmds:
+      - envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
+      - envsubst -i operator.yaml -o _operator.yaml
+      - "kubectl apply -f _operator-pvc.yaml -f _operator.yaml"
+      - task: wait
+        vars:
+          OBJECT: pod/nuvolaris-operator-0
+
+  whiskcrd:
+    silent: true
+    #desc: generate configuration
+    cmds:
+      - envsubst -i whisk.yaml -o _whisk.yaml
+    #- cat _whisk.yaml
+
+  secrets:
+    silent: true
+    cmds:
+      - |
+        if test -z "$SECRET_OPENWHISK_NUVOLARIS"
+        then ops util secret
+        else echo Reusing current secrets.
+        fi
+
+  instance:
+    #desc: deploy instance
+    silent: true
+    cmds:
+      - ops setup kubernetes whiskcrd
+      #- cat _whisk.yaml
+      - |
+        
+        kubectl apply -f _whisk.yaml
+      - task: wait
+        vars:
+          OBJECT: pod/couchdb-0
+      - task: wait
+        vars:
+          OBJECT: pod/controller-0
+
+  services:
+    silent: true
+    #desc: wait for active services
+    cmds:
+      - |
+        if $OPERATOR_COMPONENT_REDIS
+        then ops setup kubernetes wait OBJECT=po/redis-0
+        fi
+      - |
+        if $OPERATOR_COMPONENT_MONGODB
+        then ops setup kubernetes wait OBJECT=po/nuvolaris-mongodb-0
+        fi
+      - |
+        if $OPERATOR_COMPONENT_MINIO
+        then  POD="$(kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}')"
+              ops setup kubernetes wait OBJECT=pod/$POD
+        fi
+
+  create:
+    silent: true
+    desc: create cluster
+    cmds:
+      - task: permission
+      - task: deploy
+
+  permission:
+    desc: assign permissions (required cluster-admin)
+    cmds:
+      - task: context
+      - task: prepare
+
+  deploy:
+    desc: deploy in namespace (use namespace admin)
+    cmds:
+      - task: context
+      - task: secrets
+      - task: runtimes
+      - task: operator
+      - task: instance
+      - task: services
+
+  delete:
+    silent: true
+    ignore_error: true
+    desc: delete cluster
+    cmds:
+      - source forcedelete.src
+      - kubectl -n nuvolaris delete objectbucketclaims --all
+      - kubectl delete clusterissuers/letsencrypt-issuer 2>/dev/null      
+      - kubectl -n nuvolaris delete sts/nuvolaris-operator --grace-period=0
+      - kubectl -n nuvolaris delete po,sts,job,deploy,svc --all --grace-period=0
+      - kubectl -n nuvolaris delete cm,secret,sa,role --all
+      - kubectl -n nuvolaris delete pvc --all
+      - kubectl -n nuvolaris delete ing --all --grace-period=0 2>/dev/null
+      - kubectl -n nuvolaris delete route --all --grace-period=0 2>/dev/null
+      - kubectl -n nuvolaris delete kubegres --all
+      - kubectl -n nuvolaris delete cephobjectstoreusers --all
+      #- "kubectl get ns nuvolaris -o json | jq '.spec.finalizers = []' | kubectl replace --raw '/api/v1/namespaces/nuvolaris/finalize' -f -"
+      - kubectl delete ns nuvolaris
+
+  superdelete:
+    - source superdelete.src
+
+  unlock:
+    silent: true
+    desc: "unlock locked deletion (removing a finalizers)"
+    cmds:
+      - >
+        kubectl -n nuvolaris patch wsk/controller --type=merge 
+        --patch '{"metadata": {"finalizers":[] } }'
+
+  operator-update:
+    silent: true
+    desc: update the operator using the latest version configured in nuvroot.json if it is different than the current deployed one
+    cmds:
+      - "kubectl apply -f crds"
+      - task: operator
+      - kubectl -n nuvolaris rollout restart statefulset nuvolaris-operator
+    preconditions:      
+      - sh: '[ $ENT_IMAGES_OPERATOR != $(nuv debug operator:version) ]'
+        msg: "Current nuvolaris enterprise operator it is already updated to newest version. Request ignored."
+
+  instance-update:
+    #desc: deploy instance
+    silent: true
+    cmds:
+      - ops setup kubernetes prepare
+      - ops setup kubernetes whiskcrd      
+      - |        
+        kubectl apply -f _whisk.yaml
+      - task: wait
+        vars:
+          OBJECT: pod/controller-0    

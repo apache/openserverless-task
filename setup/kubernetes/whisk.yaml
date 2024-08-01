@@ -1,0 +1,210 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+apiVersion: nuvolaris.org/v1
+kind: Whisk
+metadata:
+  name: controller
+  namespace: nuvolaris
+spec:
+  nuvolaris:
+      password: $SECRET_NUVOLARIS_METADATA
+      kube: ${OPERATOR_CONFIG_KUBE:-auto}
+      apihost: ${OPERATOR_CONFIG_APIHOST}
+      storageclass: ${OPERATOR_CONFIG_STORAGECLASS:-auto}
+      provisioner: ${OPERATOR_CONFIG_STORAGEPROVISIONER:-auto}
+      protocol: ${OPERATOR_CONFIG_HOSTPROTOCOL:-auto}
+      affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
+      tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+  components:
+    # start openwhisk controller
+    openwhisk: true
+    # start openwhisk invoker
+    invoker: true    
+    # start couchdb
+    couchdb: true
+    # start zookeeper
+    zookeeper: true    
+    # start kafka
+    kafka: true
+    # prometheus monitoring enabled or not
+    monitoring: ${OPERATOR_COMPONENT_PROMETHEUS:-false}        
+    # start mongodb
+    mongodb: ${OPERATOR_COMPONENT_MONGODB:-false}
+    # start redis
+    redis: ${OPERATOR_COMPONENT_REDIS:-false}
+    # start cron based action parser
+    cron: ${OPERATOR_COMPONENT_CRON:-false}
+    # enable TLS
+    tls: ${OPERATOR_COMPONENT_TLS:-false}
+    # minio enabled or not
+    minio: ${OPERATOR_COMPONENT_MINIO:-false}
+    # minio static enabled or not
+    static: ${OPERATOR_COMPONENT_STATIC:-false} 
+    # postgres enabled or not
+    postgres: ${OPERATOR_COMPONENT_POSTGRES:-false}
+    # quota enabled or not
+    quota: ${OPERATOR_COMPONENT_QUOTA:-false}
+  tls:
+    acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL}
+    acme-server-url: https://acme-v02.api.letsencrypt.org/directory
+  openwhisk:
+    namespaces:
+      whisk-system: $SECRET_OPENWHISK_SYSTEM
+      nuvolaris: $SECRET_OPENWHISK_NUVOLARIS
+  couchdb:
+    host: couchdb
+    volume-size: ${STORAGE_SIZE_COUCHDB:-30}
+    admin:
+      user: whisk_admin
+      password: $SECRET_COUCHDB_ADMIN
+    controller:
+      user: controller_admin
+      password: $SECRET_COUCHDB_INVOKER
+    invoker:
+      user: invoker_admin
+      password: $SECRET_COUCHDB_CONTROLLER
+  kafka:
+    host: kafka
+    volume-size: ${STORAGE_SIZE_KAFKA:-30}
+  zookeeper:
+    host: zookeeper
+    data-volume-size:  ${STORAGE_SIZE_ZOOKEEPER:-5}
+    log-volume-size: ${STORAGE_SIZE_ZOOKEEPER:-5}
+  controller:
+    protocol: "http"
+    host : "controller"
+    port: "3233"
+    image: "$ENT_IMAGES_CONTROLLER"
+  invoker:
+    protocol: "http"
+    host : "invoker"
+    port: "8080"
+    image: "$ENT_IMAGES_INVOKER"
+  scheduler:
+    schedule: "* * * * *"
+  quota:
+    schedule: "*/10 * * * *"  
+  configs:
+    limits:
+      activations:
+        max_allowed_payload: ${OPENWHISK_ACTIVATION_MAX_ALLOWED_PAYLOAD:-1048576}    
+      actions:
+        sequence-maxLength: ${OPENWHISK_ACTION_SEQUENCE_MAX_LENGTH:-50}
+        invokes-perMinute: ${OPENWHISK_ACTION_INVOKE_PER_MINUTE:-999}
+        invokes-concurrent: ${OPENWHISK_ACTION_INVOKE_CONCURRENT:-250}
+      triggers: 
+        fires-perMinute: ${OPENWHISK_TRIGGER_PER_MINUTE:-999}
+      time:
+        limit-min: "${OPENWHISK_TIME_LIMIT_MIN:-100ms}"
+        limit-std: "${OPENWHISK_TIME_LIMIT_STD:-1min}"
+        limit-max: "${OPENWHISK_TIME_LIMIT_MAX:-5min}"
+      memory:
+        limit-min: "${OPENWHISK_ACTION_MEMORY_LIMIT_MIN:-128m}"
+        limit-std: "${OPENWHISK_ACTION_MEMORY_LIMIT_STD:-256m}"
+        limit-max: "${OPENWHISK_ACTION_MEMORY_LIMIT_MAX:-2048m}"
+      loadbalancer:
+        blackbox-fraction : "10%"
+        timeout-factor: 2                
+    controller:
+      javaOpts: "$OPENWHISK_CONTROLLER_JAVA_OPTS"
+      loggingLevel: "${OPENWHISK_CONTROLLER_LOGGINGLEVEL:-INFO}"
+      replicas: ${OPENWHISK_CONTROLLER_REPLICAS:-1}
+      resources:
+        cpu-req: "500m"
+        cpu-lim: "1"
+        mem-req: "$OPENWHISK_CONTROLLER_RES_MIN_MEM"
+        mem-lim: "$OPENWHISK_CONTROLLER_RES_MAX_MEM"
+    invoker:
+      javaOpts: "$OPENWHISK_INVOKER_JAVA_OPTS"
+      loggingLevel: "${OPENWHISK_INVOKER_LOGGINGLEVEL:-INFO}"
+      replicas: ${OPENWHISK_INVOKER_REPLICAS:-1}
+      containerPool:
+        userMemory: "$OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY"
+      kubernetes:
+        user_pod_affinity_enabled: ${NUVOLARIS_AFFINITY:-false}
+        user_pod_affinity_key : "nuvolaris-role"
+        user_pod_affinity_value : "invoker"
+        timeouts_run: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN:-1}
+        timeouts_logs: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS:-1}
+      resources:
+        cpu-req: "500m"
+        cpu-lim: "1"
+        mem-req: "$OPENWHISK_INVOKER_RES_MIN_MEM"
+        mem-lim: "$OPENWHISK_INVOKER_RES_MAX_MEM"       
+  redis:
+    persistence-enabled: ${REDIS_PERSISTENCE_ENABLED:-true}
+    volume-size: ${STORAGE_VOLUMESIZE_REDIS:-25}
+    default:
+      password: $SECRET_REDIS_DEFAULT
+    nuvolaris:
+      prefix: nuvolaris
+      password: $SECRET_REDIS_NUVOLARIS
+  mongodb:
+    host: mongodb
+    volume-size: ${STORAGE_VOLUMESIZE_MONGODB:-50}
+    admin: 
+      user: whisk_admin
+      password: $SECRET_MONGODB_ADMIN
+    nuvolaris:
+      user: nuvolaris
+      password: $SECRET_MONGODB_NUVOLARIS
+    exposedExternally: False
+    useOperator: False
+  minio:
+    ingress:
+      s3-enabled: ${MINIO_CONFIG_INGRESS_S3:-false}
+      console-enabled: ${MINIO_CONFIG_INGRESS_CONSOLE:-false}
+      s3-hostname: ${MINIO_CONFIG_INGRESS_S3_HOSTNAME:-auto}
+      console-hostname: ${MINIO_CONFIG_INGRESS_CONSOLE_HOSTNAME:-auto}
+    volume-size: ${STORAGE_VOLUMESIZE_MINIO:-50}
+    admin:
+      user: minioadmin
+      password: $SECRET_MINIO_ADMIN    
+    nuvolaris:
+      user: nuvolaris
+      password: $SECRET_MINIO_NUVOLARIS
+  postgres:    
+    volume-size: ${STORAGE_VOLUMESIZE_POSTGRES:-50}
+    replicas: ${POSTGRES_CONFIG_REPLICAS:-2}
+    admin:      
+      password: $SECRET_POSTGRES_ADMIN
+      replica-password: $SECRET_POSTGRES_REPLICA
+    nuvolaris:
+      password: $SECRET_POSTGRES_NUVOLARIS
+    failover: ${POSTGRES_CONFIG_FAILOVER:-false}
+    backup:
+      enabled: ${POSTGRES_CONFIG_BACKUP_ENABLED:-false}
+      schedule: "${POSTGRES_CONFIG_BACKUP_SCHEDULE:-0 */1 * * *}"
+  monitoring:
+    prometheus:
+      volume-size: ${STORAGE_VOLUMESIZE_MONITORING:-30}
+    alert-manager:
+      enabled: ${OPERATOR_COMPONENT_AM:-false}
+      volume-size: ${STORAGE_VOLUMESIZE_MONITORING:-30}
+      slack:        
+        enabled: ${OPERATOR_CONFIG_ALERTSLACK:-false}
+        default: true 
+        slack_channel_name: "$OPERATOR_CONFIG_SLACK_CHANNELNAME"
+        slack_api_url: "$OPERATOR_CONFIG_SLACK_APIURL"
+      gmail:       
+        enabled: ${OPERATOR_CONFIG_ALERTGMAIL:-false}
+        default: false
+        from: $OPERATOR_CONFIG_EMAIL_FROM
+        to: $OPERATOR_CONFIG_EMAIL_TO
+        username: $OPERATOR_CONFIG_GMAIL_USERNAME
+        password: $OPERATOR_CONFIG_GMAIL_PASSWORD                     
