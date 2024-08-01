@@ -28,12 +28,12 @@ tasks:
      - |
        {{if eq .OS "windows"}}
        7zz e -r -aoa -o. "{{.FILE}}" "{{.OUT}}.exe"
-       rm "{{.FILE}}"
+       remove "{{.FILE}}"
        {{else}}
        7zz e "{{.FILE}}" -o.
-       rm "{{.FILE}}"
+       remove "{{.FILE}}"
        7zz e -r -aoa -o. "{{.FILETAR}}" "{{.OUT}}"
-       rm "{{.FILETAR}}"
+       remove "{{.FILETAR}}"
        {{end}}
 
   download:
@@ -43,8 +43,8 @@ tasks:
         - OUT
     cmds:
       - curl -sL -ccookie.txt -o"{{.OUT}}" "{{.URL}}"
-      - '{{if eq .OS "windows"}}mv {{.OUT}} {{.OUT}}.exe{{else}}chmod +x {{.OUT}}{{end}}'
-      - rm cookie.txt
+      - '{{if eq .OS "windows"}}rename {{.OUT}} {{.OUT}}.exe{{else}}chmod +x {{.OUT}}{{end}}'
+      - remove cookie.txt
 
   7zz:
     desc: 7zr
@@ -65,9 +65,9 @@ tasks:
     - curl -sL "{{.URL}}"  -o "{{.FILE}}"
     - |
       if test "{{.OS}}" == "windows" 
-      then mv 7zr.exe 7zz.exe
+      then rename 7zr.exe 7zz.exe
       else tar xJvf "{{.FILE}}" 7zz
-           rm "{{.FILE}}"
+           remove "{{.FILE}}"
       fi
  
   coreutils:
@@ -106,7 +106,7 @@ tasks:
     - echo "{{.URL}}"
     - curl -sL "{{.URL}}" -o "{{.FILE}}"
     - 7zz e -r -aoa -o. {{.FILE}} bun{{.EXE}}
-    - rm "{{.FILE}}"
+    - remove "{{.FILE}}"
 
   kubectl:
     vars:

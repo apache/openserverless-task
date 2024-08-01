@@ -47,3 +47,7 @@ tasks:
     desc: k3sup test
     cmds:
     - echo k3sup $(k3sup version | grep 'Version:')
+
+  tools:
+    - rename
+    - remove
