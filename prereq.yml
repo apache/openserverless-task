@@ -9,10 +9,6 @@ vars:
   EXE: '{{if eq .OS "windows"}}.exe{{else}}{{end}}'
 
 tasks:
-
-  info:
-    - echo "__ARCH={{.__ARCH}} BOH={{.BOH}}"
-    - echo "OS={{.OS}} ARCH={{.ARCH}} ARC={{.ARC}} EXE={{.EXE}}"
  
   download-and-extract:
      requires:
@@ -20,21 +16,11 @@ tasks:
        - FILE
        - URL
        - OUT
-     vars:
-       FILETAR: '{{trimSuffix ".gz" .FILE}}'
      cmds:
      - echo "{{.OUT}} {{.FILE}} {{.URL}} {{.FILETAR}}" 
      - curl -sL "{{.URL}}" -o {{.FILE}}
-     - |
-       {{if eq .OS "windows"}}
-       7zz e -r -aoa -o. "{{.FILE}}" "{{.OUT}}.exe"
-       remove "{{.FILE}}"
-       {{else}}
-       7zz e "{{.FILE}}" -o.
-       remove "{{.FILE}}"
-       7zz e -r -aoa -o. "{{.FILETAR}}" "{{.OUT}}"
-       remove "{{.FILETAR}}"
-       {{end}}
+     - extract "{{.FILE}}" "{{.OUT}}{{.EXE}}"
+     - remove "{{.FILE}}"
 
   download:
     requires:
@@ -47,7 +33,7 @@ tasks:
       - remove cookie.txt
 
   7zz:
-    desc: 7zr
+    desc: download 7zz
     vars:
       VERSION: "2407"
       SUFFIX:
@@ -66,14 +52,14 @@ tasks:
     - |
       if test "{{.OS}}" == "windows" 
       then rename 7zr.exe 7zz.exe
-      else tar xJvf "{{.FILE}}" 7zz
-           remove "{{.FILE}}"
+      else extract "{{.FILE}}" 7zz
       fi
  
   coreutils:
-    desc: coreutils
+    desc: download coreutils
     vars:
       # when changing this add the list of utilites to nuvroot.json in config.ops.coreutils
+      # do NOT include [ test false true echo
       VERSION: "0.0.27"
       SUFFIX:
         sh: |
@@ -96,7 +82,7 @@ tasks:
         OUT: coreutils
 
   bun:
-    description: bun
+    desc: download bun
     vars:
       VERSION: "1.1.21"
       ARCH2: '{{if eq .ARCH "amd64"}}x64{{else}}aarch64{{end}}'
@@ -105,10 +91,11 @@ tasks:
     cmds:
     - echo "{{.URL}}"
     - curl -sL "{{.URL}}" -o "{{.FILE}}"
-    - 7zz e -r -aoa -o. {{.FILE}} bun{{.EXE}}
+    - extract "{{.FILE}}" bun{{.EXE}}
     - remove "{{.FILE}}"
 
   kubectl:
+    desc: download kubectl
     vars:
       VERSION: v1.30.3
     cmds:
@@ -118,6 +105,7 @@ tasks:
           OUT: kubectl
 
   kind:
+    desc: download bun
     vars:
       VERSION: 0.17.0
     cmds:
@@ -127,6 +115,7 @@ tasks:
           OUT: kind
 
   k3sup:
+    desc: download k3sup
     vars:
       VERSION: 0.13.6
       BASE: "https://github.com/alexellis/k3sup/releases/download/{{.VERSION}}"
@@ -151,5 +140,4 @@ tasks:
     - task: bun
     - task: kind
     - task: k3sup
-    # skipping this as it is slow to download
-    #- task: kubectl
+    - task: kubectl
