@@ -1,0 +1,943 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+vars:
+  VAR: ""
+  MSG: ""
+  VAL: ""
+
+tasks:
+  apihost:
+    silent: true
+    cmds:
+      - config OPERATOR_CONFIG_APIHOST="{{._apihost_}}"
+      - config -dump | grep OPERATOR_CONFIG_APIHOST
+      - |
+        if test -n "{{.__tls}}" 
+        then config OPERATOR_CONFIG_TLSEMAIL="{{.__tls}}" OPERATOR_COMPONENT_TLS=true
+        else config OPERATOR_CONFIG_TLSEMAIL="none" OPERATOR_COMPONENT_TLS=false
+        fi
+      - |
+        if test -n "{{.__protocol}}" 
+        then config OPERATOR_CONFIG_HOSTPROTOCOL="{{.__protocol}}"
+        else config OPERATOR_CONFIG_HOSTPROTOCOL="auto"
+        fi        
+      - config -dump | grep OPERATOR_COMPONENT_TLS
+      - config -dump | grep OPERATOR_CONFIG_HOSTPROTOCOL
+
+  enable:
+    silent: true
+    cmds:
+      - |
+        if {{.__redis}} || {{.__all}}
+        then config OPERATOR_COMPONENT_REDIS=true
+        fi        
+      - |  
+        if {{.__mongodb}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_MONGODB=true
+
+          if {{.__mongodb}}
+          then echo 'MongoDB (FerretDB) deployment requires PosgresSQL. Enabling it.'
+            config OPERATOR_COMPONENT_POSTGRES=true
+          fi    
+        fi
+      - | 
+        if {{.__minio}} || {{.__all}}
+        then config OPERATOR_COMPONENT_MINIO=true
+        fi
+      - |  
+        if {{.__cron}} || {{.__all}}
+        then config OPERATOR_COMPONENT_CRON=true
+        fi
+      - |
+        if {{.__static}} || {{.__all}}
+        then config OPERATOR_COMPONENT_STATIC=true
+        fi
+      - | 
+        if {{.__postgres}} || {{.__all}}
+        then config OPERATOR_COMPONENT_POSTGRES=true
+        fi
+      - |
+        if {{.__prometheus}} || {{.__all}}
+        then config OPERATOR_COMPONENT_PROMETHEUS=true
+        fi
+      - |  
+        if {{.__slack}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_ALERTSLACK=true        
+        fi 
+      - | 
+        if {{.__mail}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_ALERTGMAIL=true        
+        fi
+      - | 
+        if {{.__affinity}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_AFFINITY=true        
+        fi
+      - | 
+        if {{.__tolerations}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_TOLERATIONS=true   
+        fi 
+      - | 
+        if {{.__quota}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_QUOTA=true   
+        fi                        
+      - | 
+        if {{.__slack}} || {{.__mail}} || {{.__all}}
+        then echo 'Alert Manager deployment requires Prometheus. Enabling it.'
+            config OPERATOR_COMPONENT_PROMETHEUS=true
+            config OPERATOR_COMPONENT_AM=true
+        fi
+      - task: status
+
+  disable:
+    silent: true
+    cmds:
+      - |
+        if {{.__redis}} || {{.__all}}
+        then config OPERATOR_COMPONENT_REDIS=false
+        fi
+      - | 
+        if {{.__mongodb}} || {{.__all}}
+        then config OPERATOR_COMPONENT_MONGODB=false
+        fi
+      - | 
+        if {{.__minio}} || {{.__all}}
+        then config OPERATOR_COMPONENT_MINIO=false
+        fi
+      - | 
+        if {{.__cron}} || {{.__all}}
+        then config OPERATOR_COMPONENT_CRON=false
+        fi
+      - | 
+        if {{.__static}} || {{.__all}}
+        then config OPERATOR_COMPONENT_STATIC=false
+        fi
+      - | 
+        if {{.__postgres}} || {{.__all}}
+        then config OPERATOR_COMPONENT_POSTGRES=false
+          if {{.__postgres}}
+            then echo 'Disabling PosgresSQL forces deactivation of MongoDB (FerretDB)'
+                config OPERATOR_COMPONENT_MONGODB=false
+          fi
+        fi
+      - |
+        if {{.__prometheus}} || {{.__all}}
+        then config OPERATOR_COMPONENT_PROMETHEUS=false
+          if {{.__prometheus}}
+            then echo 'Disabing Prometheus forces deactivation of Alert Manager.'
+                config OPERATOR_COMPONENT_AM=false
+                config OPERATOR_CONFIG_ALERTGMAIL=false
+                config OPERATOR_CONFIG_ALERTSLACK=false
+          fi
+        fi
+      - | 
+        if {{.__slack}} || {{.__all}} 
+        then 
+          config OPERATOR_CONFIG_ALERTSLACK=false
+        fi 
+      - | 
+        if {{.__mail}} || {{.__all}} 
+        then 
+          config OPERATOR_CONFIG_ALERTGMAIL=false
+        fi 
+      - | 
+        if {{.__quota}} || {{.__all}} 
+        then 
+          config OPERATOR_COMPONENT_QUOTA=false
+        fi
+      - | 
+        if {{.__affinity}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_AFFINITY=false        
+        fi
+      - | 
+        if {{.__tolerations}} || {{.__all}}
+        then 
+          config OPERATOR_CONFIG_TOLERATIONS=false   
+        fi                  
+      - task: status
+
+  status:
+    silent: true
+    cmds:
+      - cmd: config -dump | grep OPERATOR_
+        ignore_error: true
+      - cmd: config -dump | grep AKS_
+        ignore_error: true
+      - cmd: config -dump | grep EKS_
+        ignore_error: true
+      - cmd: config -dump | grep GKE_
+        ignore_error: true
+
+  export:
+    silent: true
+    cmds:
+      - config -dump | awk '{print "export "$0}'
+      - |
+        echo NUV_TMP=$NUV_TMP
+        echo 'DATA:() {' 
+        echo '  DATA="$(eval $@)"' 
+        echo '}'
+        echo alias RUN:=
+
+  reset:
+    silent: true
+    cmds:
+      - rm -rf ~/.nuv/config.json || true
+      - rm -rf "$NUV_TMP/runtimes.json" || true
+      - config -dump
+
+  # read a value, empty => use a default
+  read:
+    silent: true
+    cmds:
+      - test -n "{{.VAR}}" || die "specify variable VAR="
+      - test -n "{{.MSG}}" || die "specify message MSG="
+      - test -n "{{.DEF}}" || die "specify default DEF="
+      - |
+        if test -z "{{.VAL}}"
+        then  
+          echo "*** Please, specify {{.MSG}} and press enter."
+          test -n "{{.HINT}}" && echo "{{.HINT}}"
+          if test -z "${{.VAR}}"
+          then def="{{.DEF}}"
+          else def="${{.VAR}}"
+          fi
+          echo "Just press enter for default [$def]: "
+          {{if eq OS "windows"}} 
+            input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
+            input=${input%?} # For some reason, powershell adds a character (\n?) at the end
+          {{else}}
+            read -p "{{.MSG}}: " input
+          {{end}}
+          echo $input
+          if test -z "$input"
+          then input="$def"
+          fi
+        else input="{{.VAL}}"
+        fi
+        config {{.VAR}}="$input"
+
+  # read a value, empty is not accepted
+  readforce:
+    silent: true
+    cmds:
+      - test -n "{{.VAR}}" || die "specify variable VAR="
+      - test -n "{{.MSG}}" || die "specify message MSG="
+      - |
+        input="{{.VAL}}"
+        length=${#input}
+        while [ "$length" -eq "0" ]; do 
+          echo "*** Please, specify {{.MSG}} and press enter."
+          test -n "{{.HINT}}" && echo "{{.HINT}}"
+          {{if eq OS "windows"}} 
+            input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
+            input=${input%?} # For some reason, powershell adds a character (\n?) at the end
+          {{else}}
+            read -p "{{.MSG}}: " input
+          {{end}} 
+          length=${#input}
+          echo $length
+        done
+        config {{.VAR}}="$input"
+
+  _aws:
+    cmds:
+      - task: readforce
+        vars:
+          MSG: "AWS Access Id"
+          VAR: "AWS_ACCESS_KEY_ID"
+          VAL: "{{.__access}}"
+      - task: readforce
+        vars:
+          MSG: "AWS Secret Key"
+          VAR: "AWS_SECRET_ACCESS_KEY"
+          VAL: "{{.__secret}}"
+      - task: read
+        vars:
+          MSG: "AWS Region to use"
+          VAR: "AWS_DEFAULT_REGION"
+          HINT: |
+            To get a list of valid values use:
+              aws ec2 describe-regions --output table
+          VAL: "{{.__region}}"
+          DEF: "us-east-1"
+      - task: read
+        vars:
+          MSG: "AWS public SSH key "
+          HINT: |
+            If you already have a public SSH key in AWS, provide its name here.
+            If you do not have it, generate a key pair with the following command:
+              ssh-keygen
+            The public key defaults to ~/.ssh/id_rsa.pub and you can import with:
+              aws ec2 import-key-pair --key-name nuvolaris-key --public-key-material --region=<your-region> fileb://~/.ssh/id_rsa.pub
+          VAR: "AWS_SSHKEY"
+          VAL: "{{.__key}}"
+          DEF: "nuvolaris-key"
+
+  aws:
+    silent: true
+    cmds:
+      - task: _aws
+      - task: read
+        vars:
+          MSG: "AWS Image to use for VMs"
+          VAR: "AWS_VM_IMAGE_ID"
+          HINT: |
+            The suggested image is an Ubuntu 22 valid only for us-east-1
+            Please check AWS website for alternative images in other zones
+          VAL: "{{.__image}}"
+          DEF: "ami-052efd3df9dad4825"
+      - task: read
+        vars:
+          MSG: "AWS Default user for image to use for VMs"
+          VAR: "AWS_VM_IMAGE_USER"
+          HINT: |
+            Default user to access the selected image.
+          VAL: "{{.__vmuser}}"
+          DEF: "ubuntu"
+      - task: read
+        vars:
+          MSG: "AWS Instance type to use for VMs"
+          VAR: "AWS_VM_INSTANCE_TYPE"
+          HINT: |
+            The suggested instance type has 8GB and 2vcp
+            To get a list of valid values, use:
+            aws ec2 describe-instance-types --query 'InstanceTypes[].InstanceType' --output table
+          VAL: "{{.__vm}}"
+          DEF: "t3a.large"
+      - task: read
+        vars:
+          MSG: "AWS Disk Size to use for VMs"
+          VAR: "AWS_VM_DISK_SIZE"
+          VAL: "{{.__disk}}"
+          DEF: "100"
+
+  eks:
+    silent: true
+    cmds:
+      - task: _aws
+      - task: read
+        vars:
+          MSG: "EKS Name for Cluster and Node Group"
+          VAR: "EKS_NAME"
+          VAL: "{{.__name}}"
+          DEF: "nuvolaris"
+      - task: read
+        vars:
+          MSG: "EKS number of worker nodes"
+          VAR: "EKS_COUNT"
+          VAL: "{{.__count}}"
+          DEF: "3"
+      - task: read
+        vars:
+          MSG: "EKS virtual machine type"
+          HINT: >
+            To get a list of valid values, use:
+              aws ec2 describe-instance-types --query 'InstanceTypes[].InstanceType' --output table
+          VAR: "EKS_VM"
+          VAL: "{{.__vm}}"
+          DEF: "m5.xlarge"
+      - task: read
+        vars:
+          MSG: "EKS disk size in gigabyte"
+          VAR: "EKS_DISK"
+          VAL: "{{.__disk}}"
+          DEF: "50"
+      - task: read
+        vars:
+          MSG: "EKS Kubernetes Version"
+          VAR: "EKS_KUBERNETES_VERSION"
+          VAL: "{{.__kubever}}"
+          DEF: "1.25"
+      - config -d | grep AWS_
+      - config -d | grep EKS_
+
+  gcloud:
+    silent: true
+    cmds:
+      - task: readforce
+        vars:
+          MSG: "GCloud Project Id"
+          VAR: "GCLOUD_PROJECT"
+          VAL: "{{.__project}}"
+      - task: read
+        vars:
+          MSG: "GCloud Zone"
+          HINT: >
+            To get a list of valid values use:
+              gcloud compute zones list
+          VAR: "GCLOUD_REGION"
+          VAL: "{{.__region}}"
+          DEF: "us-east1"
+      - task: read
+        vars:
+          MSG: "GCloud virtual machine type"
+          HINT: >
+            To get a list of valid values, use:
+              gcloud compute machine-types list
+          VAR: "GCLOUD_VM"
+          VAL: "{{.__vm}}"
+          DEF: "n2-standard-4"
+      - task: read
+        vars:
+          MSG: "GCloud disk size in gigabyte"
+          VAR: "GCLOUD_DISK"
+          VAL: "{{.__disk}}"
+          DEF: "200"
+      - task: read
+        vars:
+          MSG: "GCloud public SSH key"
+          HINT: >
+            If you already have a public SSH key provide its path here.
+            If you do not have it, generate a key pair with the following command:
+              ssh-keygen
+            The public key defaults to ~/.ssh/id_rsa.pub.
+          VAR: "GCLOUD_SSHKEY"
+          VAL: "{{.__key}}"
+          DEF: "~/.ssh/id_rsa.pub"
+      - task: read
+        vars:
+          MSG: "GCloud VM image"
+          VAR: "GCLOUD_IMAGE"
+          VAL: "{{.__image}}"
+          DEF: "ubuntu-minimal-2204-lts"        
+      - config -d | grep GCLOUD_
+
+  gke:
+    silent: true
+    cmds:
+      - task: readforce
+        vars:
+          MSG: "GCloud Project Id"
+          VAR: "GKE_PROJECT"
+          VAL: "{{.__project}}"
+      - task: read
+        vars:
+          MSG: "GCloud Cluster Name"
+          HINT: >
+            The cluster name must be unique.
+          VAR: "GKE_NAME"
+          VAL: "{{.__name}}"
+          DEF: "nuvolaris"
+      - task: read
+        vars:
+          MSG: "GCloud Cluster Zone"
+          HINT: >
+            To get a list of valid values use:
+              gcloud compute zones list
+          VAR: "GKE_REGION"
+          VAL: "{{.__region}}"
+          DEF: "us-east1"
+      - task: read
+        vars:
+          MSG: "GCloud number of worker nodes"
+          VAR: "GKE_COUNT"
+          VAL: "{{.__count}}"
+          DEF: "3"
+      - task: read
+        vars:
+          MSG: "GKE virtual machine type"
+          HINT: >
+            To get a list of valid values, use:
+              gcloud compute machine-types list
+          VAR: "GKE_VM"
+          VAL: "{{.__vm}}"
+          DEF: "e2-standard-2"
+      - task: read
+        vars:
+          MSG: "GKE disk size in gigabyte"
+          VAR: "GKE_DISK"
+          VAL: "{{.__disk}}"
+          DEF: "50"
+      - config -d | grep GKE_
+
+  aks:
+    silent: true
+    cmds:
+      - task: read
+        vars:
+          MSG: "AKS Name for Cluster and Resource Group"
+          VAR: "AKS_NAME"
+          VAL: "{{.__name}}"
+          DEF: "nuvolaris"
+      - task: read
+        vars:
+          MSG: "AKS number of worker nodes"
+          VAR: "AKS_COUNT"
+          VAL: "{{.__count}}"
+          DEF: "3"
+      - task: read
+        vars:
+          MSG: "AKS location"
+          HINT: >
+            To get a list of valid values use:
+              az account list-locations -o table
+          VAR: "AKS_REGION"
+          VAL: "{{.__region}}"
+          DEF: "eastus"
+      - task: read
+        vars:
+          MSG: "AKS virtual machine type"
+          HINT: >
+            To get a list of valid values use:
+              az vm list-sizes --location <location> -o table
+            where <location> is your current location.
+          VAR: "AKS_VM"
+          VAL: "{{.__vm}}"
+          DEF: "Standard_B4ms"
+      - task: read
+        vars:
+          MSG: "AKS disk size in gigabyte"
+          VAR: "AKS_DISK"
+          VAL: "{{.__disk}}"
+          DEF: "50"
+      - task: read
+        vars:
+          MSG: "AKS public SSH key in AWS"
+          HINT: >
+            If you already have a public SSH key provide its path here.
+            If you do not have it, generate a key pair with the following command:
+              ssh-keygen
+            The public key defaults to ~/.ssh/id_rsa.pub.
+          VAR: "AKS_SSHKEY"
+          VAL: "{{.__key}}"
+          DEF: "~/.ssh/id_rsa.pub"
+      - config -d | grep AKS_
+
+  runtimes:
+    silent: true
+    cmds:
+      - |
+        if test -z "{{._runtimesjson_}}"
+        then cat "{{.RUNTIMES}}"
+        else RT="$(realpath "{{._runtimesjson_}}")"
+            if test -e "$RT"
+            then cp "$RT" "$NUV_TMP/runtimes.json"
+                 echo "Imported runtimes.json from $RT"
+            else echo "not found {{._runtimesjson_}}"
+            fi
+        fi
+    vars:
+      RUNTIMES:
+        sh: |
+          if test -e "$NUV_TMP/runtimes.json"
+          then echo "$NUV_TMP/runtimes.json"
+          else echo ../setup/kubernetes/runtimes.json
+          fi
+
+  use:
+    silent: true
+    desc: select a different kubeconfig among those you created
+    cmds:
+      - |
+        if ls "$NUV_TMP/*.kubeconfig" >/dev/null  2>/dev/null
+        then
+          if test -z "{{._n_}}"
+          then N=1
+              echo "*** Available kubeconfig (select by name or number):"
+              echo "0  default kubeconfig (usually ~/.kube/config)"
+              if test -e $NUV_TMP/kubeconfig
+              then CUR="$(cat $NUV_TMP/kubeconfig)"
+              else CUR=""
+              fi
+              for i in $NUV_TMP/*.kubeconfig
+              do  K=$(basename ${i//\\//})
+                  if test "$CUR" == "$(cat $NUV_TMP/$K)"
+                  then MSG="* "
+                  else MSG="  "
+                  fi
+                  echo "$((N++))$MSG${K%%.kubeconfig}"
+              done
+          else
+            if [[ "{{._n_}}" == "0" ]]
+            then rm $NUV_TMP/kubeconfig
+                 echo using default kubeconfig "${KK}" 
+            else
+              N=1
+              for i in $NUV_TMP/*.kubeconfig
+              do  K=$(basename $i)
+                  KK="${K%%.kubeconfig}"
+                  if [[ "$((N++))" = "{{._n_}}" || "$KK" = "{{._n_}}" ]]
+                  then  N=0
+                        if {{.__delete}}
+                        then echo removing kubeconfig "${KK}"
+                            rm "$i"
+                        elif test -n "{{.__rename}}"
+                        then  NEWNAME="$(dirname $i)/{{.__rename}}.kubeconfig"
+                              echo "renaming {{._n_}} to {{.__rename}}"
+                              mv "$i" "$NEWNAME"
+                        else
+                          cp "$i" "$NUV_TMP/kubeconfig"
+                          echo now using kubeconfig "${KK}"  
+                          if kubectl --kubeconfig "$NUV_TMP/kubeconfig" cluster-info
+                          then echo now using kubeconfig "${KK}" 
+                          else echo "problems using this kubeconfig - removed"
+                              rm "$NUV_TMP/kubeconfig"
+                              echo please remove it with "nuv config use {{._n_}} --delete"
+                          fi
+                        fi
+                        break
+                  fi
+              done
+              if test "$N" != "0"
+              then echo not found kubeconfig "{{._n_}}"
+              fi
+            fi
+          fi
+        else echo "no available kubeconfig to use"
+        fi
+
+  slack:
+    silent: true
+    cmds:
+    - task: readforce
+      vars:
+        MSG: "Slack Api URL"
+        VAR: "OPERATOR_CONFIG_SLACK_APIURL"
+        VAL: "{{.__apiurl}}"    
+    - task: read
+      vars:
+        MSG: "Slack channel to be used"
+        VAR: "OPERATOR_CONFIG_SLACK_CHANNELNAME"
+        HINT: | 
+              Specific the channel name preceeded by a '#'
+        VAL: "{{.__channel}}"
+        DEF: "#monitoring-openserverless"
+  
+  mail:
+    silent: true
+    cmds:
+    - task: readforce
+      vars:
+        MSG: "Gmail account username"
+        VAR: "OPERATOR_CONFIG_GMAIL_USERNAME"
+        VAL: "{{.__mailuser}}" 
+    - task: readforce
+      vars:
+        MSG: "Gmail account password"
+        VAR: "OPERATOR_CONFIG_GMAIL_PASSWORD"
+        VAL: "{{.__mailpwd}}"      
+    - task: read
+      vars:
+        MSG: "Alert email from account "
+        VAR: "OPERATOR_CONFIG_EMAIL_FROM"
+        HINT: | 
+              Specific an email address sending alert
+        VAL: "{{.__mailfrom}}"
+        DEF: "francesco.timperi@gmail.com"    
+    - task: read
+      vars:
+        MSG: "Slack channel to be used"
+        VAR: "OPERATOR_CONFIG_EMAIL_TO"
+        HINT: | 
+              Comma separated list of email recipient receiving alerts
+        VAL: "{{.__mailto}}"
+        DEF: "nomail@mail.com"
+
+  volumes:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Openwhisk CouchDB Volume size"
+        VAR: "STORAGE_SIZE_COUCHDB"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__couchdb}}"
+        DEF: "30"
+    - task: read
+      vars:
+        MSG: "Kafka Volume size"
+        VAR: "STORAGE_SIZE_KAFKA"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__kafka}}"
+        DEF: "30"
+    - task: read
+      vars:
+        MSG: "Redis Database Volume size"
+        VAR: "STORAGE_SIZE_REDIS"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__redis}}"
+        DEF: "25"                 
+    - task: read
+      vars:
+        MSG: "MongoDB Database Volume size"
+        VAR: "STORAGE_SIZE_MONGODB"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__mongodb}}"
+        DEF: "50"         
+    - task: read
+      vars:
+        MSG: "Postgres Database Volume size"
+        VAR: "STORAGE_SIZE_POSTGRES"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__postgres}}"
+        DEF: "50" 
+    - task: read
+      vars:
+        MSG: "Minio Storage Volume size"
+        VAR: "STORAGE_SIZE_MINIO"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__storage}}"
+        DEF: "50"
+    - task: read
+      vars:
+        MSG: "Promehteus Volume size"
+        VAR: "STORAGE_SIZE_MONITORING"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__alerting}}"
+        DEF: "30"
+    - task: read
+      vars:
+        MSG: "Zookeeper Volume size"
+        VAR: "STORAGE_SIZE_ZOOKEEPER"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__zookeeper}}"
+        DEF: "5"
+
+  controller:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Openwhisk Controller Java Options"
+        VAR: "OPENWHISK_CONTROLLER_JVMGB"
+        HINT: | 
+              Specifies nuvolaris controller Java options in GB
+        VAL: "{{.__javaopts}}"
+        DEF: "2"
+    - task: read
+      vars:
+        MSG: "Openwhisk Controller Logging Level"
+        VAR: "OPENWHISK_CONTROLLER_LOGGINGLEVEL"
+        HINT: | 
+              Specifies nuvolaris controller Logging Level
+        VAL: "{{.__loglevel}}"
+        DEF: "INFO"
+    - task: read
+      vars:
+        MSG: "Openwhisk Controller Replicas"
+        VAR: "OPENWHISK_CONTROLLER_REPLICAS"
+        HINT: | 
+              Specifies nuvolaris controller sts replicas
+        VAL: "{{.__replicas}}"
+        DEF: "1"
+
+  invoker:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Java Options"
+        VAR: "OPENWHISK_INVOKER_JVMGB"
+        HINT: | 
+              Specifies nuvolaris invoker Java options in GB
+        VAL: "{{.__javaopts}}"
+        DEF: "2" 
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Pool Memory Settings"
+        VAR: "OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB"
+        HINT: | 
+              Specifies nuvolaris invoker pool memory Java options in GB
+        VAL: "{{.__poolmemory}}"
+        DEF: "2"
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Kubernetes Pod Run timeout in minute"
+        VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN"
+        HINT: | 
+              Specifies nuvolaris invoker kubernetes pod run timeout in minutes
+        VAL: "{{.__timeoutsrun}}"
+        DEF: "1"  
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Kubernetes Pod Log timeout in minute"
+        VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS"
+        HINT: | 
+              Specifies nuvolaris invoker kubernetes pod logs timeout in minutes
+        VAL: "{{.__timeoutslogs}}"
+        DEF: "1"
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Logging Level"
+        VAR: "OPENWHISK_INVOKER_LOGGINGLEVEL"
+        HINT: | 
+              Specifies nuvolaris invoker Logging Level
+        VAL: "{{.__loglevel}}"
+        DEF: "INFO"
+    - task: read
+      vars:
+        MSG: "Openwhisk Invoker Replicas"
+        VAR: "OPENWHISK_INVOKER_REPLICAS"
+        HINT: | 
+              Specifies nuvolaris invoker sts replicas
+        VAL: "{{.__replicas}}"
+        DEF: "1"
+
+  limits:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Actions Max Time limits"
+        VAR: "OPENWHISK_TIME_LIMIT_MAX"
+        HINT: | 
+              Specifies a time values e.g 5min
+        VAL: "{{.__time}}"
+        DEF: "5min" 
+    - task: read
+      vars:
+        MSG: "Actions Max Memory limits"
+        VAR: "OPENWHISK_ACTION_MEMORY_LIMIT_MAX"
+        HINT: | 
+              Specifies a momeory value e.g 512m
+        VAL: "{{.__memory}}"
+        DEF: "2048m"
+    - task: read
+      vars:
+        MSG: "Actions Sequence max length"
+        VAR: "OPENWHISK_ACTION_SEQUENCE_MAX_LENGTH"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__sequencelength}}"
+        DEF: "50" 
+    - task: read
+      vars:
+        MSG: "Actions invoked per minute"
+        VAR: "OPENWHISK_ACTION_INVOKE_PER_MINUTE"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__perminute}}"
+        DEF: "999"
+    - task: read
+      vars:
+        MSG: "Actions invoked concurrently"
+        VAR: "OPENWHISK_ACTION_INVOKE_CONCURRENT"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__concurrent}}"
+        DEF: "250" 
+    - task: read
+      vars:
+        MSG: "Triggers per minutes"
+        VAR: "OPENWHISK_TRIGGER_PER_MINUTE"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__triggerperminute}}"
+        DEF: "999"
+    - task: read
+      vars:
+        MSG: "Openwhisk Standalone Controller Activation Max Allowed Payload"
+        VAR: "OPENWHISK_ACTIVATION_MAX_ALLOWED_PAYLOAD"
+        HINT: | 
+              Specifies nuvolaris controller activation options (Defaults to 1Mb)
+        VAL: "{{.__activation_max_payload}}"
+        DEF: "1048576"
+
+  storage:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Please assign a valid storage class"
+        VAR: "OPERATOR_CONFIG_STORAGECLASS"
+        HINT: | 
+              Specify a valid kubernetes storage class
+        VAL: "{{.__class}}"
+        DEF: "auto"    
+    - task: read
+      vars:
+        MSG: "Please assign a valid kubernetes storage provisioner"
+        VAR: "OPERATOR_CONFIG_STORAGEPROVISIONER"
+        HINT: | 
+              Specify a valid storage provisioner
+        VAL: "{{.__provisioner}}"
+        DEF: "auto"
+
+  postgres:
+    silent: true
+    cmds:
+    - |
+      if {{.__backup}}
+      then config POSTGRES_CONFIG_BACKUP_ENABLED=true
+      fi    
+    - |
+      if {{.__failover}}
+      then config POSTGRES_CONFIG_FAILOVER=true
+      fi 
+    - task: read
+      vars:
+        MSG: "Postgres Backup Schedule"
+        VAR: "POSTGRES_CONFIG_BACKUP_SCHEDULE"
+        HINT: | 
+              Specifies nuvolaris invoker Java options in GB
+        VAL: "{{.__schedule}}"
+        DEF: "0 */1 * * *" 
+    - task: read
+      vars:
+        MSG: "Postgres Replicas"
+        VAR: "POSTGRES_CONFIG_REPLICAS"
+        HINT: | 
+              Specifies nuvolaris invoker sts replicas
+        VAL: "{{.__replicas}}"
+        DEF: "2"
+
+  minio:
+    silent: true
+    cmds:
+    - |
+      if {{.__s3}}
+      then config MINIO_CONFIG_INGRESS_S3=true
+      fi    
+    - |
+      if {{.__console}}
+      then config MINIO_CONFIG_INGRESS_CONSOLE=true
+      fi 
+
+  minimal:
+    silent: true
+    cmds:
+    - task: reset
+    - |
+      config OPERATOR_COMPONENT_REDIS=true
+    - |
+      config OPERATOR_COMPONENT_MONGODB=true
+    - |
+      config OPERATOR_COMPONENT_MINIO=true
+    - |
+      config OPERATOR_COMPONENT_CRON=true  
+    - |
+      config OPERATOR_COMPONENT_STATIC=true
+    - |
+      config OPERATOR_COMPONENT_POSTGRES=true
+    - task: status                               

@@ -1,0 +1,786 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: whisks.nuvolaris.org
+  namespace: nuvolaris
+spec:
+  scope: Namespaced
+  group: nuvolaris.org
+  names:
+    kind: Whisk
+    plural: whisks
+    singular: whisk
+    shortNames:
+      - wsk
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources: { status: { } }
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:              
+                nuvolaris:
+                  description: Used to specify the openwishk apihost. It can be omitted on kubernetes having ingress attached to external LB (AKS, EKS, LKS etc)
+                  type: object
+                  properties:
+                    password:
+                      description: a password to be used to impersonate the nuvolaris user over some specific whisk_system action as the devel one.
+                      type: string                  
+                    apihost:
+                      description: a valid api hostname or ip address. If set to auto the ip address of the kubernetes cluster will be used to generate a hostname with <ip>.nip.io
+                      type: string
+                    apiport:
+                      type: integer
+                    protocol:
+                      description: protocol to be used. Defaulted to http if TLS is not enabled. On Kind it will be always http. This rules applied in auto mode, otherwise uses alway the required protocol. Default to auto.
+                      type: string
+                      enum:
+                      - http
+                      - https
+                      - auto
+                    kube:
+                      description: label representing the kubernetes runtime used to implement specific logic (kind, eks, aks, lks, microk8s, k3s, openshift). Defaulted to auto which is causing the operator to autodetect the k8s runtime.
+                      type: string
+                    storageclass:
+                      description: allow to set a defined storage class. Default to auto which will force the operator to autodetect the storage class.
+                      type: string
+                    provisioner:
+                      description: allow to set a defined storage class provisioner. Default to auto which will force the operator to autodetect the storage class provisioner.
+                      type: string                      
+                    ingressclass:
+                      description: allow to set a defined ingress class. Default to auto which will force the operator to autodetect the ingress class.
+                      type: string
+                    ingresslb:
+                      description: allow to set the location of the ingress lb in the form namespace/service-name. Default to auto which will force the operator to use default values based on the environment.
+                      type: string
+                    affinity:
+                      description: enable/disable openwhisk configuration with node affinity. This flag can be true only on multinode cluster deployment. Default to false
+                      type: boolean
+                    tolerations:
+                      description: enable/disable openwhisk toleration. This flag can be true only on multinode cluster deployment. Default to false
+                      type: boolean                                                                                                                                         
+                  required:
+                  - password    
+                components:
+                  description: it allows which components needs to be deployed by default. For a minimal setup openwhisk and couchdb are required to be set to true
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    openwhisk:
+                      description: deploys ow controller in lean mode
+                      type: boolean
+                    invoker:
+                      description: deploys ow invoker if supported by the operator
+                      type: boolean
+                    couchdb:
+                      description: deploys couchdb
+                      type: boolean
+                    kafka:
+                      description: deploys kafka
+                      type: boolean
+                    mongodb:
+                      description: deploys mongodb
+                      type: boolean
+                    redis:
+                      description: deploys redis
+                      type: boolean
+                    cron:
+                      description: activate the nuvolaris internal scheduled action executor
+                      type: boolean
+                    tls:
+                      description: enables TLS support via let's encrypt certificate for the ow apihost
+                      type: boolean
+                    minio:
+                      description: deploys MINIO as storage
+                      type: boolean
+                    static:
+                      description: activate the MINIO/CEPH OBJECT STORE static internal service (requires components.minio or components.cephobjectstore to be true)
+                      type: boolean
+                    zookeeper:
+                      description: deploys zookeeper if supported by the operator
+                      type: boolean
+                    postgres:
+                      description: deploys postgress if supported by the operator
+                      type: boolean 
+                    quota:
+                      description: deploys the quota checker if supported by the operator
+                      type: boolean
+                  required:
+                    - openwhisk
+                    - couchdb
+                openwhisk:
+                  description: Used to setup the default OW namespaces assigned to whisk-system and nuvolaris
+                  type: object
+                  properties:
+                    namespaces:
+                      type: object
+                      properties:
+                        whisk-system:
+                          description: the auth value to be used for the whisk-system user
+                          type: string
+                        nuvolaris:
+                          description: the auth value to be used for the nuvolaris user
+                          type: string
+                      required:
+                      - whisk-system
+                      - nuvolaris
+                  required:
+                  - namespaces    
+                couchdb:
+                  description: used to configure the couchdb instance used internally by OW
+                  type: object
+                  properties:
+                    host:
+                      description: couchdb internal service name. Defaulted to couchdb
+                      type: string
+                    port:
+                      description: couchdb port defaulted to 5984
+                      type: integer
+                    volume-size:
+                      description: couchdb volume size in GB
+                      type: integer
+                    admin:
+                      description: Couchdb admin credentials
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    controller:
+                      description: Couchdb credentials used by the OW controller to read/write data
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    invoker:
+                      description: Couchdb credentials used by the OW invoker to read/write data
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password                                           
+                  required:
+                  - volume-size
+                  - admin
+                  - controller
+                mongodb:
+                  description: used to configure a nuvolaris shared mongodb instance
+                  type: object
+                  properties:
+                    host:
+                      description: mongodb hostname
+                      type: string
+                    volume-size:
+                      description: mongodb volume size in GB
+                      type: integer
+                    exposedExternally:
+                      type: boolean
+                    useOperator:
+                      description: boolean flag used to deploy mongodb using teh community operator. It default to false
+                      type: boolean
+                    admin:
+                      description: mongodb admin suer credentials
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    nuvolaris:
+                      description: mongodb nuvolaris database credentials
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password                      
+                  required:
+                    - host
+                    - volume-size
+                    - admin
+                    - nuvolaris
+                postgres:
+                  description: used to configure a nuvolaris shared postgres instance
+                  type: object
+                  properties:
+                    volume-size:
+                      description: postgres volume size in GB
+                      type: integer
+                    replicas:
+                      description: number of total postgres replicas (1 primary, N-1 replicas). Defaulted to 2
+                      type: integer
+                    failover:
+                      description: enable or disable failover management. Defaulted to false
+                      type: boolean
+                    backup:
+                      description: controls postgres automatic backup using pgdump_app based script
+                      type: object
+                      properties:
+                        enabled:
+                          description: boolean flag enabling/disabling backup. Defaulted to false
+                          type: boolean
+                        schedule:
+                          description: cron based expression to control backup schedule. Default to once per hour at minute 30.
+                          type: string                          
+                    admin:
+                      description: postgres admin user credentials
+                      type: object
+                      properties:
+                        password:
+                          type: string
+                        replica-password:
+                          type: string
+                      required:
+                      - password
+                      - replica-password
+                    nuvolaris:
+                      description: postgres nuvolaris database credentials
+                      type: object
+                      properties:
+                        password:
+                          type: string
+                      required:
+                      - password                      
+                  required:
+                    - volume-size
+                    - admin
+                    - nuvolaris                    
+                kafka:
+                  description: setup a kafka instance
+                  type: object
+                  properties:
+                    host:
+                      description: kafka hostname defaulted to kafka
+                      type: string
+                    volume-size:
+                      type: integer
+                  required:
+                  - host
+                  - volume-size
+                zookeeper:
+                  description: configure zookeeper properties
+                  type: object
+                  properties:
+                    host:
+                      description: zookeeper hostname defaulted to zookeeper
+                      type: string
+                    data-volume-size:
+                      description: data volume size in GB
+                      type: integer
+                    log-volume-size:
+                      description: log volume size in GB
+                      type: integer
+                  required:
+                  - host
+                  - data-volume-size
+                  - log-volume-size
+                scheduler:
+                  description: used to configure the internal scheduled based action executor when cron is set to true
+                  type: object
+                  properties:
+                    schedule:
+                      description: a cron expression used to define the scheduler execution interval defaults to "* * * * *" every minutes
+                      type: string
+                  required:
+                  - schedule
+                quota:
+                  description: used to configure the internal scheduled based quota checker when quota is set to true
+                  type: object
+                  properties:
+                    schedule:
+                      description: a cron expression used to define the scheduler execution interval defaults to "*/10 * * * *" every 10 minutes
+                      type: string
+                  required:
+                  - schedule                  
+                tls:
+                  description: required to configure a let's encrypt cluster issue used to autorenew the apihost SSL certificates
+                  type: object
+                  properties:
+                    acme-registered-email:
+                      description: an email address to receive let's encrypt notification about SSL/TLS certificate expiration
+                      type: string
+                    acme-server-url:
+                      description: a valid let's encypt url. For prod certificates use https://acme-staging-v02.api.letsencrypt.org/directory
+                      type: string
+                  required:
+                  - acme-registered-email
+                  - acme-server-url
+                minio:
+                  description: used to configure the internal minio data storage service
+                  type: object
+                  properties:
+                    volume-size:
+                      description: volume size in GB
+                      type: integer
+                    admin:
+                      description: used to configure the MINIO admin user
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    nuvolaris:
+                      description: used to configure the MINIO nuvolaris user used for non administrative purposes
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    ingress:
+                      description: configuration option for global minio ingresses exposure
+                      type: object
+                      properties:
+                        s3-enabled:
+                          description: boolean flag to activate MINIO S3 compatible ingress. Default to false
+                          type: boolean
+                        s3-hostname:
+                          description: ingress hostname to be used if true (normally s3.<apihost>)
+                          type: string
+                        console-enabled:
+                          description: boolean flag to expose MINIO console
+                          type: boolean
+                        console-hostname:
+                          description: ingress hostname to be used (nora=mally minio.<apihost>)
+                          type: string
+                      required:
+                      - s3-enabled
+                      - console-enabled                           
+                  required:
+                  - volume-size
+                  - admin
+                  - nuvolaris 
+                redis:
+                  description: used to configure redis default credentials
+                  type: object
+                  properties:
+                    max-memory:
+                      description: specify redis max memory setting. Default to 1000mb
+                      type: string                  
+                    persistence-enabled:
+                      description: specify whether to enable or not REDIS persistence. Default to false
+                      type: boolean
+                    volume-size:
+                      description: redis volume size in GB to be assigned if persistence is enabled
+                      type: integer
+                    default:
+                      description: used to configure REDIS default admin credentials
+                      type: object
+                      properties:
+                        password:
+                          type: string
+                      required:
+                      - password
+                    nuvolaris:
+                      description: used to configure nuvolaris REDIS user
+                      type: object
+                      properties:
+                        prefix:
+                          description: REDIS nuvolaris key prefix. Defaulted to "nuvolaris:" if missing
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - password                    
+                  required:
+                  - volume-size
+                  - default
+                  - nuvolaris
+                configs:
+                  description: Configuration parameters to customize OW controller/invoker
+                  type: object
+                  properties:
+                    limits:
+                      type: object
+                      properties:
+                        activations:
+                          description: control ow activations limits
+                          type: object
+                          properties:
+                            max_allowed_payload:
+                              description: activation max allowed payload size in bytes. Defaults to 1048576 (1MB)
+                              type: integer
+                          required:
+                          - max_allowed_payload  
+                        actions:
+                          description: control ow actions execution limits
+                          type: object
+                          properties:
+                            sequence-maxLength:
+                              description: default to 50
+                              type: integer
+                            invokes-perMinute:
+                              description: default to 999
+                              type: integer
+                            invokes-concurrent:
+                              description: default to 250
+                              type: integer
+                          required:
+                          - sequence-maxLength
+                          - invokes-perMinute
+                          - invokes-concurrent    
+                        triggers:
+                          type: object
+                          properties:
+                            fires-perMinute:
+                              description: default to 999
+                              type: integer
+                          required:
+                          - fires-perMinute    
+                        time:
+                          description: controls ow action timeout
+                          type: object
+                          properties:
+                            limit-min:
+                              description: defaulted to "100ms"
+                              type: string
+                            limit-std:
+                              description: defaulted to "1min"
+                              type: string
+                            limit-max:
+                              description: defaulted to "5min"
+                              type: string
+                          required:
+                          - limit-min
+                          - limit-std
+                          - limit-max
+                        memory:
+                          description: controls memory limits per ow actions
+                          type: object
+                          properties:
+                            limit-min:
+                              description: defaulted to "128m"
+                              type: string
+                            limit-std:
+                              description: defaulted to "256m"
+                              type: string
+                            limit-max:
+                              description: defaulted to "512m"
+                              type: string
+                          required:
+                          - limit-min 
+                          - limit-std 
+                          - limit-max
+                        concurrency:
+                          description: controls ow action concurrency
+                          type: object
+                          properties:
+                            limit-min:
+                              description: defaulted to 1
+                              type: integer
+                            limit-std:
+                              description: defaulted to 1
+                              type: integer
+                            limit-max:
+                              description: defaulted to 1
+                              type: integer
+                          required:
+                          - limit-min
+                          - limit-std
+                          - limit-max
+                        loadbalancer:
+                          description: controls load balancer behavior
+                          type: object
+                          properties:
+                            blackbox-fraction:
+                              description: blackbox images load balancer max allowed blackbox-fraction. Defaulted to "10%"
+                              type: string
+                            timeout-factor:
+                              description: Defaultd to 2
+                              type: integer
+                          required:
+                          - blackbox-fraction
+                          - timeout-factor
+                    couchdb:
+                      description: configure couchdb limits
+                      type: object
+                      properties:
+                        resources:
+                          description: resource limits specification for the controller container
+                          type: object
+                          properties:
+                            cpu-req:
+                              description: container cpu requested resources. Defaulted to 256m
+                              type: string
+                            cpu-lim:
+                              description: max container cpu allowed resources. Defaulted to 1
+                              type: string
+                            mem-req:
+                              description: container memory requested. Defaulted to 1G
+                              type: string
+                            mem-lim:
+                              description: container container max memory allowed. Defaulted to 2G
+                              type: string
+                          required:
+                          - cpu-req
+                          - cpu-lim 
+                          - mem-req 
+                          - mem-lim
+                      required:
+                      - resources                                           
+                    controller:
+                      description: configure the OW controller
+                      type: object
+                      properties:
+                        replicas:
+                          description: controller statefulset replicas. Defaults to 1
+                          type: integer
+                        javaOpts:
+                          description: controller java memory settings defaulted to "-Xmx2048M"
+                          type: string
+                        loggingLevel:                          
+                          description: controller logging level defaulted to INFO
+                          type: string
+                          enum:
+                          - INFO
+                          - DEBUG
+                          - WARN
+                          - ERROR
+                          - TRACE
+                        resources:
+                          description: resource limits specification for the controller container
+                          type: object
+                          properties:                         
+                            cpu-req:
+                              description: container cpu requested resources. Defaulted to 500m
+                              type: string
+                            cpu-lim:
+                              description: max container cpu allowed resources. Defaulted to 1
+                              type: string
+                            mem-req:
+                              description: container memory requested. Defaulted to 1G
+                              type: string
+                            mem-lim:
+                              description: container container max memory allowed. Defaulted to 2G
+                              type: string
+                          required:
+                          - cpu-req
+                          - cpu-lim 
+                          - mem-req 
+                          - mem-lim  
+                      required:
+                      - javaOpts                           
+                    invoker:
+                      description: configure the OW invoker if supported by the oeprator
+                      type: object
+                      properties:
+                        replicas:
+                          description: invoker statefulset replicas. Defaults to 1. When used be sure to enable also pod affinity
+                          type: integer
+                        kubernetes:
+                          description: specific kubernetes settings controlled by the invoker
+                          type: object
+                          properties:
+                           timeouts_run:
+                            description: pod run max timeout waited by the invoker. Defaults to 1 minute
+                            type: integer
+                           timeouts_logs:
+                            description: pod max timeout waited by the invoker to collect logs. Defaults to 1 minute
+                            type: integer
+                           user_pod_affinity_enabled:
+                            description: boolean falg to enable/disable user pod affinity. Default to false
+                            type: boolean 
+                           user_pod_affinity_key:
+                            description: node label to be used for the invoker pod affinity. Defaults to nuvolaris-role
+                            type: string 
+                           user_pod_affinity_value:
+                            description: node label value used for the invoker pod affinity. Defaults to invoker
+                            type: string                                                                                                               
+                           port_forwarding_enabled:
+                            description: boolean falg to enable/disable port forwarding. Default to false
+                            type: boolean
+                           action_namespace:
+                            description: Action namespace. Default to nuvolaris
+                            type: string                                                       
+                        javaOpts:
+                          description: invoker memory settings defaulted to "-Xmx1024M"
+                          type: string
+                        loggingLevel:
+                          description: invoker logging level defaulted to INFO
+                          type: string
+                          enum:
+                          - INFO
+                          - DEBUG
+                          - WARN
+                          - ERROR
+                          - TRACE
+                        containerPool:
+                          type: object
+                          properties:
+                            userMemory:
+                              description: containerPool user memory defaulted to "2048m". This values allows to control how many action per invoker instance can be launched by dividing this value by the
+                                avg memory action memory settings
+                              type: string
+                          required:
+                          - userMemory
+                        resources:
+                          description: resource limits specification for the invoker container
+                          type: object
+                          properties:
+                            cpu-req:
+                              description: container cpu requested resources. Defaulted to 500m
+                              type: string
+                            cpu-lim:
+                              description: max container cpu allowed resources. Defaulted to 1
+                              type: string
+                            mem-req:
+                              description: container memory requested. Defaulted to 1G
+                              type: string
+                            mem-lim:
+                              description: container container max memory allowed. Defaulted to 2G
+                              type: string
+                          required:
+                          - cpu-req
+                          - cpu-lim 
+                          - mem-req 
+                          - mem-lim                           
+                      required:
+                      - containerPool
+            status:
+              x-kubernetes-preserve-unknown-fields: true
+              # type: object
+              # properties:
+              #   wsk_create:
+              #     type: object
+              #     properties:
+              #       openwhisk:
+              #         type: string
+              #       invoker:
+              #         type: string
+              #       couchdb:
+              #         type: string
+              #       kafka:
+              #         type: string
+              #       mongodb:
+              #         type: string
+              #       redis:
+              #         type: string
+              #       cron:
+              #         type: string
+              #       tls:
+              #         type: string
+              #       minio:
+              #         type: string
+              #       postgres:
+              #         type: string              
+      additionalPrinterColumns:
+        - name: Status
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.controller
+          description: Status      
+        - name: OpenWhisk
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.openwhisk
+          description: OpenWhisk
+        - name: Invoker
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.invoker
+          description: Invoker
+        - name: CouchDB
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.couchdb
+          description: CouchDB
+        - name: Kafka
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.kafka
+          description: Kafka
+        - name: MongoDB
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.mongodb
+          description: MongoDB
+        - name: Redis
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.redis
+          description: Redis
+        - name: Cron
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.cron
+          description: Cron 
+        - name: Tls
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.tls
+          description: Tls 
+        - name: Minio
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.minio
+          description: Minio 
+        - name: Postgres
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.postgres
+          description: Postgres 
+        - name: Quota
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.quota
+          description: Quota  
+        - name: Monitoring
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.monitoring
+          description: Monitoring  
+        - name: Static
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.static
+          description: Static                                                                               
