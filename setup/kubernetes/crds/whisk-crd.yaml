@@ -129,9 +129,6 @@ spec:
                     quota:
                       description: deploys the quota checker if supported by the operator
                       type: boolean
-                    cosi:
-                      description: activate the support for creating S3 compatible buckets using CephObjectStore bucket claims (will take precedence over MINIO if both are activated)                                              
-                      type: boolean
                   required:
                     - openwhisk
                     - couchdb
@@ -689,39 +686,6 @@ spec:
                           - mem-lim                           
                       required:
                       - containerPool
-                cosi:
-                  description: used to configure the CEPH COS data storage service
-                  type: object
-                  properties:
-                    object_store_name:
-                      description: object store name. Defaults to nuvolaris-s3-store
-                      type: string
-                    bucket_storageclass:
-                      description: allow to set the a rook s3 storage class to be used when CephObjectStore is being used. Defaul to autoo which will force the operator to autodetect it
-                      type: string
-                    rgwservice_name:
-                      description: The CpehObjectStore RGW service name. Default auto which will force the operator to autodetect it
-                      type: string
-                    rgwservice_port:
-                      description: The CpehObjectStore RGW service port. Default auto which will force the operator to autodetect it
-                      type: string 
-                    namespace:
-                      description: The namespace where Rook it is installed. Default to rook-ceph
-                      type: string                                             
-                    ingress:
-                      description: configuration option for global minio ingresses exposure
-                      type: object
-                      properties:
-                        s3-enabled:
-                          description: boolean flag to activate CEPH S3 compatible ingress. Default to false
-                          type: boolean
-                        s3-hostname:
-                          description: ingress hostname to be used if true (normally s3.<apihost>)
-                          type: string
-                      required:
-                      - s3-enabled
-                  required:
-                  - ingress                                                                                                                                                                                                      
             status:
               x-kubernetes-preserve-unknown-fields: true
               # type: object
@@ -819,9 +783,4 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_create.static
-          description: Static
-        - name: Cos
-          type: string
-          priority: 0
-          jsonPath: .status.whisk_create.cosi
-          description: CephCos                                                                                
+          description: Static                                                                               

@@ -89,12 +89,12 @@ spec:
     protocol: "http"
     host : "controller"
     port: "3233"
-    image: "$ENT_IMAGES_CONTROLLER"
+    image: "$IMAGES_CONTROLLER"
   invoker:
     protocol: "http"
     host : "invoker"
     port: "8080"
-    image: "$ENT_IMAGES_INVOKER"
+    image: "$IMAGES_INVOKER"
   scheduler:
     schedule: "* * * * *"
   quota:

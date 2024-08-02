@@ -270,7 +270,6 @@ tasks:
     desc: delete cluster
     cmds:
       - source forcedelete.src
-      - kubectl -n nuvolaris delete objectbucketclaims --all
       - kubectl delete clusterissuers/letsencrypt-issuer 2>/dev/null      
       - kubectl -n nuvolaris delete sts/nuvolaris-operator --grace-period=0
       - kubectl -n nuvolaris delete po,sts,job,deploy,svc --all --grace-period=0
@@ -279,7 +278,6 @@ tasks:
       - kubectl -n nuvolaris delete ing --all --grace-period=0 2>/dev/null
       - kubectl -n nuvolaris delete route --all --grace-period=0 2>/dev/null
       - kubectl -n nuvolaris delete kubegres --all
-      - kubectl -n nuvolaris delete cephobjectstoreusers --all
       #- "kubectl get ns nuvolaris -o json | jq '.spec.finalizers = []' | kubectl replace --raw '/api/v1/namespaces/nuvolaris/finalize' -f -"
       - kubectl delete ns nuvolaris
 
