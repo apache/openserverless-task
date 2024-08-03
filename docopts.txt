@@ -1,11 +1,22 @@
 Welcome to Ops, the all-mighty Apache OpenServerless Build Tool
 
-The top level commands all have subcommands.
-Just type nuv <command> to see its subcommands.
+General usage is:
+
+  ops <command> <subcommand>... <args|-options>...
+  ops -<tool> <args|-options>...
+
+Type ops <command> to see its subcommands and the help of a subcommand
+Type ops -<tool> -h to see the help of a tool
 
 Commands:
   config      Manage the Apache OpenServerless configuration
   setup       Setup the Apache OpenServerless platform on multiple environments
-  tests       Tests
-  util        Utility
-  version
+  util        Utilities
+
+Tools:
+  -version    Current version
+  -info       Configuration informations
+  -login      Login in an Apache Operverless Cluster
+  -update     Update ops
+  -help      More info on the tools
+  

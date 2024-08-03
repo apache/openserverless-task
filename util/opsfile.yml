@@ -14,3 +14,4 @@ tasks:
     silent: true
     cmds:
     - echo "TODO checking the running operator version"
+
