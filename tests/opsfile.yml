@@ -11,43 +11,48 @@ tasks:
     - task: kubectl
     - task: kind
     - task: k3sup
+    - task: rg
 
   7zz:
     silent: true
     desc: 7zz test
     cmds:
-    - 7zz | rg 7-Zip
+    - 7zz | rg 24.07
 
   coreutils:
     silent: true
     desc: Coreutils test
     cmds:
-    - coreutils | rg '(multi-call binary)'
+    - coreutils | rg '0.0.27'
 
   bun:
     silent: true
     desc: Bun test
     cmds:
-    - bun | rg 'Bun is'
+    - bun | rg '1.1.21'
 
   kubectl:
     silent: true
     desc: Kubectl test
     cmds:
-    - echo kubectl $(kubectl version)
+    - kubectl version | rg 1.30.3
 
   kind:
     silent: true
     desc: Kind test
     cmds:
-    - kind --version
+    - kind --version | rg 0.17.0
 
   k3sup:
     silent: true
     desc: k3sup test
     cmds:
-    - echo k3sup $(k3sup version | rg 'Version:')
+    - k3sup version | rg 0.13.6
 
-  tools:
-    - rename
-    - remove
+  rg:
+    silent: true
+    desc: ripgrep test
+    cmds:
+    - rg --version | rg 14.1.0
+
+ 

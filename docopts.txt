@@ -18,5 +18,6 @@ Tools:
   -info       Configuration informations
   -login      Login in an Apache Operverless Cluster
   -update     Update ops
+  -reset      Reset ops
   -help       More info on the tools
   
