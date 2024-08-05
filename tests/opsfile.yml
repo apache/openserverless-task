@@ -35,7 +35,7 @@ tasks:
     silent: true
     desc: Kubectl test
     cmds:
-    - kubectl version | rg 1.30.3
+    - kubectl version --client=true | rg 1.30.3
 
   kind:
     silent: true
