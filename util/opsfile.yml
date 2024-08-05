@@ -9,10 +9,23 @@ tasks:
     - echo "{{OS}}-{{ARCH}}"
 
   update-cli:
-    desc: update CLI (TODO)
+    desc: update CLI
     silent: true
+    vars:
+       BASE: "https://github.com/apache/openserverless-cli/releases/download"
+       VER:
+        sh: jq .version -r $OPS_ROOT/opsroot.json
+       URL: "{{.BASE}}/v{{.VER}}/openserverless-cli_{{.VER}}_{{.OS}}_{{.ARCH}}{{.ARC}}"
+       FILE: "{{base .URL}}"
     cmds:
     - echo "Trying to update ops..."
+    - curl -sL "{{.URL}}" -o "$OPS_TMP/{{.FILE}}"
+    - extract "$OPS_TMP/{{.FILE}}" "$OPS_TMP/ops{{.EXE}}"
+    - |
+      if mv -v "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
+      then echo "ops updated!"
+      else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
+      fi
 
 
   check-operator-version:

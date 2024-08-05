@@ -16,19 +16,19 @@ tasks:
     silent: true
     desc: 7zz test
     cmds:
-    - 7zz | grep 7-Zip
+    - 7zz | rg 7-Zip
 
   coreutils:
     silent: true
     desc: Coreutils test
     cmds:
-    - coreutils | grep '(multi-call binary)'
+    - coreutils | rg '(multi-call binary)'
 
   bun:
     silent: true
     desc: Bun test
     cmds:
-    - bun | grep 'Bun is'
+    - bun | rg 'Bun is'
 
   kubectl:
     silent: true
@@ -46,7 +46,7 @@ tasks:
     silent: true
     desc: k3sup test
     cmds:
-    - echo k3sup $(k3sup version | grep 'Version:')
+    - echo k3sup $(k3sup version | rg 'Version:')
 
   tools:
     - rename

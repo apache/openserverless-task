@@ -2,10 +2,8 @@ version: 3
 
 vars:
   OS: "{{or .__OS OS}}"
-  BOH: "{{.__ARCH}}"
   ARCH: "{{or .__ARCH ARCH}}"
-  ARC: '{{if eq .OS "windows"}}.zip{{else}}.tgz{{end}}'
-  ARC2: '{{if eq .OS "windows"}}.zip{{else}}.tar.gz{{end}}'
+  ARC: '{{if eq .OS "windows"}}.zip{{else}}.tar.gz{{end}}'
   EXE: '{{if eq .OS "windows"}}.exe{{else}}{{end}}'
 
 tasks:
@@ -28,9 +26,9 @@ tasks:
         - URL
         - OUT
     cmds:
-      - curl -sL -ccookie.txt -o"{{.OUT}}" "{{.URL}}"
-      - '{{if eq .OS "windows"}}rename {{.OUT}} {{.OUT}}.exe{{else}}chmod +x {{.OUT}}{{end}}'
-      - remove cookie.txt
+      - curl -sL -o"{{.OUT}}" "{{.URL}}"
+      - '{{if eq .OS "windows"}}rename {{.OUT}} {{.OUT}}.exe{{end}}'
+      - '{{if ne .OS "windows"}}chmod +x {{.OUT}}{{end}}'
 
   7zz:
     desc: download 7zz
@@ -54,7 +52,8 @@ tasks:
       then rename 7zr.exe 7zz.exe
       else extract "{{.FILE}}" 7zz
       fi
- 
+    - if test -e "{{.FILE}}" ; then remove "{{.FILE}}" ; fi
+
   coreutils:
     desc: download coreutils
     vars:
@@ -71,7 +70,7 @@ tasks:
             windows-*) echo "x86_64-pc-windows-gnu" ;;
             *) echo "unknown" ;;
             esac
-      URL: "https://github.com/uutils/coreutils/releases/download/{{.VERSION}}/coreutils-{{.VERSION}}-{{.SUFFIX}}{{.ARC2}}" 
+      URL: "https://github.com/uutils/coreutils/releases/download/{{.VERSION}}/coreutils-{{.VERSION}}-{{.SUFFIX}}{{.ARC}}" 
       FILE: "{{base .URL}}"
       OUT: coreutils
     cmds:
@@ -97,15 +96,15 @@ tasks:
   kubectl:
     desc: download kubectl
     vars:
-      VERSION: v1.30.3
+      VERSION: 1.30.3
     cmds:
       - task: download
         vars:
-          URL: "https://dl.k8s.io/release/{{.VERSION}}/bin/{{.OS}}/{{.ARCH}}/kubectl{{.EXE}}"
+          URL: "https://dl.k8s.io/release/v{{.VERSION}}/bin/{{.OS}}/{{.ARCH}}/kubectl{{.EXE}}"
           OUT: kubectl
 
   kind:
-    desc: download bun
+    desc: download kind
     vars:
       VERSION: 0.17.0
     cmds:
@@ -133,6 +132,32 @@ tasks:
         vars:
           URL: "{{.BASE}}/{{.FILE}}"
           OUT: k3sup
+  
+  rg:
+    desc: download ripgrep
+    vars:
+      # when changing this add the list of utilites to nuvroot.json in config.ops.coreutils
+      # do NOT include [ test false true echo
+      VERSION: "14.1.0"
+      SUFFIX:
+        sh: |
+            case "{{.OS}}-{{.ARCH}}" in
+            linux-amd64) echo "x86_64-unknown-linux-musl" ;;
+            linux-arm64) echo "aarch64-unknown-linux-gnu" ;;
+            darwin-amd64) echo "x86_64-apple-darwin" ;;
+            darwin-arm64) echo "aarch64-apple-darwin" ;; 
+            windows-*) echo "x86_64-pc-windows-msvc" ;;
+            *) echo "unknown" ;;
+            esac
+      URL: "https://github.com/BurntSushi/ripgrep/releases/download/{{.VERSION}}/ripgrep-{{.VERSION}}-{{.SUFFIX}}{{.ARC}}" 
+      FILE: "{{base .URL}}"
+      OUT: rg
+    cmds:
+    - task: download-and-extract
+      vars:
+        URL: "{{.URL}}"
+        FILE: "{{.FILE}}"
+        OUT: "{{.OUT}}"
 
   all:
     - task: 7zz
@@ -141,3 +166,29 @@ tasks:
     - task: kind
     - task: k3sup
     - task: kubectl
+    - task: rg
+
+  test:
+   vars:
+     FILETYPE:
+       sh: |
+           case "{{.OS}" in
+           (windows) application/vnd.microsoft.portable-executable ;;
+           (linux) application/x-executable ;;
+           (darwin) application/x-mach-binary ;;
+           (*) unknown ;;
+           esac
+      DIR: {{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}
+   cmds:
+   - |
+     mkdir -p {{.DIR}}
+     cd {{.DIR}}
+     ops -task -t ../../prereq.yml -d {{.DIR}} all
+      
+  tests:
+   - rm -Rvf bin
+   - __OS=linux   __ARCH=amd64 ops -task -t prereq.yml test
+   - __OS=linux   __ARCH=arm64 ops -task -t prereq.yml test
+   - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
+   - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
+   - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
