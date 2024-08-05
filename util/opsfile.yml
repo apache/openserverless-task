@@ -8,7 +8,9 @@ tasks:
     cmds:
     - echo "{{OS}}-{{ARCH}}"
 
-  update-cli:
+  update-cli: echo TODO
+  
+  update-cli1:
     desc: update CLI
     silent: true
     vars:
