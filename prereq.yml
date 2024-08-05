@@ -29,7 +29,7 @@ tasks:
     cmds:
       - curl -sL -o"{{.OUT}}" "{{.URL}}"
       - '{{if eq .OS "windows"}}rename {{.OUT}} {{.OUT}}.exe{{end}}'
-      - '{{if ne .OS "windows"}}chmod +x {{.OUT}}{{end}}'
+      - 'chmod +x {{.OUT}}'
 
   7zz:
     desc: download 7zz
