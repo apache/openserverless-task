@@ -5,6 +5,7 @@ vars:
   ARCH: "{{or .__ARCH ARCH}}"
   ARC: '{{if eq .OS "windows"}}.zip{{else}}.tar.gz{{end}}'
   EXE: '{{if eq .OS "windows"}}.exe{{else}}{{end}}'
+  DRY: ""
 
 tasks:
  
@@ -169,24 +170,36 @@ tasks:
     - task: rg
 
   test:
-   vars:
-     FILETYPE:
-       sh: |
-           case "{{.OS}" in
-           (windows) application/vnd.microsoft.portable-executable ;;
-           (linux) application/x-executable ;;
-           (darwin) application/x-mach-binary ;;
-           (*) unknown ;;
-           esac
-      DIR: {{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}
-   cmds:
-   - |
-     mkdir -p {{.DIR}}
-     cd {{.DIR}}
-     ops -task -t ../../prereq.yml -d {{.DIR}} all
+    vars:
+      DIR: "{{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}"
+    cmds:
+    - |
+      {{.DRY}} rm -Rvf {{.DIR}}
+      mkdir -p {{.DIR}}
+      cd {{.DIR}}
+      {{.DRY}} ops -task -t ../../prereq.yml -d {{.DIR}} all
+    - task: check
       
+  check:
+    vars:
+      DIR: "{{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}"
+      FILETYPE:
+        sh: |
+          case "{{.OS}}" in
+          (windows) echo application/vnd.microsoft.portable-executable ;;
+          (darwin)  echo application/x-mach-binary ;;
+          (linux)   echo application/x-executable ;;
+          (*) unknown ;;
+          esac
+    sources:
+      - '{{.DIR}}/*'
+    status:
+      - false
+    cmds:
+    - for: sources
+      cmd: filetype -m {{.ITEM}} | rg {{.FILETYPE}}
+ 
   tests:
-   - rm -Rvf bin
    - __OS=linux   __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=linux   __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
