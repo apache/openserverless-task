@@ -1,0 +1,100 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+version: '3'
+
+vars:
+  INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
+
+env:
+  DATADIR:
+    sh: echo $OPS_TMP/kind
+  KUBECONFIG: 
+    sh: |- 
+        if test -e "$OPS_TMP/kubeconfig"
+        then echo "$OPS_TMP/kubeconfig"
+        else echo ~/.kube/config
+        fi
+
+tasks:
+
+  status:
+    silent: true
+    desc: status of the Apache OpenServerless cluster in Docker
+    cmds:
+    - |
+      if kind get clusters | rg nuvolaris
+      then echo Cluster Nuvolaris up and running
+      else echo Cluster Nuvolaris not found
+      fi
+
+  info:
+    silent: true
+    desc: info the Apache OpenServerless cluster in Docker
+    cmds:
+    - |
+      echo "=== KUBECONFIG"
+      echo $KUBECONFIG
+      echo "=== Kind Version"
+      kind version
+      echo "=== Kind Clusters"
+      kind get clusters 
+      if test -e $KUBECONFIG
+      then  echo "=== Nodes"
+            kubectl get nodes
+      fi
+
+  cluster:
+    silent: true
+    cmds:
+    - mkdir -p $DATADIR
+    - envsubst -i kind.yaml -o _kind.yaml
+    - > 
+      kind create cluster 
+      --kubeconfig="$NUV_TMP/kubeconfig" 
+      --wait=1m --name=nuvolaris 
+      --config=_kind.yaml
+
+  ingress:
+    silent: true
+    cmds:
+    - > 
+      kubectl --kubeconfig="$OPS_TMP/kubeconfig" 
+      apply -f ingress-deploy.yaml
+
+  create:
+    silent: true
+    desc: create the Apache OpenServerless cluster in Docker
+    cmds:
+    - task: cluster
+    - task: ingress
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
+    status:
+    - kind get clusters | grep nuvolaris
+
+  delete:
+    silent: true
+    desc: destroy the Apache OpenServerless cluster in Docker
+    cmds:
+    - kind delete clusters nuvolaris
+    - rm "$KUBECONFIG" "$OPS_TMP/kind.kubeconfig"
+
+  kubeconfig:
+    desc: export kubeconfig
+    silent: true
+    cmds:
+    - kind export kubeconfig --name=nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"

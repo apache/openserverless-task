@@ -1,0 +1,192 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: '3'
+
+vars:
+  D: ""
+  RUN: '{{if eq .D ""}}{{else}}echo RUN:{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
+  RETRY: 100
+  TIMEOUT: 10
+  ETC: 
+    sh: if $WSK_INSECURE ; then echo "-i" ; else echo "" ; fi
+  CFG: "kubectl -n nuvolaris get wsk/controller"
+  SLEEP: "500"
+
+env:
+  KUBECONFIG: 
+    sh: | 
+        if test -e $OPS_TMP/kubeconfig
+        then echo  $OPS_TMP/kubeconfig
+        else echo ~/.kube/config
+        fi
+
+tasks:
+
+  wait:
+    #desc: wait for apihost available
+    silent: true
+    cmds:
+    - |
+      N=0
+      while true
+      do
+        APIHOST="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')"
+        HOST="$(echo $APIHOST | awk -F: '{print $2}')"
+        if [[ "$APIHOST" != "" ]] && [[ "$HOST" != "//pending" ]]
+        then break
+        fi
+        echo "$((N++))... waiting for APIHOST ready"
+        sleep 5
+      done
+      echo $APIHOST
+
+  wait-cm:
+    desc: wait for an annotation in nuvolaris cm/config 
+    silent: true
+    cmds:
+      - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do           
+          ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{{.JSONPATH}}')"
+          if [[ -z "$ANNOT_VALUE" ]]
+          then 
+            echo "$((N++)) Waiting for annotations {{.JSONPATH}} to be set"
+            sleep 5
+          else  
+            RES=true; break
+          fi
+        done
+        $RES      
+
+  config:
+    #desc: configuring nuvolaris
+    silent: true
+    cmds:
+    - |
+      echo export KUBECONFIG=$KUBECONFIG
+      APIHOST=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')
+      AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
+      echo export $APIHOST
+      echo export $AUTH
+      retry -t 100 -m 600 nuv -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
+      wsk property set --apihost "$APIHOST"  --auth "$AUTH"
+      
+  login:
+    silent: true
+    desc: configuring nuvolaris
+    cmds:
+    - task: wait
+    - task: config
+    - task: hello
+
+  hello:
+    silent: true
+    desc: executing an hello world action
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - "{{.RUN}} wsk {{.ETC}} action update hello/hello hello.js"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name Nuvolaris -r | grep hello"
+
+  mongodb:
+    silent: true
+    desc: mongodb test
+    cmds:
+    - #echo {{.MONGODB_URL}}
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      MONGODB_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.mongodb_url}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/mongodb mongodb.js -p mongodb_url "$MONGODB_URL"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/mongodb -r | grep 'hello'"
+  
+  redis:
+    silent: true
+    desc: redis test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      REDIS_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.redis_url}')"
+      REDIS_PREFIX="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.redis_prefix}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/redis redis.js -p redis_url "$REDIS_URL" -p redis_prefix "$REDIS_PREFIX"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/redis -r | grep 'hello'"
+
+  minio:
+    silent: true
+    desc: minio test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      MINIO_ACCESS_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_access_key}')
+      MINIO_SECRET_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_secret_key}')
+      MINIO_HOST=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_host}')
+      MINIO_PORT=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_port}')
+      MINIO_BUCKET_DATA=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_bucket_data}')
+      MINIO_BUCKET_WEB=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_bucket_static}')
+      {{.RUN}} wsk {{.ETC}} action update hello/minio minio.js \
+      -p minio_access "$MINIO_ACCESS_KEY" \
+      -p minio_secret "$MINIO_SECRET_KEY" \
+      -p minio_host "$MINIO_HOST" \
+      -p minio_port "$MINIO_PORT" \
+      -p minio_data "$MINIO_BUCKET_DATA" 
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/minio -r"
+
+  postgres:
+    silent: true
+    desc: postgres test
+    cmds:    
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      POSTGRES_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.postgres_url}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/postgres postgres.js -p dburi "$POSTGRES_URL"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/postgres -r"
+
+  sleep:
+    desc: sleep 
+    silent: false
+    cmds:
+    - "{{.RUN}} wsk action update sleep sleep.js --web=true --timeout 300000"
+    #- "{{.RUN}}wsk action invoke sleep -p sleep {{.SLEEP}} -r"
+    - curl "$(nuv -wsk action get sleep --url)?sleep={{.SLEEP}}"
+
+  status:
+    silent: true
+    desc: showing the configuration status
+    cmds:
+    - echo "=== Nuvolaris Host:"
+    - wsk property get --apihost | awk '/whisk API host/{print $4}'
+    - echo "=== Nuvolaris Key:"
+    - wsk property get --auth | awk '/whisk auth/{print $3}'
+    - echo "=== Minio"
+    - kubectl -n nuvolaris get configmap config -n nuvolaris -o=jsonpath='{.metadata.annotations}' | jq . | awk '/minio_/{print $1 " " $2}'
+    - echo "=== Redis"
+    - kubectl -n nuvolaris get configmap config -n nuvolaris -o=jsonpath='{.metadata.annotations}' | jq . | awk '/redis_/{print $1 " " $2}'
+    - echo "=== Postgres"
+    - kubectl -n nuvolaris get configmap config -n nuvolaris -o=jsonpath='{.metadata.annotations}' | jq . | awk '/postgres_/{print $1 " " $2}'
+    - echo "=== MongoDB (FerretDB)"
+    - kubectl -n nuvolaris get configmap config -n nuvolaris -o=jsonpath='{.metadata.annotations}' | jq . | awk '/mongodb_/{print $1 " " $2}'
+
+  info:
+    - echo "kubectl={{.KUBECTL}}"
+    - echo "kubeconfig=$KUBECONFIG"
+    - cat ~/.wskprops
+
+  delete:
+    desc: no-op delete command
