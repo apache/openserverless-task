@@ -25,8 +25,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |
-      if test -e $(realpath "$NUV_TMP/kubeconfig")
-      then echo $(realpath "$NUV_TMP/kubeconfig")
+      if test -e $(realpath "$OPS_TMP/kubeconfig")
+      then echo $(realpath "$OPS_TMP/kubeconfig")
       else echo ~/.kube/config
       fi
 # sets memory parameter for the controller invoker and corresponding pods
@@ -167,9 +167,9 @@ tasks:
           echo runtimes.json
       RUNTIMES:
         sh: |          
-          if test -e "$NUV_TMP/runtimes.json"
-          then echo "$NUV_TMP/runtimes.json"
-          else echo "$NUV_ROOT/runtimes.json"
+          if test -e "$OPS_TMP/runtimes.json"
+          then echo "$OPS_TMP/runtimes.json"
+          else echo "$OPS_ROOT/runtimes.json"
           fi
 
   prepare:

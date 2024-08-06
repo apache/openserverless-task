@@ -64,7 +64,7 @@ tasks:
     - envsubst -i kind.yaml -o _kind.yaml
     - > 
       kind create cluster 
-      --kubeconfig="$NUV_TMP/kubeconfig" 
+      --kubeconfig="$OPS_TMP/kubeconfig" 
       --wait=1m --name=nuvolaris 
       --config=_kind.yaml
 
