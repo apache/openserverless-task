@@ -83,7 +83,7 @@ tasks:
     - task: ingress
     - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
     status:
-    - kind get clusters | grep nuvolaris
+    - kind get clusters | rg nuvolaris
 
   delete:
     silent: true

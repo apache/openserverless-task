@@ -371,8 +371,8 @@ tasks:
           VAR: "EKS_KUBERNETES_VERSION"
           VAL: "{{.__kubever}}"
           DEF: "1.25"
-      - config -d | grep AWS_
-      - config -d | grep EKS_
+      - config -d | rg AWS_
+      - config -d | rg EKS_
 
   gcloud:
     silent: true
@@ -423,7 +423,7 @@ tasks:
           VAR: "GCLOUD_IMAGE"
           VAL: "{{.__image}}"
           DEF: "ubuntu-minimal-2204-lts"        
-      - config -d | grep GCLOUD_
+      - config -d | rg GCLOUD_
 
   gke:
     silent: true
@@ -471,7 +471,7 @@ tasks:
           VAR: "GKE_DISK"
           VAL: "{{.__disk}}"
           DEF: "50"
-      - config -d | grep GKE_
+      - config -d | rg GKE_
 
   aks:
     silent: true
@@ -524,7 +524,7 @@ tasks:
           VAR: "AKS_SSHKEY"
           VAL: "{{.__key}}"
           DEF: "~/.ssh/id_rsa.pub"
-      - config -d | grep AKS_
+      - config -d | rg AKS_
 
   runtimes:
     silent: true
