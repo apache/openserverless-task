@@ -2,7 +2,7 @@ Section:
   ops config
 
 Usage:
-  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota]  
+  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--pg] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota]  
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
@@ -54,7 +54,7 @@ Options:
   --minio               select minio
   --cron                select cron
   --static              select static
-  --postgres            select postgres
+  --pg                  select postgres
   --tls=<email>         enable tls with let's encrypt, contact email required
   --access=<access>     specify access key
   --secret=<secret>     specify secret key  
