@@ -1,23 +1,22 @@
-Welcome to Ops, the all-mighty Apache OpenServerless Build Tool
 
-General usage is:
+ops top level commands
 
-  ops <command> <subcommand>... <args|options>...
-  ops -<tool> <args|options>...
+Type ops <command> to see usage and subcommands
 
-Type ops <command> to see its subcommands and the help of a subcommand
-Type ops -<tool> -h to see the help of a tool
+Entities:
+  action      Manage actions
+  invoke      Invoke an action
+  url         Get url of an action
+  activations Manage activations
+  logs        Show logs of activations
+  result      Show results of activations
+  package     Manage packages
+  trigger     Manage triggers
+  rule        Manage rules for triggers
 
 Commands:
   config      Manage the Apache OpenServerless configuration
   setup       Setup the Apache OpenServerless platform on multiple environments
   util        Utilities
 
-Tools:
-  -version    Current version
-  -info       Configuration informations
-  -login      Login in an Apache Operverless Cluster
-  -update     Update ops
-  -reset      Reset ops
-  -help       More info on the tools
   
