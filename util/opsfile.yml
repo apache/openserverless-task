@@ -39,7 +39,7 @@ tasks:
         else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
         fi
       else 
-        echo "skipping rename $OPS_TMP/{{.EXE}} $OPS_CMD"
+        echo "skipping rename $OPS_TMP/ops{{.EXE}} $OPS_CMD"
       fi
 
 
