@@ -18,7 +18,7 @@ tasks:
 
   update-cli:
     desc: update CLI
-    silent: false
+    silent: true
     vars:
        BASE: "https://github.com/apache/openserverless-cli/releases/download"
        VER:
@@ -32,9 +32,14 @@ tasks:
       cd "$OPS_TMP"
       extract "{{.FILE}}" "ops{{.EXE}}"
     - |
-      if rename "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
-      then echo "ops updated!"
-      else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
+      if test -z "$OPS_SKIP_UPDATE_CLI"
+      then
+        if rename "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
+        then echo "ops updated!"
+        else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
+        fi
+      else 
+        echo "skipping rename $OPS_TMP/{{.EXE}} $OPS_CMD"
       fi
 
 
