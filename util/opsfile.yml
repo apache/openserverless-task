@@ -1,5 +1,12 @@
 version: 3
 
+vars:
+  OS: "{{or .__OS OS}}"
+  ARCH: "{{or .__ARCH ARCH}}"
+  ARC: '{{if eq .OS "windows"}}.zip{{else}}.tar.gz{{end}}'
+  EXE: '{{if eq .OS "windows"}}.exe{{else}}{{end}}'
+  DRY: ""
+
 tasks:
 
   system:
@@ -11,7 +18,7 @@ tasks:
 
   update-cli:
     desc: update CLI
-    silent: true
+    silent: false
     vars:
        BASE: "https://github.com/apache/openserverless-cli/releases/download"
        VER:
@@ -21,9 +28,11 @@ tasks:
     cmds:
     - echo "Trying to update ops..."
     - curl -sL "{{.URL}}" -o "$OPS_TMP/{{.FILE}}"
-    - extract "$OPS_TMP/{{.FILE}}" "$OPS_TMP/ops{{.EXE}}"
     - |
-      if mv -v "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
+      cd "$OPS_TMP"
+      extract "{{.FILE}}" "ops{{.EXE}}"
+    - |
+      if rename "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
       then echo "ops updated!"
       else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
       fi
