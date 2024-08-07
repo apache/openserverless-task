@@ -70,7 +70,7 @@ tasks:
         then config OPERATOR_COMPONENT_STATIC=true
         fi
       - | 
-        if {{.__pg}} || {{.__all}}
+        if {{.__postgres}} || {{.__all}}
         then config OPERATOR_COMPONENT_POSTGRES=true
         fi
       - |
@@ -134,9 +134,9 @@ tasks:
         then config OPERATOR_COMPONENT_STATIC=false
         fi
       - | 
-        if {{.__pg}} || {{.__all}}
+        if {{.__postgres}} || {{.__all}}
         then config OPERATOR_COMPONENT_POSTGRES=false
-          if {{.__pg}}
+          if {{.__postgres}}
             then echo 'Disabling PosgresSQL forces deactivation of MongoDB (FerretDB)'
                 config OPERATOR_COMPONENT_MONGODB=false
           fi
