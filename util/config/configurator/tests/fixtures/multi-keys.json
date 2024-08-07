@@ -1,0 +1,20 @@
+{
+  "HELLO": {
+    "type": "string"
+  },
+  "TESTINT": {
+    "type": "int"
+  },
+  "TESTFLOAT": {
+    "type": "float"
+  },
+  "TESTBOOL": {
+    "type": "bool"
+  },
+  "TESTPASSWORD": {
+    "type": "password"
+  },
+  "TESTSELECT": {
+    "type": ["one", "two", "three", "four options"]
+  }
+}

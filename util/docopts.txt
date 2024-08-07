@@ -1,0 +1,15 @@
+Section: ops util
+
+Ops Utilities
+
+Usage:
+  util check-operator-version
+  util system
+  util update-cli1
+  util config <configjson>
+
+Commands:
+  check-operator-version  Check the version of the operator
+  system                  Display system information
+  update-cli1             Update the CLI to the latest version
+  config                  Interactive OpenServerless Configuration Tool
