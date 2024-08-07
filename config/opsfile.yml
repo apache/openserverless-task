@@ -204,7 +204,7 @@ tasks:
   reset:
     silent: true
     cmds:
-      - rm -rf ~/.nuv/config.json || true
+      - rm -rf "$OPS_HOME/config.json" || true
       - rm -rf "$OPS_TMP/runtimes.json" || true
       - config -dump
 
@@ -681,7 +681,7 @@ tasks:
         VAR: "STORAGE_SIZE_REDIS"
         HINT: | 
               Specifies an integer value
-        VAL: "{{.__redis}}"
+        VAL: "{{.__redisvol}}"
         DEF: "25"                 
     - task: read
       vars:
@@ -697,7 +697,7 @@ tasks:
         VAR: "STORAGE_SIZE_POSTGRES"
         HINT: | 
               Specifies an integer value
-        VAL: "{{.__postgres}}"
+        VAL: "{{.__pgvol}}"
         DEF: "50" 
     - task: read
       vars:
