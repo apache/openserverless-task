@@ -59,7 +59,7 @@ tasks:
     desc: download coreutils
     vars:
       # when changing this add the list of utilites to nuvroot.json in config.ops.coreutils
-      # do NOT include [ test false true echo
+      # do NOT include [ test false true echo base64
       VERSION: "0.0.27"
       SUFFIX:
         sh: |
@@ -205,3 +205,4 @@ tasks:
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
+
