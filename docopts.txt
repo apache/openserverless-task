@@ -1,6 +1,6 @@
-ops: top level tasks
-type 'ops <task>' to see usage and subtasks
+Tasks:
 
+type 'ops <task>' to see usage and subtasks
 
 OpenServerless Tasks:  
   config      Manage the Apache OpenServerless configuration
