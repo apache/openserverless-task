@@ -15,7 +15,6 @@ tasks:
     cmds:
     - echo "{{OS}}-{{ARCH}}"
 
-
   update-cli:
     desc: update CLI
     silent: true
@@ -36,7 +35,8 @@ tasks:
       then
         if rename "$OPS_TMP/ops{{.EXE}}" "$OPS_CMD"
         then echo "ops updated!"
-        else echo "cannot update ops - please execute 'ops util update-cli' as an administrator"
+        else echo "cannot auto update ops - update it manually"
+             echo "please run 'curl -sL bit.ly/get-ops | bash'"
         fi
       else 
         echo "skipping rename $OPS_TMP/ops{{.EXE}} $OPS_CMD"
