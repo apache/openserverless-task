@@ -77,7 +77,7 @@ spec:
           claimName: nuvolaris-operator-deploy-pvc       
       containers:
         - name: nuvolaris-operator
-          image: ${ENT_IMAGES_OPERATOR}
+          image: ${IMAGES_OPERATOR}
           imagePullPolicy: Always
           command: ["./run.sh"]
           args: ["--verbose"]

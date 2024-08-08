@@ -50,7 +50,6 @@ tasks:
       elif  {{.__uninstall}}
       then  {{.RUN}} $OPS setup kubernetes delete CONTEXT="{{._context_}}"
       else
-            {{.RUN}} $OPS setup prereq
             {{.RUN}} $OPS setup kubernetes create CONTEXT="{{._context_}}"
             {{.RUN}} $OPS setup nuvolaris login
             config STATUS_LAST=cluster 
