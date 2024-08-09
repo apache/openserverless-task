@@ -134,7 +134,7 @@ tasks:
 
   kubeconfig:
     silent: true
-    prompt: are you sure? I am overwriting your ~/.kube/config
+    prompt: Are you sure? I am overwriting your ~/.kube/config
     desc: exporting kubeconfig to ~/.kube/config - WARNING IT OWERWRITES IT
     cmds:
       - |

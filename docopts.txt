@@ -3,13 +3,14 @@ Tasks (type 'ops <task>' to see usage and subtasks):
 OpenServerless Tasks:  
   config      Manage the Apache OpenServerless configuration
   setup       Setup the Apache OpenServerless platform on multiple environments
+  debug       Debug utilities for the OpenServerless operator
   util        Utilities
 
 OpenWhisk Tasks:
   action      Manage actions
   invoke      Invoke an action (pass parameters with <key>=<value>)
   url         Get the url of an action
-  activations Manage activations
+  activation  Manage activations
   logs        Show logs of activations
   result      Show results of activations
   package     Manage packages
