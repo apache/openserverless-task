@@ -1,0 +1,144 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  RETRY: 100
+  TIMEOUT: 10
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e $OPS_TMP/kubeconfig
+      then echo $OPS_TMP/kubeconfig
+      else echo ~/.kube/config
+      fi
+
+tasks:
+
+  wait:
+    desc: wait for a value matching the given jsonpath on the specific resources under the namespace nuvolaris
+    silent: true
+    cmds:
+      - test -n "{{.OBJECT}}" || die "use OBJECT=<pod/pod-name>"
+      - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do           
+          MATCHING_VALUE="$(kubectl -n nuvolaris get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
+          if [[ -z "$MATCHING_VALUE" ]]
+          then 
+            echo "$((N++)) Waiting for {{.JSONPATH}} to be non empty value"
+            sleep 5
+          else  
+            RES=true; break
+          fi
+        done
+        $RES 
+
+  info:
+   silent: true
+   desc: show info
+   cmds:
+    - kubectl cluster-info
+
+  ctl:
+    silent: true
+    desc: "execute a kubectl command, specify with CMD=<command>"
+    cmds:
+      - test -n "{{.CMD}}" || die "use CMD=..."
+      - kubectl {{.CMD}}
+  
+  nodes:
+    silent: true
+    desc: show nodes
+    cmds:
+    - kubectl get nodes
+
+  ns:
+    silent: true
+    desc: show namespaces
+    cmds:
+    - kubectl get ns
+
+  pod:
+    silent: true
+    desc: show pods and related
+    cmds:
+    - kubectl -n nuvolaris get po,sts,jobs --no-headers
+
+  svc:
+    silent: true
+    desc: show services, routes and ingresses
+    ignore_error: true
+    cmds:
+    - kubectl -n nuvolaris get svc 
+    - kubectl -n nuvolaris get route  2>/dev/null
+    - kubectl -n nuvolaris get ingress 2>/dev/null
+
+  exec:
+    desc: exec bash in pod P=...
+    cmds:
+      - test -n "{{.P}}" || die "use P= for pod"
+      - kubectl -n nuvolaris exec -ti {{.P}} -- bash
+
+  users:
+    silent: true
+    desc: show nuvolaris users custom resources
+    ignore_error: true
+    cmds:
+    - kubectl -n nuvolaris get wsku
+
+  detect:
+    desc: detect the kind of kubernetes we are using
+    silent: true
+    cmds:
+      - |-
+        LABELS="$(kubectl get nodes -ojsonpath='{.items[].metadata.labels}' 2>/dev/null)"
+        if echo "$LABELS" | jq . | grep eksctl.io >/dev/null
+        then echo "eks"
+        elif echo "$LABELS" | jq . | grep microk8s.io >/dev/null
+        then echo "microk8s"
+        elif echo "$LABELS" | jq . | grep lke.linode.com >/dev/null
+        then echo "lks"
+        elif echo "$LABELS" | jq . | grep openshift.io >/dev/null
+        then echo "openshift"
+        elif echo "$LABELS" | jq . | grep 'instance-type.*k3s' >/dev/null
+        then echo "k3s"
+        elif echo "$LABELS" | jq . | awk '/nuvolaris.io\/kube/ {print $2}' | grep kind >/dev/null
+        then echo "kind"
+        else echo "generic"
+        fi
+
+  show-all: |
+    kubectl api-resources --verbs=list --namespaced -o name | while read a 
+    do  
+        RES="$(kubectl -n nuvolaris get $a -o jsonpath='{.items}')"
+        if [[ "$RES" != "[]" ]]
+        then echo "*** $a ***"
+            kubectl -n nuvolaris get $a
+        fi
+    done 
+
+
+  operator:
+    desc: describe operator
+    cmds:
+    - kubectl -n nuvolaris describe pod/nuvolaris-operator-0

@@ -25,28 +25,19 @@ vars:
   ARCH: '{{ARCH}}'
 
 tasks:
-
-  prereq:
-    desc: check requirements before starting the setup
-    cmds:
-      - test -n "$REGISTRY_TOKEN" || die "please configure docker registry credentials using 'nuv ent config license'"
-      - config REGISTRY_PREREQ_OK="true"
-    status:
-    - config REGISTRY_PREREQ_OK
   
   devcluster:
     silent: true
     cmds:
     - |
       if {{.__status}}
-      then  {{.RUN}} nuv setup docker status
+      then  {{.RUN}} $OPS setup docker status
       elif  {{.__uninstall}}
-      then  {{.RUN}} nuv setup docker delete
+      then  {{.RUN}} OPS setup docker delete
       else
-          {{.RUN}} nuv ent setup prereq
-          {{.RUN}} nuv setup docker create         
-          {{.RUN}} nuv ent setup kubernetes create
-          {{.RUN}} nuv setup nuvolaris login
+          {{.RUN}} $OPS setup docker create         
+          {{.RUN}} $OPS setup kubernetes create
+          {{.RUN}} $OPS setup nuvolaris login
           config STATUS_LAST=devcluster
       fi
 
@@ -55,13 +46,12 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then  {{.RUN}} nuv ent setup kubernetes status CONTEXT="{{._context_}}"
+      then  {{.RUN}} $OPS setup kubernetes status CONTEXT="{{._context_}}"
       elif  {{.__uninstall}}
-      then  {{.RUN}} nuv ent setup kubernetes delete CONTEXT="{{._context_}}"
+      then  {{.RUN}} $OPS setup kubernetes delete CONTEXT="{{._context_}}"
       else
-            {{.RUN}} nuv ent setup prereq
-            {{.RUN}} nuv ent setup kubernetes create CONTEXT="{{._context_}}"
-            {{.RUN}} nuv setup nuvolaris login
+            {{.RUN}} $OPS setup kubernetes create CONTEXT="{{._context_}}"
+            {{.RUN}} $OPS setup nuvolaris login
             config STATUS_LAST=cluster 
             if test -n "{{._context_}}" 
             then config STATUS_CONTEXT="{{._context_}}"
@@ -73,14 +63,13 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then {{.RUN}} nuv cloud k3s status SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      then {{.RUN}} $OPS cloud k3s status SERVER="{{._server_}}" USERNAME="{{._user_}}"
       elif {{.__uninstall}}
-      then  {{.RUN}} nuv cloud k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      then  {{.RUN}} $OPS cloud k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
       else
-          {{.RUN}} nuv ent setup prereq
-          {{.RUN}} nuv cloud k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
-          {{.RUN}} nuv ent setup kubernetes create
-          {{.RUN}} nuv setup nuvolaris login
+          {{.RUN}} $OPS cloud k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
+          {{.RUN}} $OPS setup kubernetes create
+          {{.RUN}} $OPS setup nuvolaris login
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"
@@ -92,9 +81,9 @@ tasks:
     cmds: 
       - |
         case "$STATUS_LAST" in 
-        (devcluster) {{.RUN}} nuv ent setup devcluster --status ;;
-        (cluster)    {{.RUN}} nuv ent setup cluster "$STATUS_CONTEXT" --status ;;
-        (server)     {{.RUN}} nuv ent setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
+        (devcluster) {{.RUN}} $OPS setup devcluster --status ;;
+        (cluster)    {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --status ;;
+        (server)     {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
         (*) echo nothing installed yet
         esac
 
@@ -104,25 +93,25 @@ tasks:
       - |
         case "$STATUS_LAST" in 
         (devcluster) 
-                    {{.RUN}} nuv ent setup devcluster --uninstall
+                    {{.RUN}} $OPS setup devcluster --uninstall
                     config -r STATUS_LAST
         ;;
         (cluster)   
                     if test -n "$STATUS_CONTEXT" 
                     then 
-                        {{.RUN}} nuv ent setup cluster "$STATUS_CONTEXT" --uninstall
+                        {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --uninstall
                         config -r STATUS_CONTEXT
                     else
-                        {{.RUN}} nuv ent setup cluster --uninstall
+                        {{.RUN}} $OPS setup cluster --uninstall
                     fi
                     config -r STATUS_LAST
         ;;
         (server)    
                     if test -z "$STATUS_USERNAME"
                     then 
-                          {{.RUN}} nuv ent setup server "$STATUS_SERVER" --uninstall
+                          {{.RUN}} $OPS setup server "$STATUS_SERVER" --uninstall
                     else
-                          {{.RUN}} nuv ent setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
+                          {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
                           config -r STATUS_USERNAME
                     fi
                     config -r STATUS_LAST STATUS_SERVER 

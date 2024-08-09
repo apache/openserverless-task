@@ -60,7 +60,7 @@ spec:
     # quota enabled or not
     quota: ${OPERATOR_COMPONENT_QUOTA:-false}
   tls:
-    acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL}
+    acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL:-no-reply@email.com}
     acme-server-url: https://acme-v02.api.letsencrypt.org/directory
   openwhisk:
     namespaces:

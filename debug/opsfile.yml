@@ -1,0 +1,117 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e $OPS_TMP/kubeconfig
+      then echo $OPS_TMP/kubeconfig
+      else echo ~/.kube/config
+      fi
+
+tasks:
+
+  kube:
+    desc: kubernetes support subcommand prefix
+
+  log:
+    desc: show logs
+
+  images:
+    desc: show current images
+    silent: true
+    cmds:
+      - kubectl -n nuvolaris get po nuvolaris-operator-0 -o jsonpath='{.spec.containers[0].image}{"\n"}'
+      - kubectl -n nuvolaris get po controller-0 -o jsonpath='{.spec.containers[0].image}{"\n"}'
+      - kubectl -n nuvolaris get po couchdb-0 -o jsonpath='{.spec.containers[0].image}{"\n"}'
+
+
+  lb:
+    desc: show ingress load balancer
+    cmds:
+      - kubectl -n ingress-nginx get svc
+
+  certs:
+    desc: show certificates
+    cmds:
+      - kubectl -n nuvolaris get ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges
+
+  ingress:
+    desc: show ingresses
+    cmds:
+      - kubectl -n nuvolaris get ingress 
+
+  route:
+    desc: show openshift route
+    cmds:
+      - kubectl -n nuvolaris get route        
+
+  status:
+    desc: show deployment status
+    silent: true
+    cmds:
+      - kubectl -n nuvolaris get cm/config -o yaml
+
+  runtimes:
+    desc: show runtimes
+    silent: true
+    cmds:
+      - kubectl -n nuvolaris get cm/openwhisk-runtimes -o jsonpath='{.data.*}'
+
+  apihost:
+    desc: show current apihost
+    silent: true
+    cmds:
+      - echo OPERATOR_CONFIG_APIHOST=$OPERATOR_CONFIG_APIHOST
+      - wsk property get | awk '/whisk API host/{print}'
+
+  config:
+    desc: show deployed configuration
+    silent: true
+    cmds:
+      - kubectl -n nuvolaris get wsk/controller -o yaml
+
+  watch:
+    silent: true
+    desc: watch nodes and pod deployment
+    cmds:
+      - |
+        while true
+        do
+          kubectl -n nuvolaris get po,deploy,sts
+          sleep 5
+        done  
+
+  info:
+    - wsk property get
+
+  rollout:
+  - kubectl -n nuvolaris rollout restart sts/controller
+
+  definalize:
+  - >
+    kubectl -n nuvolaris patch wsk/controller 
+    --type=merge --patch '{"metadata": {"finalizers":[] } }'
+
+  operator:version:
+    desc: show operator versions
+    silent: true
+    cmds:
+      - kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.nuvolaris-operator_version}'    
+

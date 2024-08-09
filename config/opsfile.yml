@@ -26,7 +26,7 @@ tasks:
     silent: true
     cmds:
       - config OPERATOR_CONFIG_APIHOST="{{._apihost_}}"
-      - config -dump | grep OPERATOR_CONFIG_APIHOST
+      - config -dump | rg OPERATOR_CONFIG_APIHOST
       - |
         if test -n "{{.__tls}}" 
         then config OPERATOR_CONFIG_TLSEMAIL="{{.__tls}}" OPERATOR_COMPONENT_TLS=true
@@ -37,8 +37,8 @@ tasks:
         then config OPERATOR_CONFIG_HOSTPROTOCOL="{{.__protocol}}"
         else config OPERATOR_CONFIG_HOSTPROTOCOL="auto"
         fi        
-      - config -dump | grep OPERATOR_COMPONENT_TLS
-      - config -dump | grep OPERATOR_CONFIG_HOSTPROTOCOL
+      - config -dump | rg OPERATOR_COMPONENT_TLS
+      - config -dump | rg OPERATOR_CONFIG_HOSTPROTOCOL
 
   enable:
     silent: true
@@ -181,13 +181,13 @@ tasks:
   status:
     silent: true
     cmds:
-      - cmd: config -dump | grep OPERATOR_
+      - cmd: config -dump | rg OPERATOR_
         ignore_error: true
-      - cmd: config -dump | grep AKS_
+      - cmd: config -dump | rg AKS_
         ignore_error: true
-      - cmd: config -dump | grep EKS_
+      - cmd: config -dump | rg EKS_
         ignore_error: true
-      - cmd: config -dump | grep GKE_
+      - cmd: config -dump | rg GKE_
         ignore_error: true
 
   export:
@@ -195,7 +195,7 @@ tasks:
     cmds:
       - config -dump | awk '{print "export "$0}'
       - |
-        echo NUV_TMP=$NUV_TMP
+        echo OPS_TMP=$OPS_TMP
         echo 'DATA:() {' 
         echo '  DATA="$(eval $@)"' 
         echo '}'
@@ -204,8 +204,8 @@ tasks:
   reset:
     silent: true
     cmds:
-      - rm -rf ~/.nuv/config.json || true
-      - rm -rf "$NUV_TMP/runtimes.json" || true
+      - rm -rf "$OPS_HOME/config.json" || true
+      - rm -rf "$OPS_TMP/runtimes.json" || true
       - config -dump
 
   # read a value, empty => use a default
@@ -371,8 +371,8 @@ tasks:
           VAR: "EKS_KUBERNETES_VERSION"
           VAL: "{{.__kubever}}"
           DEF: "1.25"
-      - config -d | grep AWS_
-      - config -d | grep EKS_
+      - config -d | rg AWS_
+      - config -d | rg EKS_
 
   gcloud:
     silent: true
@@ -423,7 +423,7 @@ tasks:
           VAR: "GCLOUD_IMAGE"
           VAL: "{{.__image}}"
           DEF: "ubuntu-minimal-2204-lts"        
-      - config -d | grep GCLOUD_
+      - config -d | rg GCLOUD_
 
   gke:
     silent: true
@@ -471,7 +471,7 @@ tasks:
           VAR: "GKE_DISK"
           VAL: "{{.__disk}}"
           DEF: "50"
-      - config -d | grep GKE_
+      - config -d | rg GKE_
 
   aks:
     silent: true
@@ -524,7 +524,7 @@ tasks:
           VAR: "AKS_SSHKEY"
           VAL: "{{.__key}}"
           DEF: "~/.ssh/id_rsa.pub"
-      - config -d | grep AKS_
+      - config -d | rg AKS_
 
   runtimes:
     silent: true
@@ -534,7 +534,7 @@ tasks:
         then cat "{{.RUNTIMES}}"
         else RT="$(realpath "{{._runtimesjson_}}")"
             if test -e "$RT"
-            then cp "$RT" "$NUV_TMP/runtimes.json"
+            then cp "$RT" "$OPS_TMP/runtimes.json"
                  echo "Imported runtimes.json from $RT"
             else echo "not found {{._runtimesjson_}}"
             fi
@@ -542,8 +542,8 @@ tasks:
     vars:
       RUNTIMES:
         sh: |
-          if test -e "$NUV_TMP/runtimes.json"
-          then echo "$NUV_TMP/runtimes.json"
+          if test -e "$OPS_TMP/runtimes.json"
+          then echo "$OPS_TMP/runtimes.json"
           else echo ../setup/kubernetes/runtimes.json
           fi
 
@@ -552,19 +552,19 @@ tasks:
     desc: select a different kubeconfig among those you created
     cmds:
       - |
-        if ls "$NUV_TMP/*.kubeconfig" >/dev/null  2>/dev/null
+        if ls "$OPS_TMP/*.kubeconfig" >/dev/null  2>/dev/null
         then
           if test -z "{{._n_}}"
           then N=1
               echo "*** Available kubeconfig (select by name or number):"
               echo "0  default kubeconfig (usually ~/.kube/config)"
-              if test -e $NUV_TMP/kubeconfig
-              then CUR="$(cat $NUV_TMP/kubeconfig)"
+              if test -e $OPS_TMP/kubeconfig
+              then CUR="$(cat $OPS_TMP/kubeconfig)"
               else CUR=""
               fi
-              for i in $NUV_TMP/*.kubeconfig
+              for i in $OPS_TMP/*.kubeconfig
               do  K=$(basename ${i//\\//})
-                  if test "$CUR" == "$(cat $NUV_TMP/$K)"
+                  if test "$CUR" == "$(cat $OPS_TMP/$K)"
                   then MSG="* "
                   else MSG="  "
                   fi
@@ -572,11 +572,11 @@ tasks:
               done
           else
             if [[ "{{._n_}}" == "0" ]]
-            then rm $NUV_TMP/kubeconfig
+            then rm $OPS_TMP/kubeconfig
                  echo using default kubeconfig "${KK}" 
             else
               N=1
-              for i in $NUV_TMP/*.kubeconfig
+              for i in $OPS_TMP/*.kubeconfig
               do  K=$(basename $i)
                   KK="${K%%.kubeconfig}"
                   if [[ "$((N++))" = "{{._n_}}" || "$KK" = "{{._n_}}" ]]
@@ -589,12 +589,12 @@ tasks:
                               echo "renaming {{._n_}} to {{.__rename}}"
                               mv "$i" "$NEWNAME"
                         else
-                          cp "$i" "$NUV_TMP/kubeconfig"
+                          cp "$i" "$OPS_TMP/kubeconfig"
                           echo now using kubeconfig "${KK}"  
-                          if kubectl --kubeconfig "$NUV_TMP/kubeconfig" cluster-info
+                          if kubectl --kubeconfig "$OPS_TMP/kubeconfig" cluster-info
                           then echo now using kubeconfig "${KK}" 
                           else echo "problems using this kubeconfig - removed"
-                              rm "$NUV_TMP/kubeconfig"
+                              rm "$OPS_TMP/kubeconfig"
                               echo please remove it with "nuv config use {{._n_}} --delete"
                           fi
                         fi
@@ -681,7 +681,7 @@ tasks:
         VAR: "STORAGE_SIZE_REDIS"
         HINT: | 
               Specifies an integer value
-        VAL: "{{.__redis}}"
+        VAL: "{{.__redisvol}}"
         DEF: "25"                 
     - task: read
       vars:
@@ -697,7 +697,7 @@ tasks:
         VAR: "STORAGE_SIZE_POSTGRES"
         HINT: | 
               Specifies an integer value
-        VAL: "{{.__postgres}}"
+        VAL: "{{.__pgvol}}"
         DEF: "50" 
     - task: read
       vars:
