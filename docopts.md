@@ -7,6 +7,7 @@ Type `ops <task>` to see usage and subtasks.
 ```
   config      Manage the Apache OpenServerless configuration
   setup       Setup the Apache OpenServerless platform on multiple environments
+  debug       Debug utilities for the Apache OpenServerless platform
   util        Utilities
 ```
 
