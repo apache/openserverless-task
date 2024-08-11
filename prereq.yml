@@ -28,7 +28,7 @@ tasks:
         - OUT
     cmds:
       - curl -sL -o"{{.OUT}}" "{{.URL}}"
-      - '{{if eq .OS "windows"}}rename {{.OUT}} {{.OUT}}{{.EXE}}{{else}}chmod +x {{.OUT}}{{end}}'
+      - executable "{{.OUT}}"
 
   7zz:
     desc: download 7zz
@@ -159,37 +159,6 @@ tasks:
         FILE: "{{.FILE}}"
         OUT: "{{.OUT}}"
 
-
-  glow:
-    desc: download glow
-    vars:
-      VERSION: "1.5.1"
-      SUFFIX:
-        sh: |
-            case "{{.OS}}-{{.ARCH}}" in
-            linux-amd64) echo "Linux_x86_64" ;;
-            linux-arm64) echo "Linux_arm64" ;;
-            darwin-amd64) echo "Darwin_x86_64" ;;
-            darwin-arm64) echo "Darwin_arm64" ;; 
-            windows-*) echo "Windows_x86_64" ;;
-            *) echo "unknown" ;;
-            esac
-      URL: "https://github.com/charmbracelet/glow/releases/download/v{{.VERSION}}/glow_{{.SUFFIX}}{{.ARC}}" 
-      FILE: "{{base .URL}}"
-      OUT: glow
-    cmds:
-    - "echo {{.URL}}"
-    - task: download-and-extract
-      vars:
-        URL: "{{.URL}}"
-        FILE: "{{.FILE}}"
-        OUT: "{{.OUT}}"
-
-#https://github.com/charmbracelet/glow/releases/download/v1.5.1/glow_Linux_x86_64.tar.gz
-#https://github.com/charmbracelet/glow/releases/download/v1.5.1/glow_Linux-x86_64.tar.gz
-
-
-
   all:
     - task: 7zz
     - task: coreutils    
@@ -198,7 +167,6 @@ tasks:
     - task: k3sup
     - task: kubectl
     - task: rg
-    - task: glow
 
   test:
     vars:
