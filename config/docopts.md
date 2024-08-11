@@ -1,10 +1,11 @@
-# Tasks:
+# Tasks  `ops config`
 
-  `ops config`
+Configure OpenServerless
 
-# Usage:
+## Synopsis
 
-```Usage:
+```text
+Usage:
   config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota]  
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config runtimes [<runtimesjson>]  
@@ -27,7 +28,7 @@
   config minimal  
 ```
 
-# Commands:
+## Commands:
 ```
   config apihost          configure the apihost (auto: auto assign) and enable tls
   config runtime          show the current runtime.json or import the <runtime-json> if provided
@@ -53,7 +54,7 @@
   config minimal          shortcut for ops config enabling only redis,mongodb,minio,cron,static,postgres
 ```
 
-# Options:
+## Options:
 ```
   --all                 select all services
   --redis               select redis

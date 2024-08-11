@@ -104,13 +104,6 @@ tasks:
         config -r "${USR}_SECRET_POSTGRES"
         echo "Removed ${USR} user secrets."
 
-  poll:
-    desc: wsk poll
-    cmds:
-      - wsk activation poll
-
-  realpath:
-    - realpath {{._file_}}
 
   kubectl:
     silent: true
