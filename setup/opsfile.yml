@@ -33,7 +33,7 @@ tasks:
       if {{.__status}}
       then  {{.RUN}} $OPS setup docker status
       elif  {{.__uninstall}}
-      then  {{.RUN}} OPS setup docker delete
+      then  {{.RUN}} $OPS setup docker delete
       else
           {{.RUN}} $OPS setup docker create         
           {{.RUN}} $OPS setup kubernetes create
