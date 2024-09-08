@@ -8,7 +8,6 @@ Usage:
   aks kubeconfig
   aks lb
   aks status
-  aws vm-list
 
 Commands:
   config     configure an Azure AKS kubernetes cluster

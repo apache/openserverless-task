@@ -1,0 +1,17 @@
+Section:
+  ops cloud mk8s
+
+Usage:
+  mk8s create
+  mk8s delete
+  mk8s info
+  mk8s kubeconfig
+  mk8s status
+
+Commands:
+  create     create a mk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+  delete     uninstall microk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+  info       info on the server
+  kubeconfig recover the kubeconfig from a server with microk8s
+  status     status of the server
+
