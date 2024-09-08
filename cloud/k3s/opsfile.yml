@@ -1,0 +1,105 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  # temporary....
+  K3S_VERSION: "v1.27.7-rc1+k3s2"
+  SSH: "ssh -oStrictHostKeyChecking=no"
+  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e "$NUV_TMP/kubeconfig"
+      then echo "$NUV_TMP/kubeconfig"
+      else echo ~/.kube/config
+      fi
+
+tasks:
+  get-cert-manager:
+    cmds:
+      - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
+
+  install:
+    silent: true
+    #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    cmds:
+      - test -n "{{.SERVER}}" || die "required SERVER=<ip or host>"
+      - >
+        k3sup install --k3s-version="{{.K3S_VERSION}}"
+        --host="{{.SERVER}}" --user="{{.USERNAME}}"
+        --local-path=$NUV_TMP/kubeconfig
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
+
+  cert-manager:
+    silent: true
+    #desc: install cert-manager
+    cmds:
+      - kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
+
+  create:
+    silent: true
+    desc: create a k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    cmds:
+      - config NUVOLARIS_KUBE=k3s
+      - task: install
+      - task: cert-manager
+      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+
+  delete:
+    silent: true
+    desc: uninstall with ssh in SERVER=<server> using USERNAME=<username> with sudo
+    cmds:
+      - test -n "{{.SERVER}}" || die "please use SERVER="
+      - "{{.SSH}} '{{.USERNAME}}@{{.SERVER}}' sudo /usr/local/bin/k3s-uninstall.sh"
+      - rm "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
+
+  status:
+    desc: status of the server
+    silent: true
+    cmds:
+      - |
+        if test -e $NUV_TMP/kubeconfig
+        then {{.RUN}} kubectl get nodes
+        else echo "No Cluster Installed"
+        fi
+
+  info:
+    silent: true
+    desc: info on the server
+    cmds:
+      - echo KUBECONFIG="$KUBECONFIG"
+      - echo SERVER_HOST="$SERVER_HOST"
+      - echo SERVER_USERNAME="$SERVER_USERNAME"
+
+  kubeconfig:
+    desc: recover the kubeconfig from a K3S server SERVER=<server> with user USERNAME=<username>
+    cmds:
+      - test -n "{{.SERVER}}" || die "please use SERVER="
+      - >
+        {{.SSH}} '{{.USERNAME}}@{{.SERVER}}' 
+        sudo cat /etc/rancher/k3s/k3s.yaml 
+        | replace --stdin -s '127.0.0.1' -r '{{.SERVER}}'
+        >"$NUV_TMP/kubeconfig"
+      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'

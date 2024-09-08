@@ -1,0 +1,92 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+version: "3"
+
+vars:
+  SSH: "ssh -oStrictHostKeyChecking=no"
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e $(realpath "$NUV_TMP/kubeconfig")
+      then echo $(realpath "$NUV_TMP/kubeconfig")
+      else echo ~/.kube/config
+      fi
+
+tasks:
+
+  install:
+    silent: true
+    #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    cmds:
+      - test -n "{{.SERVER}}" || die "required SERVER=<ip or host>"
+      - >
+        cat mk8s.sh | {{.SSH}} {{.USERNAME}}@{{.SERVER}} 
+        tee mk8s.sh >/dev/null
+      - "{{.SSH}} {{.USERNAME}}@{{.SERVER}} sudo bash mk8s.sh {{.SERVER}}"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
+
+  create:
+    silent: true
+    desc: create a mk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    cmds:
+      - config NUVOLARIS_KUBE=microk8s
+      - task: install
+      - task: kubeconfig
+
+  delete:
+    silent: true
+    desc: uninstall microk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    cmds:
+      - test -n "{{.SERVER}}" || die "please use SERVER="
+      - "{{.SSH}} {{.USERNAME}}@{{.SERVER}} sudo snap remove microk8s"
+      - rm "$NUV_TMP/kubeconfig" "$NUV_TMP/mk8s-{{.SERVER}}.kubeconfig"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
+
+  status:
+    desc: status of the server
+    silent: true
+    cmds:
+      - |
+        if test -e $NUV_TMP/kubeconfig
+        then {{.RUN}} kubectl get nodes
+        else echo "No Cluster Installed"
+        fi
+
+  info:
+    silent: true
+    desc: info on the server
+    cmds:
+      - echo KUBECONFIG="$KUBECONFIG"
+      - echo SERVER_HOST="$SERVER_HOST"
+      - echo SERVER_USERNNAME="$SERVER_USERNAME"
+
+  kubeconfig:
+    silent: true
+    desc: recover the kubeconfig from a server with microk8s
+    cmds:
+      - test -n "{{.SERVER}}" || die "please use SERVER="
+      - >
+        {{.SSH}} '{{.USERNAME}}@{{.SERVER}}' 
+        sudo microk8s config      
+        | awk '/server:/ {$0="    server: https://{{.SERVER}}:16443"} 1'
+        >"$NUV_TMP/kubeconfig"
+      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/mk8s-{{.SERVER}}.kubeconfig"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'

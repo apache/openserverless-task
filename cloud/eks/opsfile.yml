@@ -1,0 +1,147 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: '3'
+
+vars:
+  MAX: 100
+  TIMEOUT: 1m
+
+env:
+  KUBECONFIG: 
+    sh: |-
+        if test -e $NUV_TMP/kubeconfig
+        then echo $NUV_TMP/kubeconfig
+        else echo ~/.kube/config
+        fi
+
+tasks:
+  prereq:
+    #desc: check prerequisites
+    silent: true
+    cmds:
+    - test -n "$EKS_NAME" || die 'Please, configure EKS with "nuv config eks"'
+    - "aws --version || die 'You need to install aws cli from : https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html'"
+    - "aws ec2 describe-key-pairs --key-names $AWS_SSHKEY --query 'KeyPairs[*].{KeyName: KeyName}' --output table || die 'Please generate or import the configured key  before continuing.'"
+    - config EKS_PREREQ_OK="true"
+    status:
+    - config EKS_PREREQ_OK
+
+  update-yaml:
+    cmds:
+    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
+    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml" >ingress-deploy.yaml
+
+  wait:
+    #desc: util wait for objects - user OBJECT= to specify what
+    silent: true
+    cmds:
+    - |
+      N=0
+      echo "Waiting for {{.OBJECT}}"
+      while ! kubectl --kubeconfig=$NUV_TMP/kubeconfig get {{.OBJECT}}  --request-timeout="{{.TIMEOUT}}" 2>/dev/null >/dev/null
+      do echo "$((N++)) Still waiting for {{.OBJECT}}..."
+      done
+    - |
+      N=0
+      RES=false
+      while [[ $N -lt {{.MAX}} ]]
+      do  echo "$((N++)) Waiting for {{.OBJECT}} ready"
+          if kubectl --kubeconfig=$NUV_TMP/kubeconfig get {{.OBJECT}} --request-timeout={{.TIMEOUT}} 2>/dev/null
+          then RES=true
+              break
+          fi
+      done
+      $RES
+
+  status:
+    silent: true
+    cmds:
+    - kubectl get nodes
+
+  build:
+    silent: true
+    #desc: install EKS using eksctl CLI
+    cmds:
+      - "envsubst -i eks-cluster.yml  -o _eks-cluster.yml"
+      - |
+        if ! eksctl get cluster -n "$EKS_NAME" --region "$AWS_DEFAULT_REGION" 2>/dev/null
+        then eksctl create cluster -f _eks-cluster.yml --kubeconfig $NUV_TMP/kubeconfig
+        fi
+
+  certman: 
+    cmds:
+      - |
+        if test -z "{{.DEL}}"
+        then retry -t 1000 -m 1800 kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
+        else kubectl apply -f cert-manager.yaml
+        fi
+
+  ingress:
+    cmds:
+      - |
+        if test -z "{{.DEL}}"
+        then retry -t 1000 -m 1800 kubectl --kubeconfig  $NUV_TMP/kubeconfig apply -f ingress-deploy.yaml
+        else kubectl delete -f ingress-deploy.yaml
+        fi
+  
+  create:
+    silent: true
+    desc: create an Amazon EKS cluster
+    cmds:
+    - task: prereq
+    - task: build
+    - task: wait
+      vars:
+        OBJECT: nodes
+    - task: ingress
+    - task: certman
+    - task: kubeconfig
+
+  lb:
+    silent: true
+    desc: show the load balancer hostname
+    cmds:
+      - > 
+        kubectl -n ingress-nginx get svc/ingress-nginx-controller  
+        -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null
+        || die "load balancer not found"
+      - echo ""
+
+  delete:
+    silent: true
+    desc: delete the current Amazon EKS cluster
+    cmds:
+    - envsubst -i eks-cluster.yml -o _eks-cluster.yml
+    - echo "*** Deleting the Cluster"
+    - "eksctl delete cluster -f _eks-cluster.yml --disable-nodegroup-eviction"
+    - "rm $NUV_TMP/kubeconfig"
+    ignore_error: true
+
+  config:
+    desc: configure an Amazon EKS cluster
+    silent: true
+    cmds:
+    - nuv config eks
+
+  kubeconfig:
+    silent: true
+    desc: extract kubeconfig for connecting to the cluster
+    cmds:
+    - task: prereq
+    - "eksctl utils write-kubeconfig --cluster=$EKS_NAME --region=$AWS_DEFAULT_REGION --kubeconfig=$NUV_TMP/kubeconfig"
+    - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/eks-$EKS_NAME.kubeconfig"
