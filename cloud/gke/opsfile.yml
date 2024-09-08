@@ -1,0 +1,126 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: '3'
+
+vars:
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e $OPS_TMP/kubeconfig
+      then echo $OPS_TMP/kubeconfig
+      else echo ~/.kube/config
+      fi
+
+tasks:
+  prereq:
+    silent: true
+    cmds:
+    - test -n "$GKE_NAME" || die 'Please, configure GKE with "ops config gke"'
+    - "gcloud --version || die 'You need to install and configure the gcloud tool before running this command.'"
+    - |
+      if ! gke-gcloud-auth-plugin 2>/dev/null >/dev/null
+      then die "Please Install gke-gcloud-auth-plugin with 'gcloud components install gke-gcloud-auth-plugin'"
+      fi
+    - config GKE_PREREQ_OK="true"
+    status:
+    - config GKE_PREREQ_OK
+
+  update-yaml:
+    cmds:
+    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
+    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
+
+  kubeconfig:
+    desc: extract kubeconfig to access
+    silent: true
+    cmds:
+    - task: prereq
+    - >
+      gcloud container clusters 
+      get-credentials $GKE_NAME --zone=$GKE_REGION
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/gke-$GKE_NAME.kubeconfig"
+  
+    env:
+      KUBECONFIG: 
+        sh: echo $OPS_TMP/kubeconfig
+
+  config:
+    desc: configure a Google Kubernetes Engine cluster
+    silent: true
+    cmds:
+    - $OPS config gke
+
+
+  create:
+    silent: true
+    desc: create a Google Kubernetes Engine cluster
+    env:
+      KUBECONFIG: 
+        sh: echo $OPS_TMP/kubeconfig
+    cmds:
+    - task: prereq
+    - "gcloud auth login"
+    - "gcloud config set project $GKE_PROJECT"
+    - > 
+      gcloud container clusters 
+      describe "$GKE_NAME" --zone="$GKE_REGION" 2>/dev/null >/dev/null
+      || gcloud container clusters 
+      create "$GKE_NAME" --zone="$GKE_REGION"
+      --machine-type="$GKE_VM"
+      --disk-size="${GKE_DISK}GB"
+      --num-nodes="$GKE_COUNT"
+    - task: kubeconfig
+    - task: ingress
+    - task: certman
+
+  delete:
+    silent: true
+    desc: delete aks cluster
+    cmds:
+    - echo "*** Deleting the $GKE_NAME cluster"
+    - "gcloud auth login"
+    - >
+      gcloud container clusters 
+      delete "$GKE_NAME" --zone="$GKE_REGION"
+
+  certman: 
+    cmds:
+      - |
+        if test -z "{{.DEL}}"
+        then retry -t 1000 -m 1800 kubectl  --kubeconfig "$OPS_TMP/kubeconfig"  apply -f cert-manager.yaml
+        else kubectl apply -f cert-manager.yaml
+        fi
+
+  ingress:
+    cmds:
+      - |
+        if test -z "{{.DEL}}"
+        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f ingress-deploy.yaml
+        else kubectl delete -f ingress-deploy.yaml
+        fi
+
+  lb:
+    silent: true
+    desc: show the load balancer
+    cmds:
+      - > 
+        kubectl -n ingress-nginx get svc/ingress-nginx-controller  
+        -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null
+        || die "load balancer not found"
+      - echo ""

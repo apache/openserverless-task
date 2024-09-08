@@ -1,0 +1,90 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  SSH: "/usr/bin/ssh -oStrictHostKeyChecking=no"
+
+tasks:
+  prereq:
+    silent: true
+    cmds:
+      - test -n "$GCLOUD_PROJECT" || die "Please configure GCloud with 'ops config gcloud'"
+      - gcloud --version >/dev/null || die 'You need to install and configure the gcloud CLI tool before running this command.'
+      - config GCLOUD_PREREQ_OK="true"
+    status:
+    - config GCLOUD_PREREQ_OK
+
+  vm-list:
+    silent: true
+    cmds:
+      - task: prereq
+      - echo "*** Created VM:"
+      - gcloud compute instances list --filter="labels.ops=true" --format="table(name,zone)"
+
+  vm-firewall-rule:
+    silent: true
+    cmds:
+    - > 
+      gcloud compute firewall-rules describe openserverless-vm ||
+      gcloud compute firewall-rules create openserverless-vm 
+      --allow tcp:80,tcp:443,tcp:6443,tcp:16443 
+      --target-tags=openserverless-vm
+
+  vm-create:
+    silent: true
+    cmds:
+      - task: prereq
+      - task: vm-firewall-rule
+      - > 
+       cat "$(realpath $GCLOUD_SSHKEY)" |
+       awk '/ssh-rsa/{ print "ubuntu:ssh-rsa " $2 }'
+       >_sshkey
+      - >
+        gcloud compute instances describe "{{._name_}}" --zone="$GCLOUD_REGION" 2>/dev/null >/dev/null
+        || gcloud compute instances 
+        create "{{._name_}}" --zone="$GCLOUD_REGION"
+        --machine-type="$GCLOUD_VM"
+        --boot-disk-size="$GCLOUD_DISK"GB
+        --image-family="$GCLOUD_IMAGE"
+        --image-project=ubuntu-os-cloud
+        --tags=openserverless-vm
+        --labels=ops=true
+        --metadata-from-file=ssh-keys=_sshkey 
+      - task: vm-getip
+      - >
+        echo "*** Waiting until the VM is ready..." ;
+        retry -t 1000 -m 1800 {{.SSH}} 
+        "ubuntu@$(cat _vm-ip)" hostname
+
+  vm-getip:
+    silent: true
+    cmds:
+    - >
+      gcloud compute instances 
+      describe "{{._name_}}" --zone="$GCLOUD_REGION"
+      --format='get(networkInterfaces[0].accessConfigs[0].natIP)' >_vm-ip
+    - cat _vm-ip
+
+  vm-delete:
+    cmds:
+    - > 
+      gcloud compute instances 
+      delete "{{._name_}}" 
+      --zone="$GCLOUD_REGION"
+
