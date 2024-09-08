@@ -18,6 +18,7 @@
 _*
 !ide/deploy/__main__.py
 .vscode/
+.idea/
 .git-hooks/
 TODO.txt
 **/.env
