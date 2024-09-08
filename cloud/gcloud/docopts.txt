@@ -1,5 +1,5 @@
 Subcommand:
-  nuv cloud gcloud
+  ops cloud gcloud
 
 Usage:
   gcloud vm-list

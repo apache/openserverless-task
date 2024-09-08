@@ -24,8 +24,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |
-      if test -e $NUV_TMP/kubeconfig
-      then echo  $NUV_TMP/kubeconfig
+      if test -e $OPS_TMP/kubeconfig
+      then echo  $OPS_TMP/kubeconfig
       else echo ~/.kube/config
       fi
 
@@ -42,10 +42,10 @@ tasks:
     cmds:
       - |
         if test -e "$CONFIG"
-        then  cp "$CONFIG" "$NUV_TMP/kubeconfig"
-              cp "$CONFIG" "$NUV_TMP/openshift.kubeconfig"
+        then  cp "$CONFIG" "$OPS_TMP/kubeconfig"
+              cp "$CONFIG" "$OPS_TMP/openshift.kubeconfig"
               echo "$CONFIG" imported as "openshift.kubeconfig"
-              oc --kubeconfig "$NUV_TMP/kubeconfig" cluster-info
+              oc --kubeconfig "$OPS_TMP/kubeconfig" cluster-info
         else echo "$CONFIG not found" ; false
         fi
     env:
@@ -56,12 +56,12 @@ tasks:
     silent: true
     desc: prepare
     cmds:
-      - config NUVOLARIS_KUBE=openshift
-      - "nuv config apihost '{{.APIHOST}}'"
+      - config OPS_KUBE=openshift
+      - "$OPS config apihost '{{.APIHOST}}'"
     vars:
       APIHOST:
         sh: >
-          kubectl --kubeconfig $NUV_TMP/kubeconfig config view -o jsonpath='{.clusters[0].cluster.server}'
+          kubectl --kubeconfig $OPS_TMP/kubeconfig config view -o jsonpath='{.clusters[0].cluster.server}'
           | awk -F: '{gsub("//api.", "api.apps.", $2); print $2}'
 
   import:

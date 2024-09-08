@@ -24,8 +24,8 @@ vars:
 env:
   KUBECONFIG: 
     sh: |-
-        if test -e $NUV_TMP/kubeconfig
-        then echo $NUV_TMP/kubeconfig
+        if test -e $OPS_TMP/kubeconfig
+        then echo $OPS_TMP/kubeconfig
         else echo ~/.kube/config
         fi
 
@@ -34,7 +34,7 @@ tasks:
     #desc: check prerequisites
     silent: true
     cmds:
-    - test -n "$EKS_NAME" || die 'Please, configure EKS with "nuv config eks"'
+    - test -n "$EKS_NAME" || die 'Please, configure EKS with "ops config eks"'
     - "aws --version || die 'You need to install aws cli from : https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html'"
     - "aws ec2 describe-key-pairs --key-names $AWS_SSHKEY --query 'KeyPairs[*].{KeyName: KeyName}' --output table || die 'Please generate or import the configured key  before continuing.'"
     - config EKS_PREREQ_OK="true"
@@ -53,7 +53,7 @@ tasks:
     - |
       N=0
       echo "Waiting for {{.OBJECT}}"
-      while ! kubectl --kubeconfig=$NUV_TMP/kubeconfig get {{.OBJECT}}  --request-timeout="{{.TIMEOUT}}" 2>/dev/null >/dev/null
+      while ! kubectl --kubeconfig=$OPS_TMP/kubeconfig get {{.OBJECT}}  --request-timeout="{{.TIMEOUT}}" 2>/dev/null >/dev/null
       do echo "$((N++)) Still waiting for {{.OBJECT}}..."
       done
     - |
@@ -61,7 +61,7 @@ tasks:
       RES=false
       while [[ $N -lt {{.MAX}} ]]
       do  echo "$((N++)) Waiting for {{.OBJECT}} ready"
-          if kubectl --kubeconfig=$NUV_TMP/kubeconfig get {{.OBJECT}} --request-timeout={{.TIMEOUT}} 2>/dev/null
+          if kubectl --kubeconfig=$OPS_TMP/kubeconfig get {{.OBJECT}} --request-timeout={{.TIMEOUT}} 2>/dev/null
           then RES=true
               break
           fi
@@ -80,14 +80,14 @@ tasks:
       - "envsubst -i eks-cluster.yml  -o _eks-cluster.yml"
       - |
         if ! eksctl get cluster -n "$EKS_NAME" --region "$AWS_DEFAULT_REGION" 2>/dev/null
-        then eksctl create cluster -f _eks-cluster.yml --kubeconfig $NUV_TMP/kubeconfig
+        then eksctl create cluster -f _eks-cluster.yml --kubeconfig $OPS_TMP/kubeconfig
         fi
 
   certman: 
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
+        then retry -t 1000 -m 1800 kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f cert-manager.yaml
         else kubectl apply -f cert-manager.yaml
         fi
 
@@ -95,7 +95,7 @@ tasks:
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig  $NUV_TMP/kubeconfig apply -f ingress-deploy.yaml
+        then retry -t 1000 -m 1800 kubectl --kubeconfig  $OPS_TMP/kubeconfig apply -f ingress-deploy.yaml
         else kubectl delete -f ingress-deploy.yaml
         fi
   
@@ -129,19 +129,19 @@ tasks:
     - envsubst -i eks-cluster.yml -o _eks-cluster.yml
     - echo "*** Deleting the Cluster"
     - "eksctl delete cluster -f _eks-cluster.yml --disable-nodegroup-eviction"
-    - "rm $NUV_TMP/kubeconfig"
+    - "rm $OPS_TMP/kubeconfig"
     ignore_error: true
 
   config:
     desc: configure an Amazon EKS cluster
     silent: true
     cmds:
-    - nuv config eks
+    - $OPS config eks
 
   kubeconfig:
     silent: true
     desc: extract kubeconfig for connecting to the cluster
     cmds:
     - task: prereq
-    - "eksctl utils write-kubeconfig --cluster=$EKS_NAME --region=$AWS_DEFAULT_REGION --kubeconfig=$NUV_TMP/kubeconfig"
-    - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/eks-$EKS_NAME.kubeconfig"
+    - "eksctl utils write-kubeconfig --cluster=$EKS_NAME --region=$AWS_DEFAULT_REGION --kubeconfig=$OPS_TMP/kubeconfig"
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/eks-$EKS_NAME.kubeconfig"

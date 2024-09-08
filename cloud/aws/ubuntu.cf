@@ -32,11 +32,11 @@ Resources:
       Tags:
         - Key: Name
           Value: ${NAME}
-        - Key: Nuv
+        - Key: Ops
           Value: true
-        - Key: NuvName
+        - Key: OpsName
           Value: ${NAME}
-        - Key: NuvType
+        - Key: OpsType
           Value: ubuntu
 
   SecurityGroup:

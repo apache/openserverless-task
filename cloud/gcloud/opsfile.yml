@@ -24,7 +24,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-      - test -n "$GCLOUD_PROJECT" || die "Please configure GCloud with 'nuv config gcloud'"
+      - test -n "$GCLOUD_PROJECT" || die "Please configure GCloud with 'ops config gcloud'"
       - gcloud --version >/dev/null || die 'You need to install and configure the gcloud CLI tool before running this command.'
       - config GCLOUD_PREREQ_OK="true"
     status:
@@ -35,16 +35,16 @@ tasks:
     cmds:
       - task: prereq
       - echo "*** Created VM:"
-      - gcloud compute instances list --filter="labels.nuv=true" --format="table(name,zone)"
+      - gcloud compute instances list --filter="labels.ops=true" --format="table(name,zone)"
 
   vm-firewall-rule:
     silent: true
     cmds:
     - > 
-      gcloud compute firewall-rules describe nuvolaris-vm ||
-      gcloud compute firewall-rules create nuvolaris-vm 
+      gcloud compute firewall-rules describe openserverless-vm ||
+      gcloud compute firewall-rules create openserverless-vm 
       --allow tcp:80,tcp:443,tcp:6443,tcp:16443 
-      --target-tags=nuvolaris-vm
+      --target-tags=openserverless-vm
 
   vm-create:
     silent: true
@@ -63,8 +63,8 @@ tasks:
         --boot-disk-size="$GCLOUD_DISK"GB
         --image-family="$GCLOUD_IMAGE"
         --image-project=ubuntu-os-cloud
-        --tags=nuvolaris-vm
-        --labels=nuv=true
+        --tags=openserverless-vm
+        --labels=ops=true
         --metadata-from-file=ssh-keys=_sshkey 
       - task: vm-getip
       - >

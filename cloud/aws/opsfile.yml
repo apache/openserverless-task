@@ -25,7 +25,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-      - test -n "$AWS_SECRET_ACCESS_KEY" || die "Please configure AWS with 'nuv config aws'"
+      - test -n "$AWS_SECRET_ACCESS_KEY" || die "Please configure AWS with 'ops config aws'"
       - aws --version >/dev/null || die 'You need to install and configure aws cli tool before running this command.'
       - >
         aws ec2 describe-key-pairs --key-names $AWS_SSHKEY --query 'KeyPairs[*].{KeyName: KeyName}' >/dev/null
@@ -42,8 +42,8 @@ tasks:
       - echo "*** Created VM:"
       - >
         if ! aws ec2 describe-instances 
-        --filters "Name=tag:Nuv,Values=true" 
-        --query 'Reservations[].Instances[].[Tags[?Key==`NuvName`].Value | [0], Tags[?Key==`NuvType`].Value | [0], PublicIpAddress, State.Name]' 
+        --filters "Name=tag:Ops,Values=true" 
+        --query 'Reservations[].Instances[].[Tags[?Key==`OpsName`].Value | [0], Tags[?Key==`OpsType`].Value | [0], PublicIpAddress, State.Name]' 
         --output text
         | awk '{printf "%-15s %-10s %-15s %s\n", $1, $2, $3, $4}' ;
         then echo "no vm found" ;
@@ -59,13 +59,13 @@ tasks:
       - echo "*** Creating the VM."
       - >
         aws cloudformation create-stack 
-        --stack-name nuv-{{._name_}} 
+        --stack-name ops-{{._name_}} 
         --template-body file://_vm-create.cf 
         || true
       - echo "*** Waiting until the VM is started..."
       - >
         aws cloudformation wait 
-        stack-create-complete --stack-name nuv-{{._name_}}
+        stack-create-complete --stack-name ops-{{._name_}}
       - task: vm-getip
       - >
         echo "*** Waiting until the VM is ready..." ;
@@ -78,7 +78,7 @@ tasks:
     cmds:
       - |
         aws ec2 describe-instances --output json \
-        --filters Name=tag:Nuv,Values=true Name=tag:NuvName,Values={{._name_}} Name=instance-state-name,Values=running \
+        --filters Name=tag:Ops,Values=true Name=tag:OpsName,Values={{._name_}} Name=instance-state-name,Values=running \
         | jq -r '.Reservations[].Instances[].PublicIpAddress' >_vm-ip
         test -n "$(cat _vm-ip)" || die "Error: VM {{._name_}} not found"
       - cat _vm-ip
@@ -92,13 +92,13 @@ tasks:
       - >
         {{.SSH}} "$AWS_VM_IMAGE_USER@$(cat _vm-ip)" 
         sudo cat /etc/kubeconfig >_kubeconfig
-      - cp _kubeconfig "$NUV_TMP/kubeconfig" "$NUV_TMP/aws-{{._name_}}.kubeconfig"
+      - cp _kubeconfig "$OPS_TMP/kubeconfig" "$OPS_TMP/aws-{{._name_}}.kubeconfig"
 
   vm-delete:
     cmds:
-      - aws cloudformation delete-stack --stack-name nuv-{{._name_}}
-      - aws cloudformation wait stack-delete-complete --stack-name nuv-{{._name_}}
-      - if test -e "$NUV_TMP/aws-{{._name_}}" ; then rm "$NUV_TMP/aws-{{._name_}}" ; fi
+      - aws cloudformation delete-stack --stack-name ops-{{._name_}}
+      - aws cloudformation wait stack-delete-complete --stack-name ops-{{._name_}}
+      - if test -e "$OPS_TMP/aws-{{._name_}}" ; then rm "$OPS_TMP/aws-{{._name_}}" ; fi
 
   zone-create:
     silent: true
@@ -150,7 +150,7 @@ tasks:
           export DOMAIN={{._zone_}}
           if test -n "{{.__vm}}"
           then export REC=A
-               export VAL=$(nuv cloud aws vm-getip "{{.__vm}}")
+               export VAL=$($OPS cloud aws vm-getip "{{.__vm}}")
           elif test -n "{{.__ip}}"
           then export REC=A
                export VAL="{{.__ip}}"

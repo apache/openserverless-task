@@ -20,8 +20,8 @@ version: '3'
 env:
   KUBECONFIG:
     sh: |-
-      if test -e $NUV_TMP/kubeconfig
-      then echo $NUV_TMP/kubeconfig
+      if test -e $OPS_TMP/kubeconfig
+      then echo $OPS_TMP/kubeconfig
       else echo ~/.kube/config
       fi
 
@@ -29,7 +29,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-    - test -n "$AKS_NAME" || die 'Please, configure AKS with "nuv config aks"'
+    - test -n "$AKS_NAME" || die 'Please, configure AKS with "ops config aks"'
     - az version || die 'You need to install and configure az cli tool before running this command.'
     - config AKS_PREREQ_OK="true"
     status:
@@ -50,14 +50,14 @@ tasks:
       --name $AKS_NAME 
       --resource-group $AKS_NAME 
       --overwrite-existing 
-      -f "$NUV_TMP/kubeconfig"
-    - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/aks-$AKS_NAME.kubeconfig"
+      -f "$OPS_TMP/kubeconfig"
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
   config:
     desc: configure an Azure AKS kubernetes cluster
     silent: true
     cmds:
-    - nuv config aks
+    - $OPS config aks
 
   create:
     silent: true
@@ -80,7 +80,7 @@ tasks:
     - task: kubeconfig
     - task: ingress
     - task: certman
-    - config NUVOLARIS_KUBE=auto
+    - config OPS_KUBE=auto
 
   delete:
     silent: true
@@ -90,13 +90,13 @@ tasks:
     - az account set --subscription $(az account show --query 'id' -o tsv)
     - az aks delete --name $AKS_NAME --resource-group $AKS_NAME
     - az group delete --resource-group $AKS_NAME
-    - rm "$NUV_TMP/kubeconfig" "$NUV_TMP/aks-$AKS_NAME.kubeconfig"
+    - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
   certman: 
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$NUV_TMP/kubeconfig" apply -f cert-manager.yaml
+        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f cert-manager.yaml
         else kubectl apply -f cert-manager.yaml
         fi
 
@@ -104,7 +104,7 @@ tasks:
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$NUV_TMP/kubeconfig" apply -f ingress-deploy.yaml
+        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f ingress-deploy.yaml
         else kubectl delete -f ingress-deploy.yaml
         fi
 

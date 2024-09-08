@@ -22,8 +22,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |-
-      if test -e $(realpath "$NUV_TMP/kubeconfig")
-      then echo $(realpath "$NUV_TMP/kubeconfig")
+      if test -e $(realpath "$OPS_TMP/kubeconfig")
+      then echo $(realpath "$OPS_TMP/kubeconfig")
       else echo ~/.kube/config
       fi
 
@@ -45,7 +45,7 @@ tasks:
     silent: true
     desc: create a mk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
-      - config NUVOLARIS_KUBE=microk8s
+      - config OPS_KUBE=microk8s
       - task: install
       - task: kubeconfig
 
@@ -55,7 +55,7 @@ tasks:
     cmds:
       - test -n "{{.SERVER}}" || die "please use SERVER="
       - "{{.SSH}} {{.USERNAME}}@{{.SERVER}} sudo snap remove microk8s"
-      - rm "$NUV_TMP/kubeconfig" "$NUV_TMP/mk8s-{{.SERVER}}.kubeconfig"
+      - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/mk8s-{{.SERVER}}.kubeconfig"
     vars:
       USERNAME: '{{.USERNAME | default "root"}}'
 
@@ -64,7 +64,7 @@ tasks:
     silent: true
     cmds:
       - |
-        if test -e $NUV_TMP/kubeconfig
+        if test -e $OPS_TMP/kubeconfig
         then {{.RUN}} kubectl get nodes
         else echo "No Cluster Installed"
         fi
@@ -86,7 +86,7 @@ tasks:
         {{.SSH}} '{{.USERNAME}}@{{.SERVER}}' 
         sudo microk8s config      
         | awk '/server:/ {$0="    server: https://{{.SERVER}}:16443"} 1'
-        >"$NUV_TMP/kubeconfig"
-      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/mk8s-{{.SERVER}}.kubeconfig"
+        >"$OPS_TMP/kubeconfig"
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/mk8s-{{.SERVER}}.kubeconfig"
     vars:
       USERNAME: '{{.USERNAME | default "root"}}'

@@ -26,8 +26,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |-
-      if test -e "$NUV_TMP/kubeconfig"
-      then echo "$NUV_TMP/kubeconfig"
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
       else echo ~/.kube/config
       fi
 
@@ -44,7 +44,7 @@ tasks:
       - >
         k3sup install --k3s-version="{{.K3S_VERSION}}"
         --host="{{.SERVER}}" --user="{{.USERNAME}}"
-        --local-path=$NUV_TMP/kubeconfig
+        --local-path=$OPS_TMP/kubeconfig
     vars:
       USERNAME: '{{.USERNAME | default "root"}}'
 
@@ -52,16 +52,16 @@ tasks:
     silent: true
     #desc: install cert-manager
     cmds:
-      - kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
+      - kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f cert-manager.yaml
 
   create:
     silent: true
     desc: create a k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
-      - config NUVOLARIS_KUBE=k3s
+      - config OPS_KUBE=k3s
       - task: install
       - task: cert-manager
-      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{.SERVER}}.kubeconfig"
 
   delete:
     silent: true
@@ -69,7 +69,7 @@ tasks:
     cmds:
       - test -n "{{.SERVER}}" || die "please use SERVER="
       - "{{.SSH}} '{{.USERNAME}}@{{.SERVER}}' sudo /usr/local/bin/k3s-uninstall.sh"
-      - rm "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+      - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{.SERVER}}.kubeconfig"
     vars:
       USERNAME: '{{.USERNAME | default "root"}}'
 
@@ -78,7 +78,7 @@ tasks:
     silent: true
     cmds:
       - |
-        if test -e $NUV_TMP/kubeconfig
+        if test -e $OPS_TMP/kubeconfig
         then {{.RUN}} kubectl get nodes
         else echo "No Cluster Installed"
         fi
@@ -99,7 +99,7 @@ tasks:
         {{.SSH}} '{{.USERNAME}}@{{.SERVER}}' 
         sudo cat /etc/rancher/k3s/k3s.yaml 
         | replace --stdin -s '127.0.0.1' -r '{{.SERVER}}'
-        >"$NUV_TMP/kubeconfig"
-      - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/k3s-{{.SERVER}}.kubeconfig"
+        >"$OPS_TMP/kubeconfig"
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{.SERVER}}.kubeconfig"
     vars:
       USERNAME: '{{.USERNAME | default "root"}}'

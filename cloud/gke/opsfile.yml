@@ -22,8 +22,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |-
-      if test -e $NUV_TMP/kubeconfig
-      then echo $NUV_TMP/kubeconfig
+      if test -e $OPS_TMP/kubeconfig
+      then echo $OPS_TMP/kubeconfig
       else echo ~/.kube/config
       fi
 
@@ -31,7 +31,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-    - test -n "$GKE_NAME" || die 'Please, configure GKE with "nuv config gke"'
+    - test -n "$GKE_NAME" || die 'Please, configure GKE with "ops config gke"'
     - "gcloud --version || die 'You need to install and configure the gcloud tool before running this command.'"
     - |
       if ! gke-gcloud-auth-plugin 2>/dev/null >/dev/null
@@ -54,17 +54,17 @@ tasks:
     - >
       gcloud container clusters 
       get-credentials $GKE_NAME --zone=$GKE_REGION
-    - cp "$NUV_TMP/kubeconfig" "$NUV_TMP/gke-$GKE_NAME.kubeconfig"
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/gke-$GKE_NAME.kubeconfig"
   
     env:
       KUBECONFIG: 
-        sh: echo $NUV_TMP/kubeconfig
+        sh: echo $OPS_TMP/kubeconfig
 
   config:
     desc: configure a Google Kubernetes Engine cluster
     silent: true
     cmds:
-    - nuv config gke
+    - $OPS config gke
 
 
   create:
@@ -72,7 +72,7 @@ tasks:
     desc: create a Google Kubernetes Engine cluster
     env:
       KUBECONFIG: 
-        sh: echo $NUV_TMP/kubeconfig
+        sh: echo $OPS_TMP/kubeconfig
     cmds:
     - task: prereq
     - "gcloud auth login"
@@ -103,7 +103,7 @@ tasks:
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl  --kubeconfig "$NUV_TMP/kubeconfig"  apply -f cert-manager.yaml
+        then retry -t 1000 -m 1800 kubectl  --kubeconfig "$OPS_TMP/kubeconfig"  apply -f cert-manager.yaml
         else kubectl apply -f cert-manager.yaml
         fi
 
@@ -111,7 +111,7 @@ tasks:
     cmds:
       - |
         if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$NUV_TMP/kubeconfig" apply -f ingress-deploy.yaml
+        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f ingress-deploy.yaml
         else kubectl delete -f ingress-deploy.yaml
         fi
 
