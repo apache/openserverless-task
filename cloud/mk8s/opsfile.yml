@@ -45,7 +45,7 @@ tasks:
     silent: true
     desc: create a mk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
-      - config OPS_KUBE=microk8s
+      - config OPERATOR_CONFIG_KUBE=microk8s
       - task: install
       - task: kubeconfig
 

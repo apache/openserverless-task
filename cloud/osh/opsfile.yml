@@ -56,7 +56,7 @@ tasks:
     silent: true
     desc: prepare
     cmds:
-      - config OPS_KUBE=openshift
+      - config OPERATOR_CONFIG_KUBE=openshift
       - "$OPS config apihost '{{.APIHOST}}'"
     vars:
       APIHOST:

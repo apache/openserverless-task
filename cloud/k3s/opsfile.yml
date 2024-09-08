@@ -58,7 +58,7 @@ tasks:
     silent: true
     desc: create a k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
-      - config OPS_KUBE=k3s
+      - config OPERATOR_CONFIG_KUBE=k3s
       - task: install
       - task: cert-manager
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{.SERVER}}.kubeconfig"

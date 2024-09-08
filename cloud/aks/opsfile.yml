@@ -80,7 +80,7 @@ tasks:
     - task: kubeconfig
     - task: ingress
     - task: certman
-    - config OPS_KUBE=auto
+    - config OPERATOR_CONFIG_KUBE=auto
 
   delete:
     silent: true
