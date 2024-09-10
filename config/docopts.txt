@@ -39,8 +39,8 @@ Commands:
   config aws              configure Amazon Web Service (AWS) credentials and parameters
   config gcloud           configure Google Cloud credentials and parameters
   config eks              configure Amazon EKS Kubernetes Cluster
-  config aks              configure Azure AKS Kubernetest Cluster
-  config gke              configure Google Cloud GKE Kubernetest Cluster
+  config aks              configure Azure AKS Kubernetes Cluster
+  config gke              configure Google Cloud GKE Kubernetes Cluster
   config reset            reset configuration
   config status           show current configuration
   config export           export all the variables
@@ -68,12 +68,12 @@ Options:
   --delete              delete the selected kubeconfig
   --image=<image>       specify gcp image type (default to ubuntu-minimal-2204-lts. Passing ubuntu-minimal-2204-lts-arm64 will create ARM based VM)
   --prometheus          select monitoring via Prometheus
-  --slack               select alert manager module over slack channel
+  --slack               select alert manager module over Slack channel
   --mail                select alert manager module over mail channel using a gmail account
   --affinity            select pod affinity for multinode enterprise deployment. In such case load will be splitted between node labeled with nuvolaris-role in core or invoker
   --tolerations         select pod tolerations for multinode enterprise deployment.
   --failover            select failover support on components supporting it as postgres
   --backup              select automatic backup on components support it as postgres
   --s3                  activate s3 compatible ingress on components supporting it
-  --console             activate a s3console ingress on components supporting it (Currently MINIO)
+  --console             activate a s3 console ingress on components supporting it (Currently MINIO)
   --quota               select quota checker module
