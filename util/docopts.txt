@@ -13,7 +13,9 @@ Usage:
   util no-user-secrets <username>
   util kubectl <args>...
   util kubeconfig
+  util config <configjson>
 ```
+
 # Commands:
 
 ```
@@ -26,4 +28,5 @@ Usage:
 -  no-user-secrets         remove user secrets for the given user
 -  kubectl                 execute kubectl on current kubeconfig
 -  kubeconfig              export OVERWRITING current kubeconfig to ~/.kube/config
+-  config                  update configuration file interactively
 ```
