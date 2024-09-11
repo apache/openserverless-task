@@ -130,7 +130,7 @@ var require_picocolors = __commonJS((exports, module) => {
   module.exports.createColors = createColors;
 });
 
-// index.ts
+// configurator.ts
 var {$: $2 } = globalThis.Bun;
 
 // node_modules/@clack/core/dist/index.mjs
@@ -646,53 +646,9 @@ ${import_picocolors2.default.gray(d2)}  ${r2}
 `);
 };
 
-// index.ts
+// configurator.ts
 var import_picocolors3 = __toESM(require_picocolors(), 1);
 import {parseArgs} from "util";
-async function main() {
-  const { positionals } = parseArgs({
-    args: Bun.argv,
-    strict: true,
-    allowPositionals: true
-  });
-  const readPosRes = readPositionalFile(positionals);
-  if (!readPosRes.success) {
-    ue(readPosRes.message);
-    return process.exit(1);
-  }
-  if (readPosRes.help) {
-    console.log(readPosRes.help);
-    return process.exit(0);
-  }
-  if (readPosRes.message) {
-    console.warn(readPosRes.message);
-  }
-  const jsonRes = await parsePositionalFile(readPosRes.jsonFilePath);
-  if (!jsonRes.success) {
-    ue(jsonRes.message);
-    return process.exit(1);
-  }
-  const config = jsonRes.body;
-  const validationRes = validateConfigJson(config);
-  if (!validationRes.success) {
-    ue(validationRes.message);
-    return process.exit(1);
-  }
-  const { exitCode, stderr, stdout } = await $2`${OPS_CMD} -config -d`.nothrow();
-  if (exitCode !== 0) {
-    ue(stderr.toString());
-    return process.exit(1);
-  }
-  const opsConfig = stdout.toString();
-  const missingData = findMissingConfig(config, opsConfig);
-  console.log();
-  oe(import_picocolors3.default.inverse(" ops configurator "));
-  const inputConfigs = await askMissingData(missingData);
-  console.log();
-  const configStr = Object.entries(inputConfigs).map(([key, value]) => `${key}="${value.value}"`).join(" ");
-  await $2`${OPS_CMD} -config ${configStr}`;
-  $e("You're all set!");
-}
 async function askMissingData(missingData) {
   if (Object.keys(missingData).length === 0) {
     $e("Configuration set from ops");
@@ -878,14 +834,50 @@ The value for the "type" key must be either string with the following values:
 - password
 
 or an array of strings with specific values (an enum).`;
+async function main() {
+  const { positionals } = parseArgs({
+    args: Bun.argv,
+    strict: true,
+    allowPositionals: true
+  });
+  const readPosRes = readPositionalFile(positionals);
+  if (!readPosRes.success) {
+    ue(readPosRes.message);
+    return process.exit(1);
+  }
+  if (readPosRes.help) {
+    console.log(readPosRes.help);
+    return process.exit(0);
+  }
+  if (readPosRes.message) {
+    console.warn(readPosRes.message);
+  }
+  const jsonRes = await parsePositionalFile(readPosRes.jsonFilePath);
+  if (!jsonRes.success) {
+    ue(jsonRes.message);
+    return process.exit(1);
+  }
+  const config = jsonRes.body;
+  const validationRes = validateConfigJson(config);
+  if (!validationRes.success) {
+    ue(validationRes.message);
+    return process.exit(1);
+  }
+  const { exitCode, stderr, stdout } = await $2`${OPS_CMD} -config -d`.nothrow();
+  if (exitCode !== 0) {
+    ue(stderr.toString());
+    return process.exit(1);
+  }
+  const opsConfig = stdout.toString();
+  const missingData = findMissingConfig(config, opsConfig);
+  console.log();
+  oe(import_picocolors3.default.inverse(" ops configurator "));
+  const inputConfigs = await askMissingData(missingData);
+  console.log();
+  const configStr = Object.entries(inputConfigs).map(([key, value]) => `${key}="${value.value}"`).join(" ");
+  await $2`${OPS_CMD} -config ${configStr}`;
+  $e("You're all set!");
+}
+
+// index.ts
 main().catch(console.error);
-export {
-  validateConfigJson,
-  readPositionalFile,
-  parsePositionalFile,
-  findMissingConfig,
-  NotValidJsonMsg,
-  HelpMsg,
-  BadConfigMsg,
-  AdditionalArgsMsg
-};

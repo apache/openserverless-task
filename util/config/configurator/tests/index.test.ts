@@ -8,7 +8,7 @@ import {
   validateConfigJson,
   BadConfigMsg,
   findMissingConfig,
-} from "../index.ts";
+} from "../configurator.ts";
 
 describe("findMissingConfig", () => {
   test("config has some opsConfig key", async () => {
