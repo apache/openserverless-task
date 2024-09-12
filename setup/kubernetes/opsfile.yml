@@ -159,12 +159,9 @@ tasks:
         data:
           runtimes.json: |-
         EOF
-      - awk '{ print "        " $0}' <"{{.ENT_RUNTIMES}}" >>_runtimes.yaml
+      - awk '{ print "        " $0}' <"{{.RUNTIMES}}" >>_runtimes.yaml
       - kubectl -n nuvolaris apply -f _runtimes.yaml
     vars:
-      ENT_RUNTIMES:
-        sh: |
-          echo runtimes.json
       RUNTIMES:
         sh: |          
           if test -e "$OPS_TMP/runtimes.json"
