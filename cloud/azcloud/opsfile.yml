@@ -1,0 +1,172 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  SSH: "/usr/bin/ssh -oStrictHostKeyChecking=no"
+
+tasks:
+  prereq:
+    silent: true
+    cmds:
+      - test -n "$AZCLOUD_PROJECT" || die "Please configure AZ Cloud with 'ops config azcloud'"
+      - az --version >/dev/null || die 'You need to install and configure the az CLI tool before running this command.'
+      - config AZCLOUD_PREREQ_OK="true"
+    status:
+      - config AZCLOUD_PREREQ_OK
+
+  res-group:
+    silent: true
+    cmds:
+      - task prereq
+      - >
+        az group show -g "$AZCLOUD_PROJECT" -o none 2>/dev/null ||
+        az group create -l "$AZCLOUD_REGION" -n "$AZCLOUD_PROJECT" -o none 2>/dev/null
+
+  vm-list:
+    silent: true
+    cmds:
+      - task: prereq
+      - task: res-group
+      - echo "*** Created VM:"
+      - az vm list -g "$AZCLOUD_PROJECT" --query "[?tags.ops=='true'].{name:name, location:location}" --output table
+
+  vm-ip:
+    silent: true
+    cmds:
+      - task: prereq
+      - task: res-group
+      - >
+        az network public-ip show -g "$AZCLOUD_PROJECT" -n {{._name_}}-public-ip --output none 2>/dev/null ||
+        az network public-ip create -g "$AZCLOUD_PROJECT" -n {{._name_}}-public-ip --version IPv4 --sku Standard 
+        --zone 1 2 3 -o none
+
+  vm-firewall-rule:
+    silent: true
+    cmds:
+      - >
+        az network nsg show -g "$AZCLOUD_PROJECT" --name openserverless-vm-nsg -o none 2>/dev/null ||
+        az network nsg create -g "$AZCLOUD_PROJECT" --name openserverless-vm-nsg -o none 2>/dev/null
+      - >
+        az network nsg rule show -g "$AZCLOUD_PROJECT" --nsg-name openserverless-vm-nsg
+        -n Allow-Ports-22-80-443-6443-16443 -o none 2>/dev/null ||
+        az network nsg rule create -g "$AZCLOUD_PROJECT" --nsg-name openserverless-vm-nsg
+        --name Allow-Ports-22-80-443-6443-16443 --priority 1000 --direction Inbound
+        --access Allow --protocol Tcp --source-port-ranges '*' --destination-port-ranges 22 80 443 6443 16443
+        --source-address-prefixes '*' --destination-address-prefixes '*'
+        --output none 2>/dev/null
+
+  vm-create:
+    silent: true
+    cmds:
+      - task: prereq
+      - task: res-group
+      - task: vm-firewall-rule
+      - task: vm-ip
+      - >
+        cat "$($OPS -opspath $AZCLOUD_SSHKEY)" | awk '/ssh-rsa/{ print "ssh-rsa " $2 }' >_sshkey
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" --name {{._name_}} --query "name" -o none 2>/dev/null ||
+        az vm create -g "$AZCLOUD_PROJECT" --name "{{._name_}}" --location "$AZCLOUD_REGION"
+        --public-ip-address {{._name_}}-public-ip
+        --nsg openserverless-vm-nsg 
+        --size "$AZCLOUD_VM"
+        --image "$AZCLOUD_IMAGE"
+        --os-disk-size-gb "$AZCLOUD_DISK"
+        --tags ops=true openserverless-vm=true
+        --ssh-key-values _sshkey
+        --admin-username ubuntu
+        --output none
+      - task: vm-getip
+      - >
+        echo "*** Waiting until the VM is ready..." ;
+        retry -t 1000 -m 1800 {{.SSH}} 
+        "ubuntu@$(cat _vm-ip)" hostname
+
+  vm-getip:
+    silent: true
+    cmds:
+      - >
+        az network public-ip show -g "$AZCLOUD_PROJECT" -n "{{._name_}}"-public-ip --query ipAddress -o tsv > _vm-ip
+      - cat _vm-ip
+
+  vm-resources-id:
+    silent: true
+    cmds:
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "storageProfile.osDisk.managedDisk.id" 
+        -o tsv > _vm_disk_id || touch _vm_disk_id
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "networkProfile.networkInterfaces[0].id" 
+        -o tsv > _vm_nic_id || touch _vm_nic_id
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
+        az network nic show --ids $(cat _vm_nic_id)  --query "ipConfigurations[0].publicIPAddress.id" 
+        -o tsv > _vm_pubip_id || touch _vm_nic_id
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
+        az network nic show --ids $(cat _vm_nic_id)  --query "ipConfigurations[0].subnet.id" 
+        -o tsv > _vm_subnet_id || touch _vm_subnet_id
+
+  vm-delete-resources:
+    silent: true
+    cmds:
+      - >
+        if test -s _vm_disk_id; then
+          az disk delete --ids $(cat _vm_disk_id) --yes --no-wait
+          rm -f _vm_disk_id
+        fi
+      - >
+        if test -s _vm_nic_id; then
+          az network nic delete --ids $(cat _vm_nic_id)
+          rm -f _vm_nic_id
+        fi
+      - >
+        if test -s _vm_pubip_id; then
+          az network public-ip delete --ids $(cat _vm_pubip_id)
+          rm _vm_pubip_id
+        fi
+      - >
+        if test -s _vm_subnet_id; then
+          az network vnet delete --ids $(cat _vm_subnet_id)
+          rm _vm_subnet_id
+        fi     
+
+  vm-temp-cleanup:
+    depends: [vm-delete]
+    silent: true
+    cmds:
+      - test -f _vm_nic_id && rm -f _vm_nic_id; exit 0
+      - test -f _vm_disk_id && rm -f _vm_disk_id; exit 0
+      - test -f _vm_pubip_id && rm -f _vm_pubip_id; exit 0
+      - test -f _vm_subnet_id && rm -f _vm_subnet_id; exit 0
+
+  vm-delete:
+    silent: true
+    depends: [vm-resources-id]
+    cmds:
+      - task: vm-resources-id
+      - >
+        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null && 
+        az vm delete -y -g "$AZCLOUD_PROJECT" -n "{{._name_}}" || echo "Vm {{._name_}} not found"
+      - task: vm-delete-resources
+      - task: vm-temp-cleanup
+
+
