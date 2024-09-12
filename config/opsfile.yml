@@ -473,6 +473,58 @@ tasks:
           DEF: "50"
       - config -d | rg GKE_
 
+  azcloud:
+    silent: true
+    cmds:
+      - task: readforce
+        vars:
+          MSG: "Azure Project Id"
+          VAR: "AZCLOUD_PROJECT"
+          VAL: "{{.__project}}"
+      - task: read
+        vars:
+          MSG: "Azure Zone"
+          HINT: >
+            To get a list of valid values use:
+               az account list-locations -o table
+          VAR: "AZCLOUD_REGION"
+          VAL: "{{.__region}}"
+          DEF: "eastus"
+      - task: read
+        vars:
+          MSG: "Azure virtual machine type"
+          HINT: >
+            To get a list of valid values, use:
+              az vm list-sizes --location <location> -o table
+            where <location> is your current location.
+          VAR: "AZCLOUD_VM"
+          VAL: "{{.__vm}}"
+          DEF: "Standard_B4ms"
+      - task: read
+        vars:
+          MSG: "Azure vm disk size in gigabyte"
+          VAR: "AZCLOUD_DISK"
+          VAL: "{{.__disk}}"
+          DEF: "200"
+      - task: read
+        vars:
+          MSG: "Azure Cloud public SSH key"
+          HINT: >
+            If you already have a public SSH key provide its path here.
+            If you do not have it, generate a key pair with the following command:
+              ssh-keygen
+            The public key defaults to ~/.ssh/id_rsa.pub.
+          VAR: "AZCLOUD_SSHKEY"
+          VAL: "{{.__key}}"
+          DEF: "~/.ssh/id_rsa.pub"
+      - task: read
+        vars:
+          MSG: "Azure Cloud VM image"
+          VAR: "AZCLOUD_IMAGE"
+          VAL: "{{.__image}}"
+          DEF: "Ubuntu2204"
+      - config -d | rg AZCLOUD_
+
   aks:
     silent: true
     cmds:
