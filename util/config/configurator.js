@@ -829,10 +829,10 @@ The config.json file must be a JSON file with the following structure:
       
   {
     "KEY": {
-      type: "string"
+      "type": "string"
     },
     "OTHER_KEY": {
-      type: "int"
+      "type": "int"
     },
     ...
   }
