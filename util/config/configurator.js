@@ -656,9 +656,10 @@ async function askMissingData(missingData) {
   }
   console.log();
   console.log("Configuration partially set from ops. Need a few more:");
-  const inputConfigs = {};
   for (const key in missingData) {
+    let inputFromPrompt = undefined;
     const prompt = missingData[key];
+    let askedForPassword = false;
     if (Array.isArray(prompt.type)) {
       const selected = await ie({
         message: `Pick a value for '${key}'`,
@@ -668,7 +669,7 @@ async function askMissingData(missingData) {
         ue("Operation cancelled");
         process.exit(0);
       }
-      inputConfigs[key] = { ...prompt, value: selected.toString() };
+      inputFromPrompt = selected.toString();
     } else if (prompt.type === "bool") {
       const selected = await ie({
         message: `Pick a true/false for '${key}'`,
@@ -681,7 +682,7 @@ async function askMissingData(missingData) {
         ue("Operation cancelled");
         process.exit(0);
       }
-      inputConfigs[key] = { ...prompt, value: selected.toString() };
+      inputFromPrompt = selected.toString();
     } else if (prompt.type === "password") {
       const input = await re({
         message: `Enter password value for ${key}`
@@ -690,7 +691,8 @@ async function askMissingData(missingData) {
         ue("Operation cancelled");
         process.exit(0);
       }
-      inputConfigs[key] = { ...prompt, value: input };
+      inputFromPrompt = input;
+      askedForPassword = true;
     } else {
       const input = await te({
         message: `Enter value for ${key} (${prompt.type})`
@@ -713,10 +715,20 @@ async function askMissingData(missingData) {
           }
           break;
       }
-      inputConfigs[key] = { ...prompt, value: input };
+      inputFromPrompt = input;
+    }
+    if (!askedForPassword) {
+      console.log("Setting", key, "to", inputFromPrompt);
+    } else {
+      console.log("Setting", key, "to", "*".repeat(inputFromPrompt.length));
+    }
+    askedForPassword = false;
+    const { exitCode, stderr } = await $2`${OPS} -config ${key}=${inputFromPrompt}`.nothrow();
+    if (exitCode !== 0) {
+      ue(stderr.toString());
+      return process.exit(1);
     }
   }
-  return inputConfigs;
 }
 function findMissingConfig(config, opsConfig) {
   let newConfig = {};
@@ -778,7 +790,7 @@ function validateConfigJson(body) {
   }
   return { success: true };
 }
-var OPS_CMD = process.env.OPS_CMD || "ops";
+var OPS = process.env.OPS || "ops";
 var AdditionalArgsMsg = "Additional arguments will be ignored.";
 var NotValidJsonMsg = "Not a valid JSON file";
 var BadConfigMsg = `Bad configuration file. 
@@ -817,10 +829,10 @@ The config.json file must be a JSON file with the following structure:
       
   {
     "KEY": {
-      type: "string"
+      "type": "string"
     },
     "OTHER_KEY": {
-      type: "int"
+      "type": "int"
     },
     ...
   }
@@ -863,7 +875,7 @@ async function main() {
     ue(validationRes.message);
     return process.exit(1);
   }
-  const { exitCode, stderr, stdout } = await $2`${OPS_CMD} -config -d`.nothrow();
+  const { exitCode, stderr, stdout } = await $2`${OPS} -config -d`.quiet();
   if (exitCode !== 0) {
     ue(stderr.toString());
     return process.exit(1);
@@ -872,10 +884,8 @@ async function main() {
   const missingData = findMissingConfig(config, opsConfig);
   console.log();
   oe(import_picocolors3.default.inverse(" ops configurator "));
-  const inputConfigs = await askMissingData(missingData);
+  await askMissingData(missingData);
   console.log();
-  const configStr = Object.entries(inputConfigs).map(([key, value]) => `${key}="${value.value}"`).join(" ");
-  await $2`${OPS_CMD} -config ${configStr}`;
   $e("You're all set!");
 }
 

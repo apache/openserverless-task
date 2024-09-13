@@ -20,7 +20,7 @@ type PromptData = {
   value?: string;
 };
 
-const OPS_CMD = process.env.OPS_CMD || "ops";
+const OPS = process.env.OPS || "ops";
 
 export const AdditionalArgsMsg = "Additional arguments will be ignored.";
 export const NotValidJsonMsg = "Not a valid JSON file";
@@ -61,10 +61,10 @@ The config.json file must be a JSON file with the following structure:
       
   {
     "KEY": {
-      type: "string"
+      "type": "string"
     },
     "OTHER_KEY": {
-      type: "int"
+      "type": "int"
     },
     ...
   }
@@ -119,9 +119,9 @@ export default async function main() {
     return process.exit(1);
   }
 
-  // 4. Run OPS_CMD to get the available config data
+  // 4. Run OPS to get the available config data
   // TODO if I add .quiet() to avoid printing stdout, the script crashes. Bun bug?
-  const { exitCode, stderr, stdout } = await $`${OPS_CMD} -config -d`.nothrow();
+  const { exitCode, stderr, stdout } = await $`${OPS} -config -d`.quiet();
   if (exitCode !== 0) {
     cancel(stderr.toString());
     return process.exit(1);
@@ -136,22 +136,15 @@ export default async function main() {
   console.log();
   intro(color.inverse(" ops configurator "));
 
-  const inputConfigs = await askMissingData(missingData);
+  await askMissingData(missingData);
 
   // 7. Save the data to the config?
   console.log();
 
-  // Build the string "KEY=VALUE KEY=VALUE ..." from the inputConfigs
-  const configStr = Object.entries(inputConfigs)
-    .map(([key, value]) => `${key}="${value.value}"`)
-    .join(" ");
-
-  await $`${OPS_CMD} -config ${configStr}`;
-
   outro("You're all set!");
 }
 
-async function askMissingData(missingData: Prompts): Promise<Prompts> {
+async function askMissingData(missingData: Prompts) {
   if (Object.keys(missingData).length === 0) {
     outro("Configuration set from ops");
     process.exit(0);
@@ -159,10 +152,10 @@ async function askMissingData(missingData: Prompts): Promise<Prompts> {
   console.log();
   console.log("Configuration partially set from ops. Need a few more:");
 
-  const inputConfigs: Prompts = {};
-
   for (const key in missingData) {
+    let inputFromPrompt: string | undefined = undefined;
     const prompt: PromptData = missingData[key];
+    let askedForPassword = false;
 
     if (Array.isArray(prompt.type)) {
       const selected = await select({
@@ -175,7 +168,9 @@ async function askMissingData(missingData: Prompts): Promise<Prompts> {
         process.exit(0);
       }
 
-      inputConfigs[key] = { ...prompt, value: selected.toString() };
+      inputFromPrompt = selected.toString();
+
+      // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "bool") {
       const selected = await select({
         message: `Pick a true/false for '${key}'`,
@@ -190,7 +185,8 @@ async function askMissingData(missingData: Prompts): Promise<Prompts> {
         process.exit(0);
       }
 
-      inputConfigs[key] = { ...prompt, value: selected.toString() };
+      inputFromPrompt = selected.toString();
+      // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "password") {
       const input = await password({
         message: `Enter password value for ${key}`,
@@ -200,8 +196,10 @@ async function askMissingData(missingData: Prompts): Promise<Prompts> {
         cancel("Operation cancelled");
         process.exit(0);
       }
+      inputFromPrompt = input;
+      askedForPassword = true;
 
-      inputConfigs[key] = { ...prompt, value: input };
+      // inputConfigs[key] = { ...prompt, value: input };
     } else {
       const input = await text({
         message: `Enter value for ${key} (${prompt.type})`,
@@ -227,11 +225,25 @@ async function askMissingData(missingData: Prompts): Promise<Prompts> {
           break;
       }
 
-      inputConfigs[key] = { ...prompt, value: input };
+      inputFromPrompt = input;
+      // inputConfigs[key] = { ...prompt, value: input };
+    }
+
+    if (!askedForPassword) {
+      console.log("Setting", key, "to", inputFromPrompt);
+    } else {
+      console.log("Setting", key, "to", "*".repeat(inputFromPrompt.length));
+    }
+
+    askedForPassword = false;
+
+    const { exitCode, stderr } =
+      await $`${OPS} -config ${key}=${inputFromPrompt}`.nothrow();
+    if (exitCode !== 0) {
+      cancel(stderr.toString());
+      return process.exit(1);
     }
   }
-
-  return inputConfigs;
 }
 
 export function findMissingConfig(

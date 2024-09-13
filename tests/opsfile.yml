@@ -29,7 +29,7 @@ tasks:
     silent: true
     desc: Bun test
     cmds:
-    - bun | rg '1.1.21'
+    - bun | rg '1.1.27'
 
   kubectl:
     silent: true
@@ -54,5 +54,4 @@ tasks:
     desc: ripgrep test
     cmds:
     - rg --version | rg 14.1.0
-
- 
+   
