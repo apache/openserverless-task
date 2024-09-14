@@ -87,7 +87,7 @@ tasks:
       AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
       echo export $APIHOST
       echo export $AUTH
-      retry -t 100 -m 600 nuv -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
+      retry -t 100 -m 600 $OPS -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
       wsk property set --apihost "$APIHOST"  --auth "$AUTH"
       
   login:
@@ -164,7 +164,7 @@ tasks:
     cmds:
     - "{{.RUN}} wsk action update sleep sleep.js --web=true --timeout 300000"
     #- "{{.RUN}}wsk action invoke sleep -p sleep {{.SLEEP}} -r"
-    - curl "$(nuv -wsk action get sleep --url)?sleep={{.SLEEP}}"
+    - curl "$($OPS -wsk action get sleep --url)?sleep={{.SLEEP}}"
 
   status:
     silent: true
