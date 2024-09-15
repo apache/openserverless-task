@@ -2,8 +2,8 @@ Section:
   ops cloud k3s
 
 Usage:
-  k3s create
-  k3s delete
+  k3s create <server> [<user>]
+  k3s delete <server> [<user>]
   k3s info
   k3s kubeconfig
   k3s status
