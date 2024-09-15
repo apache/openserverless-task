@@ -63,11 +63,11 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then {{.RUN}} $OPS cloud k3s status SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      then {{.RUN}} $OPS cloud k3s status {{._server_}} {{._user_}}
       elif {{.__uninstall}}
-      then  {{.RUN}} $OPS cloud k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      then  {{.RUN}} $OPS cloud k3s delete {{._server_}} {{._user_}}
       else
-          {{.RUN}} $OPS cloud k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
+          {{.RUN}} $OPS cloud k3s create {{._server_}} {{._user_}}
           {{.RUN}} $OPS setup kubernetes create
           {{.RUN}} $OPS setup nuvolaris login
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
