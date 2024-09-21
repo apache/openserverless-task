@@ -28,6 +28,9 @@ tasks:
   eks: 
     desc: Amazon Web Services - EKS subcommands
 
+  azcloud:
+    desc: Azure Cloud subcommands
+
   aks:
     desc: Azure AKS subcommands
 

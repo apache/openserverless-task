@@ -1,5 +1,5 @@
 Section:
-  ops ent setup 
+  ops setup
 
 Usage:
   setup devcluster [--uninstall|--status] 

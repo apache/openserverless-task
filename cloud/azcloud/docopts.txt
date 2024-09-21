@@ -1,0 +1,17 @@
+Subcommand:
+  ops cloud azcloud
+
+Usage:
+  azcloud vm-list
+  azcloud vm-ip <name>
+  azcloud vm-create <name>
+  azcloud vm-delete <name>
+  azcloud vm-getip  <name>
+
+Commands:
+  vm-ip       create public ip
+  vm-list     lists the vm and their ips
+  vm-create   create a vm
+  vm-getip    get ip
+  vm-delete   delete the vm
+
