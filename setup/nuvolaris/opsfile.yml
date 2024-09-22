@@ -88,7 +88,8 @@ tasks:
       echo export $APIHOST
       echo export $AUTH
       retry -t 100 -m 600 $OPS -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
-      wsk property set --apihost "$APIHOST"  --auth "$AUTH"
+      export OPS_PASSWORD=$(kubectl -n nuvolaris get wsk/controller -ojsonpath -ojsonpath='{.spec.nuvolaris.password}')
+      ops -login "$APIHOST" nuvolaris
       
   login:
     silent: true
