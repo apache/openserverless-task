@@ -1,0 +1,144 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+vars:
+  DRY: false
+
+env:
+  KUBECONFIG:
+    sh: |
+      if test -e $NUV_TMP/kubeconfig
+      then echo  $NUV_TMP/kubeconfig
+      else echo ~/.kube/config
+      fi
+
+tasks:
+  deleteuser:
+    silent: true
+    cmds:
+      - |
+        if {{.DRY}}
+        then echo "User {{._username_}} deleted"
+        else 
+          kubectl -n nuvolaris delete wsku/{{._username_}}
+          $OPS -config -r {{._username_}}
+        fi
+
+  adduser:
+    silent: true
+    cmds:
+      - |
+        export USERNAME={{._username_}}
+        export EMAIL={{._email_}}
+        export PASSWORD={{._password_}} 
+        export AUTH="$($OPS -random -u):$($OPS -random --str 64)"
+
+        # check {{._username_}} is at least 5 chars long
+        if [ ${#USERNAME} -lt 5 ]
+        then 
+          $OPS -die "User name must be at least 5 chars long: $USERNAME"
+        fi
+
+        # check {{._username_}} complies with lower case RFC 1123
+        validate -r '^[a-z0-9](?:[a-z0-9]{0,61}[a-z0-9])?$' $USERNAME "User name must consist of only lower case characters (max 61 chars)"
+
+        # check {{._username_}} is not api or api.*
+        # This cannot happen as the minimum length is 5 chars and the dot would fail the previous check
+        # so we can disable this check
+        # validate -r '^api(\..*)?$' $USERNAME "api and any api.* are reserved names."
+
+        # check that {{.email}} is a valid email
+        validate -m $EMAIL "Invalid email: $EMAIL"
+
+        # check that password is not empty
+        if [ -z "$PASSWORD" ]
+        then 
+          $OPS -die "Password cannot be empty"
+        fi
+
+        # uppercase user to create the secrets in the right format (USERNAME_SECRET_XXX)
+        upperCaseUser=${USERNAME^^}
+
+        $OPS util user-secrets $upperCaseUser
+
+        echo "Creating user ${USERNAME}..."
+
+        export USER_SECRET_REDIS=$($OPS -config "${upperCaseUser}_SECRET_REDIS")
+        export USER_SECRET_POSTGRES=$($OPS -config "${upperCaseUser}_SECRET_POSTGRES")
+        export USER_SECRET_MONGODB=$($OPS -config "${upperCaseUser}_SECRET_MONGODB")
+        export USER_SECRET_MINIO=$($OPS -config "${upperCaseUser}_SECRET_MINIO")
+
+        export REDIS_ENABLED=false
+        export MONGODB_ENABLED=false
+        export MINIO_DATA_ENABLED=false
+        export MINIO_STATIC_ENABLED=false
+        export POSTGRES_ENABLED=false
+        export MINIO_STORAGE_QUOTA=auto
+
+        if {{.__redis}} || {{.__all}}
+        then 
+          if $OPERATOR_COMPONENT_REDIS
+          then 
+            REDIS_ENABLED=true
+          else 
+            $OPS -die "Error! Redis is not enabled in OpenServerless"
+          fi
+        fi
+
+        if {{.__mongodb}} || {{.__all}}
+        then 
+          if $OPERATOR_COMPONENT_MONGODB
+          then 
+            MONGODB_ENABLED=true
+          else 
+            $OPS -die "Error! MongoDB is not enabled in OpenServerless"
+          fi
+        fi
+
+        if {{.__minio}} || {{.__all}}
+        then 
+          if $OPERATOR_COMPONENT_MINIO
+          then 
+            MINIO_DATA_ENABLED=true
+            MINIO_STATIC_ENABLED=true
+          else 
+            $OPS -die "Error! Minio is not enabled in OpenServerless"
+          fi
+        fi
+
+        if test -n "{{.__storagequota}}"
+        then MINIO_STORAGE_QUOTA={{.__storagequota}}
+        fi         
+
+        if {{.__postgres}} || {{.__all}}
+        then 
+          if $OPERATOR_COMPONENT_POSTGRES
+          then 
+            POSTGRES_ENABLED=true
+          else
+            $OPS -die "Error! Postgres is not enabled in OpenServerless"
+          fi
+        fi
+
+        envsubst -i user-crd.yaml -o _user-crd.yaml
+      - |
+        if {{.DRY}}
+        then cat _user-crd.yaml
+        else 
+          kubectl apply -f _user-crd.yaml          
+        fi
