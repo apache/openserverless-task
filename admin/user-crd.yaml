@@ -25,7 +25,7 @@ spec:
   email: ${EMAIL}
   password: ${PASSWORD}
   namespace: ${USERNAME}
-  auth: ${AUTH}
+  auth: ${SECRET_USER_AUTH}
   redis:
     enabled: ${REDIS_ENABLED}
     prefix: ${USERNAME}
