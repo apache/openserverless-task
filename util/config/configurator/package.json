@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun index.ts",
-    "test": "bun test tests/index.test.ts"
+    "test": "bun test tests/index.test.ts",
+    "build": "bun build --target=bun index.ts > configurator.js && mv configurator.js ../configurator.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
