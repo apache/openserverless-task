@@ -22,8 +22,8 @@ vars:
 env:
   KUBECONFIG:
     sh: |
-      if test -e $NUV_TMP/kubeconfig
-      then echo  $NUV_TMP/kubeconfig
+      if test -e $OPS_TMP/kubeconfig
+      then echo  $OPS_TMP/kubeconfig
       else echo ~/.kube/config
       fi
 
