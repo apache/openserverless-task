@@ -197,7 +197,21 @@
                     "name": "openserverless-runtime-go",
                     "tag": "v1.20-2409142109"
                 }
-            },            
+            },
+            {
+                "kind": "go:1.22proxy",
+                "default": false,
+                "deprecated": false,
+                "attached": {
+                    "attachmentName": "codefile",
+                    "attachmentType": "text/plain"
+                },
+                "image": {
+                    "prefix": "apache",
+                    "name": "openserverless-runtime-go",
+                    "tag": "v1.22proxy-2409251000"
+                }
+            },                         
             {
                 "kind": "go:1.20mf",
                 "default": false,
@@ -211,7 +225,7 @@
                     "name": "go-nuvolaris-metaflow",
                     "tag": "bc86ab6"
                 }
-            }            
+            }                       
         ],
         "java": [
             {
