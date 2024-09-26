@@ -1,0 +1,66 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: 3
+
+tasks:
+
+  zip:
+    desc: build an action environment zip file (A=action)
+    silent: true
+    requires: { vars: [A]}
+    cmds:
+    - |
+      cd $OPS_PWD
+      if test -e "packages/{{.A}}/requirements.txt"
+      then $OPS ide python zip DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/package.json"
+      then $OPS ide nodejs zip DIR="$($OPS -opspath "packages/{{.A}}")"
+      else echo "no zip environment"
+      fi
+
+  action:
+    desc: build an action filling its zip file 
+    silent: true
+    requires: { vars: [A]}
+    cmds:
+    - |
+      cd $OPS_PWD
+      if test -e "packages/{{.A}}/__main__.py"
+      then $OPS ide python action DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/index.js"
+      then $OPS ide nodejs action DIR="$($OPS -opspath "packages/{{.A}}")"
+      else die "*** unknown action type"
+      fi
+
+  clean:
+    desc: clean an action build
+    silent: true
+    requires: { vars: [A]}
+    cmds:
+    - |
+      cd $OPS_PWD
+      if test -d "packages/{{.A}}/virtualenv"
+      then $OPS ide python clean DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -d "packages/{{.A}}/node_modules"
+      then $OPS ide nodejs clean DIR="$($OPS -opspath "packages/{{.A}}")"
+      else echo "nothing to clean"
+      fi
+      if test -e "packages/{{.A}}.zip"
+      then rm "packages/{{.A}}.zip"
+      fi
+
