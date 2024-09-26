@@ -2,13 +2,22 @@
 
 Type `ops <task>` to see usage and subtasks.
 
-## OpenServerless Tasks:
+## OpenServerless Administration Tasks:
 
-```
+```text
+  admin       Manage additional users in OpenServerless
   config      Manage the Apache OpenServerless configuration
   setup       Setup the Apache OpenServerless platform on multiple environments
   debug       Debug utilities for the Apache OpenServerless platform
+  cloud       OpenServerless setup utilities for supported Deployment models on Cloud Providers
   util        Utilities
+```
+
+## OpenServerless Development Tasks:
+
+```text
+  ide         OpenServerless Development Utilities
+  web         S3 compatible utilities to manage web content into predefined user Web Bucket
 ```
 
 ## OpenWhisk Tasks:
