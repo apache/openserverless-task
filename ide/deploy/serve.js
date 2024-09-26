@@ -28,7 +28,10 @@ async function findAvailablePort(host, startPort = 8080) {
             const server = Bun.listen({
                 host: host,
                 port: port,
-                socket: { data(socket, data) { }, }
+                socket: {
+                    data(socket, data) {
+                    },
+                }
             });
             server.stop(); // Close immediately if successful
             return port;
@@ -37,6 +40,19 @@ async function findAvailablePort(host, startPort = 8080) {
         }
     }
     throw new Error("No available port found.");
+}
+
+async function toBuffer(stream) {
+    const list = []
+    const reader = stream.getReader();
+    while (true) {
+        const {value, done} = await reader.read();
+        if (value)
+            list.push(value)
+        if (done)
+            break
+    }
+    return Buffer.concat(list)
 }
 
 // Helper function to determine MIME type based on file extension
@@ -132,21 +148,31 @@ async function main() {
 
                     console.log(`[ P ] - Proxying request ${req.method} to '${destProxyUrl}'`);
                     const newHeaders = JSON.parse(JSON.stringify(req.headers));
-                    if (Object.keys(newHeaders).indexOf('host')) {
-                        delete newHeaders['host'];
+
+                    const excludedHeaders = [
+                        'host', 'origin',
+                        // 'accept-encoding',
+                        'sec-fetch-mode', 'sec-fetch-dest', 'sec-ch-ua',
+                        'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'sec-fetch-site'
+                    ];
+
+                    for (const header of excludedHeaders) {
+                        delete newHeaders[header];
                     }
-                    if (Object.keys(newHeaders).indexOf('origin')) {
-                        delete newHeaders['origin'];
-                    }
-                    if (Object.keys(newHeaders).indexOf('referer')) {
-                        delete newHeaders['referer'];
-                    }
-                    console.log(JSON.stringify(Object.keys(newHeaders)));
-                    const respP = await fetch(destProxyUrl, {
+
+                    const init = {
                         method: req.method,
-                        //headers: newHeaders,
-                        //body: req.body
-                    });
+                        headers: newHeaders,
+                    };
+                    if (req.method.toLowerCase() != 'get') {
+                        let body = await toBuffer(req.body);
+                        body = body.toString('utf8');
+
+                        if (body != undefined) {
+                            init['body'] = body;
+                        }
+                    }
+                    const respP = await fetch(destProxyUrl, init);
                     console.log(`[${respP.status}] - Sending response with status ${respP.statusText}`);
 
                     return respP;

@@ -46,10 +46,10 @@ tasks:
              then cd $OPS_PWD ; bun install
              fi
         fi
-      - |
-        if ! which http-server >/dev/null 2>/dev/null
-        then npm install -g http-server
-        fi
+      #- |
+      #  if ! which http-server >/dev/null 2>/dev/null
+      #  then npm install -g http-server
+      #  fi
       - task: kill
 
   kill:
@@ -148,8 +148,8 @@ tasks:
     ignore_error: true
     cmds:
       #- >
-      #  bun {{.TASKFILE_DIR}}/deploy/serve.js -h 127.0.0.1 -P $OPSDEV_HOST -d "$OPS_PWD/web"
-      - http-server -a 127.0.0.1 "$OPS_PWD/web" -c-1 --mimetypes mime.types -P $OPSDEV_HOST
+      - bun {{.TASKFILE_DIR}}/deploy/serve.js -h 127.0.0.1 -P $OPSDEV_HOST -d "$OPS_PWD/web"
+      #- http-server -a 127.0.0.1 "$OPS_PWD/web" -c-1 --mimetypes mime.types -P $OPSDEV_HOST
 
 
   deploy:
