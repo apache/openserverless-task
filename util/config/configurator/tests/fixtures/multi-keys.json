@@ -1,11 +1,13 @@
 {
   "HELLO": {
+    "label": "Set a greeting",
     "type": "string"
   },
   "TESTINT": {
     "type": "int"
   },
   "TESTFLOAT": {
+    "label": "Set a float",
     "type": "float"
   },
   "TESTBOOL": {
