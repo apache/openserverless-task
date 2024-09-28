@@ -25,3 +25,5 @@ Options:
 
 Subcommands:
   kubernetes          kubernetes subcommands
+  nuvolaris           OpenServerless subcommands
+  docker              Docker subcommands

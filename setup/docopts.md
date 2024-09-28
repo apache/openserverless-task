@@ -36,3 +36,4 @@ Usage:
 
 - `kubernetes`: prepare kubernetes
 - `nuvolaris`: install nuvolaris
+- `docker`: prepare docker

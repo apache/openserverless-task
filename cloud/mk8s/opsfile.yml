@@ -32,18 +32,18 @@ tasks:
   install:
     silent: true
     #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{.SERVER}}" || die "required SERVER=<ip or host>"
       - >
         cat mk8s.sh | {{.SSH}} {{.USERNAME}}@{{.SERVER}} 
         tee mk8s.sh >/dev/null
-      - "{{.SSH}} {{.USERNAME}}@{{.SERVER}} sudo bash mk8s.sh {{.SERVER}}"
-    vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
+      - "{{.SSH}} {{.INSTALL_USER}}@{{.SERVER}} sudo bash mk8s.sh {{.SERVER}}"
 
   create:
     silent: true
-    desc: create a mk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    desc: create a mk8s with ssh in <server> using <user> with sudo
     cmds:
       - config OPERATOR_CONFIG_KUBE=microk8s
       - task: install
@@ -51,13 +51,13 @@ tasks:
 
   delete:
     silent: true
-    desc: uninstall microk8s with ssh in SERVER=<server> using USERNAME=<user> with sudo
-    cmds:
-      - test -n "{{.SERVER}}" || die "please use SERVER="
-      - "{{.SSH}} {{.USERNAME}}@{{.SERVER}} sudo snap remove microk8s"
-      - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/mk8s-{{.SERVER}}.kubeconfig"
+    desc: uninstall microk8s with ssh in <server> using <user> with sudo
     vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
+      INSTALL_USER: '{{._user_ | default "root"}}'
+    cmds:
+      - test -n "{{.SERVER}}" || die "please pass <server>"
+      - "{{.SSH}} {{.INSTALL_USER}}@{{.SERVER}} sudo snap remove microk8s"
+      - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/mk8s-{{.SERVER}}.kubeconfig"
 
   status:
     desc: status of the server
@@ -80,13 +80,13 @@ tasks:
   kubeconfig:
     silent: true
     desc: recover the kubeconfig from a server with microk8s
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{.SERVER}}" || die "please use SERVER="
       - >
-        {{.SSH}} '{{.USERNAME}}@{{.SERVER}}' 
+        {{.SSH}} '{{.INSTALL_USER}}@{{.SERVER}}' 
         sudo microk8s config      
         | awk '/server:/ {$0="    server: https://{{.SERVER}}:16443"} 1'
         >"$OPS_TMP/kubeconfig"
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/mk8s-{{.SERVER}}.kubeconfig"
-    vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
