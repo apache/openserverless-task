@@ -16,6 +16,7 @@ import { parseArgs } from "util";
 type Prompts = Record<string, PromptData>;
 
 type PromptData = {
+  label?: string;
   type: string | string[];
   value?: string;
 };
@@ -24,30 +25,8 @@ const OPS = process.env.OPS || "ops";
 
 export const AdditionalArgsMsg = "Additional arguments will be ignored.";
 export const NotValidJsonMsg = "Not a valid JSON file";
-export const BadConfigMsg = `Bad configuration file. 
-
-The configuration file must be an non-empty JSON with the following structure:
-    
-{
-  "KEY": {
-    type: "string"
-  },
-  "OTHER_KEY": {
-    type: "int"
-  },
-  ...
-} 
-
-The keys must be uppercase words (separated by underscores).
-The value for the "type" key must be either string with the following values:
-- string
-- int
-- float
-- bool
-- password
-
-or an array of strings with specific values (an enum).
-`;
+export const BadConfigMsg =
+  "Bad configuration file. Check the help message (-h) to see the expected format.";
 
 export const HelpMsg = `
 Usage: config <configjson>
@@ -64,6 +43,7 @@ The config.json file must be a JSON file with the following structure:
       "type": "string"
     },
     "OTHER_KEY": {
+      "label": "An optional custom message",
       "type": "int"
     },
     ...
@@ -113,14 +93,12 @@ export default async function main() {
   const config = jsonRes.body;
 
   // 3. Validate the given config json
-  const validationRes = validateConfigJson(config);
-  if (!validationRes.success) {
-    cancel(validationRes.message);
+  if (!isInputConfigValid(config)) {
+    cancel(BadConfigMsg);
     return process.exit(1);
   }
 
   // 4. Run OPS to get the available config data
-  // TODO if I add .quiet() to avoid printing stdout, the script crashes. Bun bug?
   const { exitCode, stderr, stdout } = await $`${OPS} -config -d`.quiet();
   if (exitCode !== 0) {
     cancel(stderr.toString());
@@ -159,7 +137,7 @@ async function askMissingData(missingData: Prompts) {
 
     if (Array.isArray(prompt.type)) {
       const selected = await select({
-        message: `Pick a value for '${key}'`,
+        message: prompt.label || `Pick a value for '${key}'`,
         options: prompt.type.map((v) => ({ label: v, value: v })),
       });
 
@@ -173,7 +151,7 @@ async function askMissingData(missingData: Prompts) {
       // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "bool") {
       const selected = await select({
-        message: `Pick a true/false for '${key}'`,
+        message: prompt.label || `Pick a true/false for '${key}'`,
         options: [
           { label: "true", value: "true" },
           { label: "false", value: "false" },
@@ -189,7 +167,7 @@ async function askMissingData(missingData: Prompts) {
       // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "password") {
       const input = await password({
-        message: `Enter password value for ${key}`,
+        message: prompt.label || `Enter password value for ${key}`,
       });
 
       if (isCancel(input)) {
@@ -198,11 +176,9 @@ async function askMissingData(missingData: Prompts) {
       }
       inputFromPrompt = input;
       askedForPassword = true;
-
-      // inputConfigs[key] = { ...prompt, value: input };
     } else {
       const input = await text({
-        message: `Enter value for ${key} (${prompt.type})`,
+        message: prompt.label || `Enter value for ${key} (${prompt.type})`,
       });
 
       if (isCancel(input)) {
@@ -303,40 +279,37 @@ export async function parsePositionalFile(
   }
 }
 
-export function validateConfigJson(body: Record<string, any>): {
-  success: boolean;
-  message?: string;
-} {
+export function isInputConfigValid(body: Record<string, any>): boolean {
   // 1. If the body is empty, return false
   if (Object.keys(body).length === 0) {
-    return { success: false, message: BadConfigMsg };
+    return false;
   }
 
   // 2. Check that each key in the body has the keys as the Prompt type
   for (const key in body) {
     const value = body[key];
     if (typeof value !== "object") {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
 
     if (!value.type) {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
 
     if (
       !["string", "int", "float", "bool", "password"].includes(value.type) &&
       !Array.isArray(value.type)
     ) {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
   }
 
   // 3. Check that all the keys are uppercase and can only have underscores not at the beginning or end
   for (const key in body) {
     if (!/^[A-Z][A-Z_]*[A-Z]$/.test(key)) {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
   }
 
-  return { success: true };
+  return true;
 }

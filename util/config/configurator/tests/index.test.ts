@@ -5,8 +5,7 @@ import {
   NotValidJsonMsg,
   HelpMsg,
   AdditionalArgsMsg,
-  validateConfigJson,
-  BadConfigMsg,
+  isInputConfigValid,
   findMissingConfig,
 } from "../configurator.ts";
 
@@ -42,22 +41,20 @@ describe("findMissingConfig", () => {
 
 describe("validateConfigJson", () => {
   test("empty config", async () => {
-    const res = validateConfigJson({});
-    expect(res.success).toBe(false);
-    expect(res.message).toBe(BadConfigMsg);
+    const res = isInputConfigValid({});
+    expect(res).toBe(false);
   });
 
   test("wrong json", async () => {
-    const res = validateConfigJson({
+    const res = isInputConfigValid({
       some: "key",
       properties: { hello: { type: "string" } },
     });
-    expect(res.success).toBe(false);
-    expect(res.message).toBe(BadConfigMsg);
+    expect(res).toBe(false);
   });
 
   test("valid json", async () => {
-    const res = validateConfigJson({
+    const res = isInputConfigValid({
       HELLO: { type: "string" },
       HELLO_INT: { type: "int" },
       HELLO_FLOAT: { type: "float" },
@@ -65,7 +62,7 @@ describe("validateConfigJson", () => {
       HELLOPASS: { type: "password" },
       HELLOENUM: { type: ["a", "b", "c"] },
     });
-    expect(res.success).toBe(true);
+    expect(res).toBe(true);
   });
 });
 
