@@ -604,19 +604,19 @@ tasks:
     desc: select a different kubeconfig among those you created
     cmds:
       - |
-        if ls "$OPS_TMP/*.kubeconfig" >/dev/null  2>/dev/null
+        if ls "$OPS_TMP"/*.kubeconfig >/dev/null  2>/dev/null
         then
           if test -z "{{._n_}}"
           then N=1
               echo "*** Available kubeconfig (select by name or number):"
               echo "0  default kubeconfig (usually ~/.kube/config)"
-              if test -e $OPS_TMP/kubeconfig
-              then CUR="$(cat $OPS_TMP/kubeconfig)"
+              if test -e "$OPS_TMP"/kubeconfig
+              then CUR="$(cat ""$OPS_TMP""/kubeconfig)"
               else CUR=""
               fi
-              for i in $OPS_TMP/*.kubeconfig
+              for i in "$OPS_TMP"/*.kubeconfig
               do  K=$(basename ${i//\\//})
-                  if test "$CUR" == "$(cat $OPS_TMP/$K)"
+                  if test "$CUR" == "$(cat ""$OPS_TMP""/$K)"
                   then MSG="* "
                   else MSG="  "
                   fi
@@ -624,11 +624,11 @@ tasks:
               done
           else
             if [[ "{{._n_}}" == "0" ]]
-            then rm $OPS_TMP/kubeconfig
+            then rm "$OPS_TMP"/kubeconfig
                  echo using default kubeconfig "${KK}" 
             else
               N=1
-              for i in $OPS_TMP/*.kubeconfig
+              for i in "$OPS_TMP"/*.kubeconfig
               do  K=$(basename $i)
                   KK="${K%%.kubeconfig}"
                   if [[ "$((N++))" = "{{._n_}}" || "$KK" = "{{._n_}}" ]]
@@ -641,13 +641,13 @@ tasks:
                               echo "renaming {{._n_}} to {{.__rename}}"
                               mv "$i" "$NEWNAME"
                         else
-                          cp "$i" "$OPS_TMP/kubeconfig"
+                          cp "$i" "$OPS_TMP"/kubeconfig
                           echo now using kubeconfig "${KK}"  
-                          if kubectl --kubeconfig "$OPS_TMP/kubeconfig" cluster-info
+                          if kubectl --kubeconfig "$OPS_TMP"/kubeconfig cluster-info
                           then echo now using kubeconfig "${KK}" 
                           else echo "problems using this kubeconfig - removed"
-                              rm "$OPS_TMP/kubeconfig"
-                              echo please remove it with "nuv config use {{._n_}} --delete"
+                              rm "$OPS_TMP"/kubeconfig
+                              echo please remove it with "ops config use {{._n_}} --delete"
                           fi
                         fi
                         break

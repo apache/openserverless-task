@@ -37,8 +37,8 @@ tasks:
     cmds:
     - |
       if kind get clusters | rg nuvolaris
-      then echo Cluster Nuvolaris up and running
-      else echo Cluster Nuvolaris not found
+      then echo Cluster Apache OpenServerless up and running
+      else echo Cluster Apache OpenServerless not found
       fi
 
   info:

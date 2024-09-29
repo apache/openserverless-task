@@ -38,15 +38,16 @@ tasks:
 
   install:
     silent: true
-    #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    #desc: install k3s with ssh in <server> using <user> with sudo
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
-      - test -n "{{._server_}}" || die "required SERVER=<ip or host>"
+      - test -n "{{._server_}}" || die "required <server> ip or hostname"
       - >
         k3sup install --k3s-version="{{.K3S_VERSION}}"
-        --host="{{._server_}}" --user="{{._user_}}"
+        --host="{{._server_}}" --user="{{.INSTALL_USER}}"
         --local-path=$OPS_TMP/kubeconfig
-    vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
+    
 
   cert-manager:
     silent: true
@@ -65,7 +66,7 @@ tasks:
 
   delete:
     silent: true
-    desc: uninstall with ssh in SERVER=<server> using USERNAME=<username> with sudo
+    desc: uninstall with ssh in <server> using <username> with sudo
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
       - "{{.SSH}} '{{._user_}}@{{._server_}}' sudo /usr/local/bin/k3s-uninstall.sh"
@@ -93,13 +94,13 @@ tasks:
 
   kubeconfig:
     desc: recover the kubeconfig from a K3S server <server> with user <user>
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
       - >
-        {{.SSH}} '{{._user_}}@{{._server_}}' 
+        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' 
         sudo cat /etc/rancher/k3s/k3s.yaml 
         | replace --stdin -s '127.0.0.1' -r '{{._server_}}'
         >"$OPS_TMP/kubeconfig"
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
-    vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
