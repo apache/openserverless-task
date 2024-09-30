@@ -662,7 +662,7 @@ async function askMissingData(missingData) {
     let askedForPassword = false;
     if (Array.isArray(prompt.type)) {
       const selected = await ie({
-        message: `Pick a value for '${key}'`,
+        message: prompt.label || `Pick a value for '${key}'`,
         options: prompt.type.map((v2) => ({ label: v2, value: v2 }))
       });
       if (!selected) {
@@ -672,7 +672,7 @@ async function askMissingData(missingData) {
       inputFromPrompt = selected.toString();
     } else if (prompt.type === "bool") {
       const selected = await ie({
-        message: `Pick a true/false for '${key}'`,
+        message: prompt.label || `Pick a true/false for '${key}'`,
         options: [
           { label: "true", value: "true" },
           { label: "false", value: "false" }
@@ -685,7 +685,7 @@ async function askMissingData(missingData) {
       inputFromPrompt = selected.toString();
     } else if (prompt.type === "password") {
       const input = await re({
-        message: `Enter password value for ${key}`
+        message: prompt.label || `Enter password value for ${key}`
       });
       if (hD(input)) {
         ue("Operation cancelled");
@@ -695,7 +695,7 @@ async function askMissingData(missingData) {
       askedForPassword = true;
     } else {
       const input = await te({
-        message: `Enter value for ${key} (${prompt.type})`
+        message: prompt.label || `Enter value for ${key} (${prompt.type})`
       });
       if (hD(input)) {
         ue("Operation cancelled");
@@ -767,56 +767,36 @@ async function parsePositionalFile(path) {
     return { success: false, message: NotValidJsonMsg };
   }
 }
-function validateConfigJson(body) {
+function isInputConfigValid(body) {
   if (Object.keys(body).length === 0) {
-    return { success: false, message: BadConfigMsg };
+    return false;
   }
   for (const key in body) {
+    console.log("PROD - isInputConfigValid - " + key);
     const value = body[key];
     if (typeof value !== "object") {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
     if (!value.type) {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
     if (!["string", "int", "float", "bool", "password"].includes(value.type) && !Array.isArray(value.type)) {
-      return { success: false, message: BadConfigMsg };
+      return false;
     }
   }
   for (const key in body) {
-    if (!/^[A-Z][A-Z_]*[A-Z]$/.test(key)) {
-      return { success: false, message: BadConfigMsg };
+    const resCheck = /^[A-Z][A-Z_]*[A-Z]$/.test(key);
+    console.log("PROD - isInputConfigValid - regexp check - for --- " + key + ", " + resCheck);
+    if (!/^[A-Z][A-Z0-9]*(_[A-Z][A-Z0-9]*)*$/.test(key)) {
+      return false;
     }
   }
-  return { success: true };
+  return true;
 }
 var OPS = process.env.OPS || "ops";
 var AdditionalArgsMsg = "Additional arguments will be ignored.";
 var NotValidJsonMsg = "Not a valid JSON file";
-var BadConfigMsg = `Bad configuration file. 
-
-The configuration file must be an non-empty JSON with the following structure:
-    
-{
-  "KEY": {
-    type: "string"
-  },
-  "OTHER_KEY": {
-    type: "int"
-  },
-  ...
-} 
-
-The keys must be uppercase words (separated by underscores).
-The value for the "type" key must be either string with the following values:
-- string
-- int
-- float
-- bool
-- password
-
-or an array of strings with specific values (an enum).
-`;
+var BadConfigMsg = "Bad configuration file. Check the help message (-h) to see the expected format.";
 var HelpMsg = `
 Usage: config <configjson>
 
@@ -832,6 +812,7 @@ The config.json file must be a JSON file with the following structure:
       "type": "string"
     },
     "OTHER_KEY": {
+      "label": "An optional custom message",
       "type": "int"
     },
     ...
@@ -870,9 +851,8 @@ async function main() {
     return process.exit(1);
   }
   const config = jsonRes.body;
-  const validationRes = validateConfigJson(config);
-  if (!validationRes.success) {
-    ue(validationRes.message);
+  if (!isInputConfigValid(config)) {
+    ue(BadConfigMsg);
     return process.exit(1);
   }
   const { exitCode, stderr, stdout } = await $2`${OPS} -config -d`.quiet();
