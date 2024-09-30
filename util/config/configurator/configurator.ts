@@ -306,7 +306,7 @@ export function isInputConfigValid(body: Record<string, any>): boolean {
 
   // 3. Check that all the keys are uppercase and can only have underscores not at the beginning or end
   for (const key in body) {
-    if (!/^[A-Z][A-Z_]*[A-Z]$/.test(key)) {
+    if (!/^[A-Z][A-Z_]|[0-9]*[A-Z]|[0-9]$/.test(key)) {
       return false;
     }
   }

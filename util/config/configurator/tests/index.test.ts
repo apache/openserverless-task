@@ -56,11 +56,18 @@ describe("validateConfigJson", () => {
   test("valid json", async () => {
     const res = isInputConfigValid({
       HELLO: { type: "string" },
+      HELLO3: { type: "string" },
+      HELLO33: { type: "string" },
+      HELLO_3: { type: "string" },
+      HELLO_33: { type: "string" },
+      HELLO_A_1_B_2: { type: "string" },
+      HELLO_A1B2: { type: "string" },
       HELLO_INT: { type: "int" },
       HELLO_FLOAT: { type: "float" },
       HELLO_BOOL: { type: "bool" },
       HELLOPASS: { type: "password" },
       HELLOENUM: { type: ["a", "b", "c"] },
+      HELLOENUM3: { type: ["a", "b", "c"] },
     });
     expect(res).toBe(true);
   });
@@ -109,6 +116,8 @@ describe("parsePositionalFile", () => {
   test("valid json", async () => {
     const jsonRes = await parsePositionalFile("tests//fixtures/valid.json");
     expect(jsonRes.success).toBe(true);
-    expect(jsonRes.body).toEqual({ HELLO: { type: "string" } });
+    expect(jsonRes.body).toHaveProperty("HELLO", { type: "string" }  );
+    expect(jsonRes.body).toHaveProperty("HELLO3", { type: "string" } );
+    expect(jsonRes.body).toHaveProperty("HELLO_3", { type: "string" });
   });
 });

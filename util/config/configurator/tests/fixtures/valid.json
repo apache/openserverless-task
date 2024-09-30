@@ -1,5 +1,11 @@
 {
   "HELLO": {
     "type": "string"
+  },
+  "HELLO3": {
+    "type": "string"
+  },
+  "HELLO_3": {
+    "type": "string"
   }
 }
