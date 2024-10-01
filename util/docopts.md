@@ -14,10 +14,10 @@ Usage:
   util kubectl <args>...
   util kubeconfig
   util config <configjson>
+  util upload <folder> [--batchsize=<batchsize>] [--verbose] [--clean]
 ```
 
-# Commands:
-
+## Commands:
 ```
 -  system                  system info (<os>-<arch> in Go format)
 -  update-cli              update the cli downloading the binary
@@ -29,4 +29,12 @@ Usage:
 -  kubectl                 execute kubectl on current kubeconfig
 -  kubeconfig              export OVERWRITING current kubeconfig to ~/.kube/config
 -  config                  update configuration file interactively
+-  upload                  uploads a folder to the web bucket in OpenServerless.
+```
+
+## Options:
+```
+  --verbose                Provide more details.
+  --clean                  Remove all files from the web bucket before upload.
+  --batchsize=<batchsize>  Number of concurrent web uploads
 ```
