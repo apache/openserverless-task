@@ -173,7 +173,7 @@ tasks:
         if test -z "{{._action_}}"
         then
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY 
-            $ECHO $OPS web upload web
+            $ECHO $OPS util upload web
             echo "URL: $OPSDEV_HOST"
         else
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            

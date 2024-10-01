@@ -147,3 +147,28 @@ tasks:
           kubectl cluster-info
         else echo "No kubeconfig to export"
         fi
+
+  upload:
+    silent: true
+    cmds:
+      - |
+        ARGS=""
+        if {{.__verbose}}
+        then ARGS="$ARGS --verbose"
+        fi
+        if {{.__clean}}
+        then ARGS="$ARGS --clean"
+        fi
+        if test -n "{{.__batchsize}}"
+        then ARGS="--batchsize={{.__batchsize}}"
+        else ARGS="$ARGS --batchsize=5"
+        fi
+        bun upload.js $FOLDER_PATH $ARGS
+    env:
+      FOLDER_PATH:
+        sh: |
+          P="$($OPS -opspath ./)"
+          if test -n "{{._folder_}}" 
+          then P="$($OPS -opspath {{._folder_}})"
+          fi
+          echo $P
