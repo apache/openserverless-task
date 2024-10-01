@@ -3,6 +3,11 @@
   "module": "upload.ts",
   "type": "module",
   "author": "Bruno Salzano <d4rkstar@gmail.com>",
+  "scripts": {
+    "test": "bun test",
+    "test-coverage": "bun test --coverage",
+    "build": "bun build --target=bun src/upload.ts --outdir=../"
+  },
   "devDependencies": {
     "@types/bun": "^1.1.10",
     "@types/docopt": "^0.6.37",

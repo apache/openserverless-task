@@ -27,7 +27,7 @@ Usage:
     return docopt(doc);
 }
 
-export function error(message: string) {
+export function logError(message: string) {
     console.error(message);
     return 1;
 }
@@ -52,7 +52,7 @@ export function parseResults(results: Result[], counter: Counter) {
 export function getEnv(key: string): string {
     const result = process.env[key] || null;
     if (result===null) {
-        error(`required ${key} environment variable is not set!`);
+        logError(`required ${key} environment variable is not set!`);
         process.exit(1);
     }
     return result as string;
@@ -88,7 +88,7 @@ export function extractUrlParts(urlString: string): UrlParts | null {
             port: Number(port)
         };
     } catch (error) {
-        console.error('Invalid URL:', error);
+        logError(`Invalid URL: ${error}`);
         return null;
     }
 }
