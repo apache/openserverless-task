@@ -18,17 +18,9 @@
 version: 3
 
 tasks:
-  prereq:
-    silent: true
-    cmds:
-      - |
-        if ! test -d "$OPS_ROOT/web/upload/node_modules"
-          then cd $OPS_ROOT/web/upload && bun install --production
-        fi
   upload:
     silent: true
     cmds:
-      - task: prereq
       - |
         ARGS=""
         if {{.__verbose}}
@@ -41,7 +33,7 @@ tasks:
         then ARGS="--batchsize={{.__batchsize}}"
         else ARGS="$ARGS --batchsize=5"
         fi
-        bun upload/upload.ts $FOLDER_PATH $ARGS
+        bun upload.js $FOLDER_PATH $ARGS
     env:
       FOLDER_PATH:
         sh: |

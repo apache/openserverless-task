@@ -19,8 +19,6 @@ import * as minio from "minio";
 import {toBuffer} from "./utils.ts";
 import {Result} from "./enums.ts";
 import type {ProgramOptions} from "./types.ts";
-import type {ObjectMetaData} from "minio/src/internal/type.ts";
-import {RemoveOptions} from "minio/src/internal/client.ts";
 
 export class MinioUtils {
 
@@ -66,25 +64,43 @@ export class MinioUtils {
         fileAddr: string
     ): Promise<Result> {
 
-        const fileToUpload = Bun.file(file);
-        const data = await toBuffer(fileToUpload.stream());
-        let mimeType = fileToUpload.type;
-        if (mimeType.indexOf(';')>-1) {
-            mimeType = mimeType.substring(0, mimeType.indexOf(';'));
+        let maxTries = 5;
+        let result = Result.ERROR;
+        let shouldContinue = true;
+        do {
+            const fileToUpload = Bun.file(file);
+            const data = await toBuffer(fileToUpload.stream());
+            let mimeType = fileToUpload.type;
+            if (mimeType.indexOf(';') > -1) {
+                mimeType = mimeType.substring(0, mimeType.indexOf(';'));
+            }
+            const metadata:  Record<string, string> = {
+                'Content-Type': mimeType,
+            }
+            try {
+                await this.minioClient.putObject(this.bucket, fileAddr, data, fileToUpload.size, metadata);
+                if (this.programOptions["--verbose"])
+                    console.log(`Upload ${fileAddr}: OK\n`);
+
+                result = Result.COMPLETED;
+                shouldContinue = false;
+
+            } catch (error) {
+                result = Result.ERROR;
+                if ((error as { code?: string }).code == "ConnectionClosed") {
+                    if (this.programOptions["--verbose"])
+                        console.log(`Upload ${fileAddr}: KO: retry ${maxTries}\n`);
+                    maxTries--;
+                    Bun.sleep(25*maxTries);
+                } else {
+                    shouldContinue = false;
+                    console.log(`Upload ${fileAddr}: KO: retry ${maxTries}\n`);
+                }
+            }
         }
-        const metadata: ObjectMetaData = {
-            'Content-Type': mimeType,
-        }
-        try {
-            await this.minioClient.putObject(this.bucket, fileAddr, data, fileToUpload.size, metadata);
-            if (this.programOptions["--verbose"])
-                process.stdout.write(`Upload ${fileAddr}: OK\n`);
-            return Result.COMPLETED;
-        } catch (err) {
-            if (this.programOptions["--verbose"])
-                process.stdout.write(`Upload ${fileAddr}: KO\n`);
-            return Result.ERROR;
-        }
+        while (shouldContinue && maxTries > 0);
+
+        return result
     }
 
     async deleteContent(
@@ -92,12 +108,12 @@ export class MinioUtils {
 
         try {
             const exists = await this.existsContent(fileAddr);
-            if (exists!==Result.EXISTS) {
-                if (exists===Result.DOESNT_EXISTS) return Result.SKIPPED;
+            if (exists !== Result.EXISTS) {
+                if (exists === Result.DOESNT_EXISTS) return Result.SKIPPED;
                 return exists;
             }
 
-            await this.minioClient.removeObject(this.bucket, fileAddr, {forceDelete: true} as RemoveOptions);
+            await this.minioClient.removeObject(this.bucket, fileAddr, {forceDelete: true});
             if (this.programOptions["--verbose"])
                 process.stdout.write(`Delete ${fileAddr}: OK\n`);
             return Result.COMPLETED;
@@ -112,9 +128,9 @@ export class MinioUtils {
         try {
             await this.minioClient.statObject(this.bucket, fileAddr);
             return Result.EXISTS;
-        } catch(e) {
+        } catch (e) {
             if (e instanceof minio.S3Error) {
-                if (e.code=="NotFound") {
+                if (e.code == "NotFound") {
                     if (this.programOptions["--verbose"])
                         process.stdout.write(`Delete ${fileAddr}: SKIPPED (file doesn't exists).\n`);
                     return Result.DOESNT_EXISTS;
