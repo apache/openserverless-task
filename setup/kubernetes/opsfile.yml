@@ -24,11 +24,12 @@ vars:
 
 env:
   KUBECONFIG:
-    sh: |
-      if test -e $(realpath "$OPS_TMP/kubeconfig")
-      then echo $(realpath "$OPS_TMP/kubeconfig")
+    sh: |-
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
       else echo ~/.kube/config
       fi
+
 # sets memory parameter for the controller invoker and corresponding pods
   OPENWHISK_CONTROLLER_JAVA_OPTS: 
     sh: |
@@ -72,10 +73,12 @@ env:
       then echo 4G
       else mem=$OPENWHISK_INVOKER_JVMGB; pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((mem+1))G
       fi
-
   OPERATOR_VOLUME_STORAGE_CLASS:
     sh: |
-      echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")    
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo $(kubectl --kubeconfig $OPS_TMP/kubeconfig get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
+      else echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
+      fi  
 
 tasks:
   status:
@@ -180,9 +183,12 @@ tasks:
   operator:
     #desc: deploy operator
     silent: true
+
     cmds:
-      - envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
-      - envsubst -i operator.yaml -o _operator.yaml
+      - |
+        echo "OPERATOR_VOLUME_STORAGE_CLASS=$OPERATOR_VOLUME_STORAGE_CLASS"
+        envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
+        envsubst -i operator.yaml -o _operator.yaml
       - "kubectl apply -f _operator-pvc.yaml -f _operator.yaml"
       - task: wait
         vars:
