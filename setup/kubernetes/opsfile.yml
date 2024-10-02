@@ -75,7 +75,7 @@ env:
 
   OPERATOR_VOLUME_STORAGE_CLASS:
     sh: |
-      echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")    
+      echo $(kubectl --kubeconfig $OPS_TMP/kubeconfig get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")    
 
 tasks:
   status:
