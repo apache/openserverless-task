@@ -17,7 +17,6 @@ Type `ops <task>` to see usage and subtasks.
 
 ```text
   ide         OpenServerless Development Utilities
-  web         S3 compatible utilities to manage web content into predefined user Web Bucket
 ```
 
 ## OpenWhisk Tasks:
