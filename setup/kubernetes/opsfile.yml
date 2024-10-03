@@ -186,7 +186,7 @@ tasks:
 
     cmds:
       - |
-        echo "OPERATOR_VOLUME_STORAGE_CLASS=$OPERATOR_VOLUME_STORAGE_CLASS"
+        echo "Operator storage class is $OPERATOR_VOLUME_STORAGE_CLASS"
         envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
         envsubst -i operator.yaml -o _operator.yaml
       - "kubectl apply -f _operator-pvc.yaml -f _operator.yaml"
@@ -231,15 +231,15 @@ tasks:
     #desc: wait for active services
     cmds:
       - |
-        if $OPERATOR_COMPONENT_REDIS
+        if test "$OPERATOR_COMPONENT_REDIS" == "true"
         then ops setup kubernetes wait OBJECT=po/redis-0
         fi
       - |
-        if $OPERATOR_COMPONENT_MONGODB
+        if test "$OPERATOR_COMPONENT_MONGODB" == "true"
         then ops setup kubernetes wait OBJECT=po/nuvolaris-mongodb-0
         fi
       - |
-        if $OPERATOR_COMPONENT_MINIO
+        if test "$OPERATOR_COMPONENT_MINIO" == "true"
         then  POD="$(kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}')"
               ops setup kubernetes wait OBJECT=pod/$POD
         fi
@@ -304,7 +304,7 @@ tasks:
       - kubectl -n nuvolaris rollout restart statefulset nuvolaris-operator
     preconditions:      
       - sh: '[ $ENT_IMAGES_OPERATOR != $(nuv debug operator:version) ]'
-        msg: "Current nuvolaris enterprise operator it is already updated to newest version. Request ignored."
+        msg: "Current OpenServerless operator it is already updated to newest version. Request ignored."
 
   instance-update:
     #desc: deploy instance
