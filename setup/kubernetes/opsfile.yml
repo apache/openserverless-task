@@ -72,10 +72,7 @@ env:
       if [ -z "$OPENWHISK_INVOKER_JVMGB" ] && [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
       then echo 4G
       else mem=$OPENWHISK_INVOKER_JVMGB; pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((mem+1))G
-      fi
-  OPERATOR_VOLUME_STORAGE_CLASS:
-    sh: |
-      echo $(kubectl --kubeconfig "$(ops -opspath $OPS_TMP)/kubeconfig" get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
+      fi     
 
 tasks:
   status:
@@ -177,12 +174,21 @@ tasks:
       #- "cat common/*.yaml roles/*.yaml crds/*.yaml"
       - "kubectl apply  -f common -f roles -f crds"
 
+  storageclass-env:
+    vars:
+      OP_VOL_STORAGE_CLASS:
+        sh: |
+          echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
+    cmds:
+      - echo "export OPERATOR_VOLUME_STORAGE_CLASS={{.OP_VOL_STORAGE_CLASS}}"
+
   operator:
     #desc: deploy operator
     silent: true
 
     cmds:
       - |
+        eval $(task storageclass-env)
         echo "Operator storage class is $OPERATOR_VOLUME_STORAGE_CLASS"
         envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
         envsubst -i operator.yaml -o _operator.yaml
