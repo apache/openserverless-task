@@ -24,4 +24,7 @@ tasks:
     desc: tests
 
   util:
-    desc: util 
+    desc: util
+
+  update:
+    desc: Deploys updates for Openserverless components

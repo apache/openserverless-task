@@ -1,0 +1,81 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+vars:
+  D: ""
+  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
+  OS: "{{OS}}"
+  ARCH: "{{ARCH}}"
+
+env:
+  KUBECONFIG:
+    sh: |
+      if test -e $OPS_TMP/kubeconfig
+      then echo  $OPS_TMP/kubeconfig
+      else echo ~/.kube/config
+      fi
+
+tasks:
+  hi: echo hi
+
+  cli:
+    desc: update the cli
+    silent: true
+    cmds:
+      - $OPS -update
+
+  secrets:
+    silent: true
+    desc: retrieve secrets from the kubernetes cluster
+    cmds:
+      - echo "Retrieving secrets..."
+      - config SECRET_OPENWHISK_SYSTEM="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.whisk-system}')"
+      - config SECRET_OPENWHISK_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.nuvolaris}')"
+      - config SECRET_COUCHDB_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}')"
+      - config SECRET_COUCHDB_INVOKER="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.controller.password}')"
+      - config SECRET_COUCHDB_CONTROLLER="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.invoker.password}')"
+      - config SECRET_REDIS_DEFAULT="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.redis.default.password}')"
+      - config SECRET_REDIS_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.redis.nuvolaris.password}')"
+      - config SECRET_MONGODB_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.mongodb.admin.password}')"
+      - config SECRET_MONGODB_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.mongodb.nuvolaris.password}')"
+      - config SECRET_MINIO_ADMIN="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.minio.admin.password}')"
+      - config SECRET_MINIO_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.minio.nuvolaris.password}')"
+      - config SECRET_POSTGRES_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.postgres.admin.password}')"
+      - config SECRET_POSTGRES_REPLICA="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.postgres.admin.replica-password}')"
+      - config SECRET_POSTGRES_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.postgres.nuvolaris.password}')"
+      - config SECRET_NUVOLARIS_METADATA="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.nuvolaris.password}')"
+
+  apply:
+    desc: apply updated config
+    cmds:
+      - $OPS update secrets
+      - $OPS setup kubernetes runtimes
+      - $OPS setup kubernetes instance
+      - $OPS setup nuvolaris login
+
+  operator:
+    desc: deploys latest version of operator
+    cmds:
+      - $OPS setup kubernetes operator-update
+
+  runtimes:
+    desc: deploys latest version of runtimes
+    cmds:
+      - $OPS setup kubernetes runtimes

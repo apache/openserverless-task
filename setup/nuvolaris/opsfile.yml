@@ -75,7 +75,33 @@ tasks:
             RES=true; break
           fi
         done
-        $RES      
+        $RES
+
+  wait-cm-value:
+    desc: wait for an annotation in nuvolaris cm/config to be set and have a specific value
+    silent: true
+    cmds:
+      - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
+      - test -n "{{.EXPECTED_VALUE}}" || die "use EXPECTED_VALUE=<value>"
+      - |
+        if [[ -n "{{.MESSAGE}}" ]]
+        then echo "{{.MESSAGE}}"
+        fi
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do           
+          ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.system_action_status}')"
+          if [[ -z "$ANNOT_VALUE" ]]
+          then 
+            echo "$((N++)) Waiting for annotations {{.JSONPATH}} to be set"
+            sleep 5
+          else
+            test "$ANNOT_VALUE" = "{{.EXPECTED_VALUE}}" && RES=true || RES=false
+            break
+          fi
+        done
+        $RES
 
   config:
     #desc: configuring nuvolaris
@@ -96,6 +122,11 @@ tasks:
     desc: configuring nuvolaris
     cmds:
     - task: wait
+    - task: wait-cm-value
+      vars:
+        JSONPATH: "{.metadata.annotations.system_action_status}"
+        EXPECTED_VALUE: "created"
+        MESSAGE: "Waiting for system action status"
     - task: config
     - task: hello
 
@@ -135,12 +166,12 @@ tasks:
     cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - |
-      MINIO_ACCESS_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_access_key}')
-      MINIO_SECRET_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_secret_key}')
-      MINIO_HOST=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_host}')
-      MINIO_PORT=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_port}')
-      MINIO_BUCKET_DATA=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_bucket_data}')
-      MINIO_BUCKET_WEB=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.minio_bucket_static}')
+      MINIO_ACCESS_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_access_key}')
+      MINIO_SECRET_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_secret_key}')
+      MINIO_HOST=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_host}')
+      MINIO_PORT=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_port}')
+      MINIO_BUCKET_DATA=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_data}')
+      MINIO_BUCKET_WEB=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_static}')
       {{.RUN}} wsk {{.ETC}} action update hello/minio minio.js \
       -p minio_access "$MINIO_ACCESS_KEY" \
       -p minio_secret "$MINIO_SECRET_KEY" \
