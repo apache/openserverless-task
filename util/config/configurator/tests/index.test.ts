@@ -100,7 +100,7 @@ describe("parsePositionalFile", () => {
     const filename = "not-existing.json";
     const jsonRes = await parsePositionalFile(filename);
     expect(jsonRes.success).toBe(false);
-    expect(jsonRes.message).toStartWith(FileNotFoundJsonMsg);
+    expect(jsonRes.message).toBe(FileNotFoundJsonMsg + Bun.pathToFileURL(filename));
   });
 
   test("not a json file", async () => {
