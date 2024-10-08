@@ -22,8 +22,8 @@
   env:
     KUBECONFIG:
       sh: |-
-        if test -e $(realpath "$OPS_TMP/kubeconfig")
-        then echo $(realpath "$OPS_TMP/kubeconfig")
+        if test -e "$OPS_TMP/kubeconfig"
+        then echo "$OPS_TMP/kubeconfig"
         else echo ~/.kube/config
         fi
 
