@@ -7,6 +7,7 @@ import {
   AdditionalArgsMsg,
   isInputConfigValid,
   findMissingConfig,
+  FileNotFoundJsonMsg,
 } from "../configurator.ts";
 
 describe("findMissingConfig", () => {
@@ -96,9 +97,10 @@ describe("readPositionalFile", () => {
 
 describe("parsePositionalFile", () => {
   test("file does not exist", async () => {
-    const jsonRes = await parsePositionalFile("not-existing");
+    const filename = "not-existing.json";
+    const jsonRes = await parsePositionalFile(filename);
     expect(jsonRes.success).toBe(false);
-    expect(jsonRes.message).toBe(NotValidJsonMsg);
+    expect(jsonRes.message).toBe(FileNotFoundJsonMsg + Bun.pathToFileURL(filename));
   });
 
   test("not a json file", async () => {
