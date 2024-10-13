@@ -25,6 +25,7 @@ const OPS = process.env.OPS || "ops";
 
 export const AdditionalArgsMsg = "Additional arguments will be ignored.";
 export const NotValidJsonMsg = "Not a valid JSON file";
+export const FileNotFoundJsonMsg = "The JSON file was not found. Pathname: ";
 export const BadConfigMsg =
   "Bad configuration file. Check the help message (-h) to see the expected format.";
 
@@ -269,7 +270,13 @@ export function readPositionalFile(positionals: string[]): {
 export async function parsePositionalFile(
   path: string
 ): Promise<{ success: boolean; message?: string; body?: any }> {
+
   const file = Bun.file(Bun.pathToFileURL(path));
+
+  if (!await file.exists()) {
+    return { success: false, message: FileNotFoundJsonMsg + Bun.pathToFileURL(path) };
+  }
+
 
   try {
     const contents = await file.json();
