@@ -209,7 +209,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.22proxy-2410121813"
+                    "tag": "v1.22proxy-2410131344"
                 }
             },                         
             {
