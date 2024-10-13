@@ -18,22 +18,22 @@
  */
 const Minio = require('minio');
 
-async function main(args) {        
-    console.log(`connecting to ${args.minio_host}:${args.minio_port}`)
+async function main(args) {
+    console.log(`connecting to ${args.s3_host}:${args.s3_port}`)
     let minioClient = new Minio.Client({
-        endPoint: args.minio_host,
-        port: args.minio_port,
+        endPoint: args.s3_host,
+        port: parseInt(args.s3_port),
         useSSL: false,
-        accessKey: args.minio_access,
-        secretKey: args.minio_secret
+        accessKey: args.s3_access,
+        secretKey: args.s3_secret
     });
 
     let response = {};
-    let bucketName = args.minio_data;
+    let bucketName = args.s3_data;
 
     let bucketExists = await minioClient.bucketExists(bucketName);
 
-    if(!bucketExists) {       
+    if(!bucketExists) {
         response.bucketOperation = await  minioClient.makeBucket(bucketName, 'us-east-1');
     }
 
