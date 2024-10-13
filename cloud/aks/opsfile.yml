@@ -29,7 +29,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-    - test -n "$AKS_NAME" || die 'Please, configure AKS with "ops config aks"'
+    - test -n "$AKS_PROJECT" || die 'Please, configure AKS with "ops config aks"'
     - az version || die 'You need to install and configure az cli tool before running this command.'
     - config AKS_PREREQ_OK="true"
     status:
@@ -48,7 +48,7 @@ tasks:
     - >
       retry -t 20 -m 600 az aks get-credentials 
       --name $AKS_NAME 
-      --resource-group $AKS_NAME 
+      --resource-group $AKS_PROJECT 
       --overwrite-existing 
       -f "$OPS_TMP/kubeconfig"
     - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
@@ -66,12 +66,12 @@ tasks:
     - task: prereq
     - az account set --subscription "$(az account show --query 'id' -o tsv)"
     - >
-      az group show -a "$AKS_NAME" 2>/dev/null 
-      || az group create --name "$AKS_NAME" --location "$AKS_REGION"
+      az group show -a "$AKS_PROJECT" 2>/dev/null 
+      || az group create --name "$AKS_PROJECT" --location "$AKS_REGION"
     - >
-      az aks show  -g "$AKS_NAME" -n "$AKS_NAME" 2>/dev/null
+      az aks show  -g "$AKS_PROJECT" -n "$AKS_NAME" 2>/dev/null
       || az aks create 
-      -g "$AKS_NAME" -n "$AKS_NAME"
+      -g "$AKS_PROJECT" -n "$AKS_NAME"
       --enable-managed-identity 
       --node-count "$AKS_COUNT"
       --node-osdisk-size="$AKS_DISK" 
@@ -88,8 +88,8 @@ tasks:
     cmds:
     - echo "*** Deleting the $AKS_NAME cluster"
     - az account set --subscription $(az account show --query 'id' -o tsv)
-    - az aks delete --name $AKS_NAME --resource-group $AKS_NAME
-    - az group delete --resource-group $AKS_NAME
+    - az aks delete --name $AKS_NAME --resource-group $AKS_PROJECT
+    - az group delete --resource-group $AKS_PROJECT
     - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
   certman: 
@@ -119,8 +119,10 @@ tasks:
         || die "load balancer not found"
       - echo ""
 
+
   status:
     silent: true
     desc: show the cluster status
     cmds:
-    - az aks show -n $AKS_NAME -g $AKS_NAME -o table
+    - task: prereq
+    - az aks show -n $AKS_NAME -g $AKS_PROJECT -o table

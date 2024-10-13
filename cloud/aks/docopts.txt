@@ -9,10 +9,12 @@ Usage:
   aks lb
   aks status
 
+
 Commands:
-  config     configure an Azure AKS kubernetes cluster
-  create     create an Azure AKS kubernetes cluster
-  delete     delete the current Azure AKS cluster
-  kubeconfig extract the kubeconfig to access
-  lb         show the load balancer
-  status     show the cluster status
+  config      configure an Azure AKS kubernetes cluster
+  create      create an Azure AKS kubernetes cluster
+  delete      delete the current Azure AKS cluster
+  kubeconfig  extract the kubeconfig to access
+  lb          show the load balancer
+  status      show the cluster status
+

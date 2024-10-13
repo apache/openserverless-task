@@ -478,7 +478,7 @@ tasks:
     cmds:
       - task: readforce
         vars:
-          MSG: "Azure Project Id"
+          MSG: "Azure Resource Group"
           VAR: "AZCLOUD_PROJECT"
           VAL: "{{.__project}}"
       - task: read
@@ -505,7 +505,7 @@ tasks:
           MSG: "Azure vm disk size in gigabyte"
           VAR: "AZCLOUD_DISK"
           VAL: "{{.__disk}}"
-          DEF: "200"
+          DEF: "100"
       - task: read
         vars:
           MSG: "Azure Cloud public SSH key"
@@ -528,12 +528,18 @@ tasks:
   aks:
     silent: true
     cmds:
+      - task: readforce
+        vars:
+          MSG: "AKS Name for Resource Group"
+          VAR: "AKS_PROJECT"
+          VAL: "{{.__project}}"
+          DEF: "openserverless"
       - task: read
         vars:
-          MSG: "AKS Name for Cluster and Resource Group"
+          MSG: "AKS for Cluster"
           VAR: "AKS_NAME"
           VAL: "{{.__name}}"
-          DEF: "nuvolaris"
+          DEF: "openserverless"
       - task: read
         vars:
           MSG: "AKS number of worker nodes"
