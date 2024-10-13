@@ -166,18 +166,18 @@ tasks:
     cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - |
-      MINIO_ACCESS_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_access_key}')
-      MINIO_SECRET_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_secret_key}')
-      MINIO_HOST=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_host}')
-      MINIO_PORT=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_port}')
-      MINIO_BUCKET_DATA=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_data}')
-      MINIO_BUCKET_WEB=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_static}')
+      S3_ACCESS_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_access_key}')
+      S3_SECRET_KEY=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_secret_key}')
+      S3_HOST=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_host}')
+      S3_PORT=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_port}')
+      S3_BUCKET_DATA=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_data}')
+      S3_BUCKET_WEB=$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_static}')
       {{.RUN}} wsk {{.ETC}} action update hello/minio minio.js \
-      -p minio_access "$MINIO_ACCESS_KEY" \
-      -p minio_secret "$MINIO_SECRET_KEY" \
-      -p minio_host "$MINIO_HOST" \
-      -p minio_port "$MINIO_PORT" \
-      -p minio_data "$MINIO_BUCKET_DATA" 
+      -p s3_access "$S3_ACCESS_KEY" \
+      -p s3_secret "$S3_SECRET_KEY" \
+      -p s3_host "$S3_HOST" \
+      -p s3_port "$S3_PORT" \
+      -p s3_data "$S3_BUCKET_DATA"
     - "{{.RUN}} wsk {{.ETC}} action invoke hello/minio -r"
 
   postgres:
