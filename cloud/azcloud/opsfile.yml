@@ -101,6 +101,7 @@ tasks:
   vm-getip:
     silent: true
     cmds:
+      - task: prereq
       - >
         az network public-ip show -g "$AZCLOUD_PROJECT" -n "{{._name_}}"-public-ip --query ipAddress -o tsv > _vm-ip
       - cat _vm-ip
@@ -108,6 +109,7 @@ tasks:
   vm-resources-id:
     silent: true
     cmds:
+      - task: prereq
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "storageProfile.osDisk.managedDisk.id" 
@@ -162,11 +164,91 @@ tasks:
     silent: true
     depends: [vm-resources-id]
     cmds:
+      - task: prereq
       - task: vm-resources-id
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null && 
         az vm delete -y -g "$AZCLOUD_PROJECT" -n "{{._name_}}" || echo "Vm {{._name_}} not found"
       - task: vm-delete-resources
       - task: vm-temp-cleanup
+        
+  zone-create:
+    silent: true
+    cmds:
+      - task: prereq
+      - >
+        az network dns zone create --name "{{._zone_}}" --resource-group "$AZCLOUD_PROJECT" -o none 2>/dev/null || echo "Zone not created"
+      - echo "Zone {{._zone_}} created. Please delegate those name Servers:"
+      - az network dns zone show --name "{{._zone_}}" --resource-group "$AZCLOUD_PROJECT" --query "nameServers" --output tsv
+
+  zone-delete:
+    silent: true
+    cmds:
+      - task: prereq
+      - |
+        az network dns zone list --resource-group "$AZCLOUD_PROJECT" --query "[?name=='{{._zone_}}'].name" --output tsv > _zone-name
+        if [ -s _zone-name ]; then
+        az network dns zone delete --name "$(cat _zone-name)" --resource-group "$AZCLOUD_PROJECT" --yes
+        else
+        echo "Error: zone {{._zone_}} not found"
+        fi
+
+  zone-list:
+    silent: true
+    cmds:
+      - task: prereq
+      - echo "Showing DNS records in resource group $AZCLOUD_PROJECT"
+      - az network dns zone list --resource-group $AZCLOUD_PROJECT --output table
+
+  zone-update:
+    silent: true
+    cmds:
+      - task: prereq
+      - |
+        # Set the domain (DNS zone) in Azure
+        export DOMAIN="{{._zone_}}"
+        
+        # Determine record type and value based on the given input
+        if test -n "{{.__vm}}"
+        then
+        export REC="A"
+        export VAL=$($OPS cloud azcloud vm-getip "{{.__vm}}")
+        elif test -n "{{.__ip}}"
+        then
+        export REC="A"
+        export VAL="{{.__ip}}"
+        elif test -n "{{.__cname}}"
+        then
+        export REC="CNAME"
+        export VAL="{{.__cname}}"
+        fi      
+        # Determine the host to be used (specific or wildcard)
+        if test -n "{{.__host}}"
+        then
+        export HOST="{{.__host}}"
+        elif {{.__wildcard}}
+        then
+        export HOST="*"
+        fi
+        
+        # Print the values for debugging
+        echo "Updating: $DOMAIN $HOST $REC $VAL"
+        
+        # Perform the DNS update in Azure
+        if [ "$REC" = "A" ]; then
+        az network dns record-set a add-record \
+        --zone-name "$DOMAIN" \
+        --resource-group "$AZCLOUD_PROJECT" \
+        --record-set-name "$HOST" \
+        --ipv4-address "$VAL" \
+        --ttl 3600
+        elif [ "$REC" = "CNAME" ]; then
+        az network dns record-set cname set-record \
+        --zone-name "$DOMAIN" \
+        --resource-group "$AZCLOUD_PROJECT" \
+        --record-set-name "$HOST" \
+        --cname "$VAL" \
+        --ttl 3600
+        fi
 
 
