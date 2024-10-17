@@ -30,12 +30,13 @@ export const BadConfigMsg =
   "Bad configuration file. Check the help message (-h) to see the expected format.";
 
 export const HelpMsg = `
-Usage: config <configjson>
+Usage: config <configjson> [-o | --override]
 
 Description:
 Prompt the user for configuration data defined in the config.json file. 
-From the input config, the script will remove the keys that are already set in ops,
-and only prompt the user for the missing data. Then they will be saved in the ops config.
+The script will ignore the keys from the input config that are already set in ops
+and only prompt the user for the missing data, unless the override flag is set. 
+Then they will be saved in the ops config.
 
 The config.json file must be a JSON file with the following structure:
       
@@ -57,15 +58,32 @@ The value for the "type" key must be either string with the following values:
 - float
 - bool
 - password
-
-or an array of strings with specific values (an enum).`;
+- an array of strings with specific values (an enum).
+`;
 
 export default async function main() {
-  const { positionals } = parseArgs({
+  const options: { showhelp: { type: 'boolean' }, override: { type: 'boolean' } } = {
+    showhelp: {
+      type: 'boolean',
+    },
+    override: {
+      type: 'boolean',
+    },
+  };
+  const { values, positionals } = parseArgs({
     args: Bun.argv,
+    options: options,
     strict: true,
     allowPositionals: true,
+
   });
+
+  if (values.showhelp) {
+    console.log(HelpMsg);
+    return process.exit(0);
+  }
+
+  const override = values.override || false;
 
   // 1. Read input config json
   const readPosRes = readPositionalFile(positionals);
@@ -106,16 +124,19 @@ export default async function main() {
     return process.exit(1);
   }
 
-  const opsConfig = stdout.toString();
+  const opsCurrentConfig = stdout.toString();
 
   // 5. Remove the keys from config that are already in the opsConfig
-  const missingData = findMissingConfig(config, opsConfig);
+  let missingData = config;
+  if (!override) {
+    missingData = findMissingConfig(config, opsCurrentConfig);
+  }
 
   // 6. Ask the user for the missing data
   console.log();
   intro(color.inverse(" ops configurator "));
 
-  await askMissingData(missingData);
+  await askMissingData(missingData, override);
 
   // 7. Save the data to the config?
   console.log();
@@ -123,13 +144,16 @@ export default async function main() {
   outro("You're all set!");
 }
 
-async function askMissingData(missingData: Prompts) {
+async function askMissingData(missingData: Prompts, override: boolean = false) {
   if (Object.keys(missingData).length === 0) {
     outro("Configuration set from ops");
     process.exit(0);
   }
   console.log();
-  console.log("Configuration partially set from ops. Need a few more:");
+
+  if (!override) {
+    console.log("Configuration partially set from ops. Need a few more:");
+  }
 
   for (const key in missingData) {
     let inputFromPrompt: string | undefined = undefined;
@@ -225,11 +249,11 @@ async function askMissingData(missingData: Prompts) {
 
 export function findMissingConfig(
   config: Record<string, any>,
-  opsConfig: string
+  opsCurrentConfig: string
 ): Prompts {
   let newConfig: Record<string, any> = {};
 
-  let opsConfigKeys = opsConfig.split("\n").map((line) => line.split("=")[0]);
+  let opsConfigKeys = opsCurrentConfig.split("\n").map((line) => line.split("=")[0]);
 
   for (const key in config) {
     if (opsConfigKeys.includes(key)) {
@@ -247,6 +271,7 @@ export function readPositionalFile(positionals: string[]): {
   help?: string;
   jsonFilePath?: string;
 } {
+
   if (positionals.length < 2) {
     console.error("This should not happen");
     return { success: false, message: "This should not happen" };
