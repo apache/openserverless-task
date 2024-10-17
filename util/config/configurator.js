@@ -649,13 +649,15 @@ ${import_picocolors2.default.gray(d2)}  ${r2}
 // configurator.ts
 var import_picocolors3 = __toESM(require_picocolors(), 1);
 import {parseArgs} from "util";
-async function askMissingData(missingData) {
+async function askMissingData(missingData, override = false) {
   if (Object.keys(missingData).length === 0) {
     $e("Configuration set from ops");
     process.exit(0);
   }
   console.log();
-  console.log("Configuration partially set from ops. Need a few more:");
+  if (!override) {
+    console.log("Configuration partially set from ops. Need a few more:");
+  }
   for (const key in missingData) {
     let inputFromPrompt = undefined;
     const prompt = missingData[key];
@@ -730,9 +732,9 @@ async function askMissingData(missingData) {
     }
   }
 }
-function findMissingConfig(config, opsConfig) {
+function findMissingConfig(config, opsCurrentConfig) {
   let newConfig = {};
-  let opsConfigKeys = opsConfig.split("\n").map((line) => line.split("=")[0]);
+  let opsConfigKeys = opsCurrentConfig.split("\n").map((line) => line.split("=")[0]);
   for (const key in config) {
     if (opsConfigKeys.includes(key)) {
       continue;
@@ -760,6 +762,9 @@ function readPositionalFile(positionals) {
 }
 async function parsePositionalFile(path) {
   const file = Bun.file(Bun.pathToFileURL(path));
+  if (!await file.exists()) {
+    return { success: false, message: FileNotFoundJsonMsg + Bun.pathToFileURL(path) };
+  }
   try {
     const contents = await file.json();
     return { success: true, body: contents };
@@ -772,7 +777,6 @@ function isInputConfigValid(body) {
     return false;
   }
   for (const key in body) {
-    console.log("PROD - isInputConfigValid - " + key);
     const value = body[key];
     if (typeof value !== "object") {
       return false;
@@ -785,9 +789,7 @@ function isInputConfigValid(body) {
     }
   }
   for (const key in body) {
-    const resCheck = /^[A-Z][A-Z_]*[A-Z]$/.test(key);
-    console.log("PROD - isInputConfigValid - regexp check - for --- " + key + ", " + resCheck);
-    if (!/^[A-Z][A-Z0-9]*(_[A-Z][A-Z0-9]*)*$/.test(key)) {
+    if (!/^[A-Z][A-Z_]|[0-9]*[A-Z]|[0-9]$/.test(key)) {
       return false;
     }
   }
@@ -796,14 +798,16 @@ function isInputConfigValid(body) {
 var OPS = process.env.OPS || "ops";
 var AdditionalArgsMsg = "Additional arguments will be ignored.";
 var NotValidJsonMsg = "Not a valid JSON file";
+var FileNotFoundJsonMsg = "The JSON file was not found. Pathname: ";
 var BadConfigMsg = "Bad configuration file. Check the help message (-h) to see the expected format.";
 var HelpMsg = `
-Usage: config <configjson>
+Usage: config <configjson> [-o | --override]
 
 Description:
 Prompt the user for configuration data defined in the config.json file. 
-From the input config, the script will remove the keys that are already set in ops,
-and only prompt the user for the missing data. Then they will be saved in the ops config.
+The script will ignore the keys from the input config that are already set in ops
+and only prompt the user for the missing data, unless the override flag is set. 
+Then they will be saved in the ops config.
 
 The config.json file must be a JSON file with the following structure:
       
@@ -825,14 +829,28 @@ The value for the "type" key must be either string with the following values:
 - float
 - bool
 - password
-
-or an array of strings with specific values (an enum).`;
+- an array of strings with specific values (an enum).
+`;
 async function main() {
-  const { positionals } = parseArgs({
+  const options = {
+    showhelp: {
+      type: "boolean"
+    },
+    override: {
+      type: "boolean"
+    }
+  };
+  const { values, positionals } = parseArgs({
     args: Bun.argv,
+    options,
     strict: true,
     allowPositionals: true
   });
+  if (values.showhelp) {
+    console.log(HelpMsg);
+    return process.exit(0);
+  }
+  const override = values.override || false;
   const readPosRes = readPositionalFile(positionals);
   if (!readPosRes.success) {
     ue(readPosRes.message);
@@ -860,11 +878,14 @@ async function main() {
     ue(stderr.toString());
     return process.exit(1);
   }
-  const opsConfig = stdout.toString();
-  const missingData = findMissingConfig(config, opsConfig);
+  const opsCurrentConfig = stdout.toString();
+  let missingData = config;
+  if (!override) {
+    missingData = findMissingConfig(config, opsCurrentConfig);
+  }
   console.log();
   oe(import_picocolors3.default.inverse(" ops configurator "));
-  await askMissingData(missingData);
+  await askMissingData(missingData, override);
   console.log();
   $e("You're all set!");
 }

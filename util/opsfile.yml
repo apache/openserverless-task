@@ -12,7 +12,15 @@ tasks:
     desc: Interactive OpenServerless Configuration Tool
     silent: true
     cmds:
-      - bun config/configurator.js $(opspath {{._configjson_}})
+      - |
+        FLAGS=""
+        if {{.__showhelp}}
+        then FLAGS="$FLAGS --showhelp"
+        fi
+        if {{.__override}} 
+        then FLAGS="$FLAGS --override"
+        fi
+        bun config/configurator.js $(opspath {{._configjson_}}) $FLAGS
 
   system:
     desc: system info

@@ -13,7 +13,7 @@ Usage:
   util no-user-secrets <username>
   util kubectl <args>...
   util kubeconfig
-  util config <configjson>
+  util config <configjson> [--override] [--showhelp]
   util upload <folder> [--batchsize=<batchsize>] [--verbose] [--clean]
 ```
 
@@ -34,6 +34,8 @@ Usage:
 
 ## Options:
 ```
+  --showhelp              Show configuration tool help.
+  --override               Override the current configuration.
   --verbose                Provide more details.
   --clean                  Remove all files from the web bucket before upload.
   --batchsize=<batchsize>  Number of concurrent web uploads
