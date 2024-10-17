@@ -51,8 +51,6 @@ tasks:
       then  {{.RUN}} $OPS setup kubernetes delete CONTEXT="{{._context_}}"
       else
             {{.RUN}} $OPS setup kubernetes create CONTEXT="{{._context_}}"
-            echo "Sleep 20 seconds"
-            sleep 20
             {{.RUN}} $OPS setup nuvolaris login
             config STATUS_LAST=cluster 
             if test -n "{{._context_}}" 
