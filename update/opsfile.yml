@@ -68,6 +68,7 @@ tasks:
       - $OPS update secrets
       - $OPS setup kubernetes runtimes
       - $OPS setup kubernetes instance
+      - $OPS setup kubernetes services
       - $OPS setup nuvolaris login
 
   operator:
