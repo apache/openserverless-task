@@ -233,18 +233,24 @@ tasks:
     silent: true
     #desc: wait for active services
     cmds:
+      - echo "Check for active services...."
       - |
         if test "$OPERATOR_COMPONENT_REDIS" == "true"
-        then ops setup kubernetes wait OBJECT=po/redis-0
+        then $OPS setup kubernetes wait OBJECT=po/redis-0
         fi
       - |
         if test "$OPERATOR_COMPONENT_MONGODB" == "true"
-        then ops setup kubernetes wait OBJECT=po/nuvolaris-mongodb-0
+        then $OPS setup kubernetes wait OBJECT=po/nuvolaris-mongodb-0
         fi
       - |
         if test "$OPERATOR_COMPONENT_MINIO" == "true"
         then  POD="$(kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}')"
-              ops setup kubernetes wait OBJECT=pod/$POD
+              $OPS setup kubernetes wait OBJECT=pod/$POD
+        fi
+      - |
+        if test "$OPERATOR_COMPONENT_POSTGRES" == "true"
+        then
+        $OPS setup kubernetes wait OBJECT=pod/nuvolaris-postgres-1-0
         fi
 
   create:
