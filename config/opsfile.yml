@@ -291,10 +291,10 @@ tasks:
             If you do not have it, generate a key pair with the following command:
               ssh-keygen
             The public key defaults to ~/.ssh/id_rsa.pub and you can import with:
-              aws ec2 import-key-pair --key-name nuvolaris-key --public-key-material --region=<your-region> fileb://~/.ssh/id_rsa.pub
+              aws ec2 import-key-pair --key-name openserverless-key --public-key-material --region=<your-region> fileb://~/.ssh/id_rsa.pub
           VAR: "AWS_SSHKEY"
           VAL: "{{.__key}}"
-          DEF: "nuvolaris-key"
+          DEF: "openserverless-key"
 
   aws:
     silent: true
@@ -343,7 +343,16 @@ tasks:
           MSG: "EKS Name for Cluster and Node Group"
           VAR: "EKS_NAME"
           VAL: "{{.__name}}"
-          DEF: "nuvolaris"
+          DEF: "openserverless"
+      - task: read
+        vars:
+          MSG: "EKS location"
+          HINT: >
+            To get a list of valid values use:
+              aws ec2 describe-regions --all-regions --query "Regions[*].{Name:RegionName}" --output table
+          VAR: "EKS_REGION"
+          VAL: "{{.__region}}"
+          DEF: "us-east-2"
       - task: read
         vars:
           MSG: "EKS number of worker nodes"
