@@ -176,8 +176,10 @@ tasks:
     silent: true
     cmds:
       - task: prereq
-      - >
-        az network dns zone create --name "{{._zone_}}" --resource-group "$AZCLOUD_PROJECT" -o none 2>/dev/null || echo "Zone not created"
+      - |
+        basedomain=$(echo "{{._zone_}}" | awk -F. '{print $(NF-1)"."$NF}')
+        parent_zone=$(if test "{{._zone_}}" != "$basedomain"; then echo "--parent $basedomain"; else echo ""; fi)
+        az network dns zone create --name "{{._zone_}}" --resource-group "$AZCLOUD_PROJECT" $parent_zone -o none 2>/dev/null || echo "Zone not created"
       - echo "Zone {{._zone_}} created. Please delegate those name Servers:"
       - az network dns zone show --name "{{._zone_}}" --resource-group "$AZCLOUD_PROJECT" --query "nameServers" --output tsv
 
@@ -205,10 +207,7 @@ tasks:
     cmds:
       - task: prereq
       - |
-        # Set the domain (DNS zone) in Azure
         export DOMAIN="{{._zone_}}"
-        
-        # Determine record type and value based on the given input
         if test -n "{{.__vm}}"
         then
         export REC="A"
@@ -222,7 +221,6 @@ tasks:
         export REC="CNAME"
         export VAL="{{.__cname}}"
         fi      
-        # Determine the host to be used (specific or wildcard)
         if test -n "{{.__host}}"
         then
         export HOST="{{.__host}}"

@@ -42,16 +42,12 @@ tasks:
 
   kubeconfig:
     desc: extract the kubeconfig to access
-    silent: false
+    silent: true
     cmds:
     - task: prereq
     - >
-      retry -t 20 -m 600 az aks get-credentials 
-      --name $AKS_NAME 
-      --resource-group $AKS_PROJECT 
-      --overwrite-existing 
-      -f "$OPS_TMP/kubeconfig"
-    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
+      retry -t 20 -m 600 az aks get-credentials --name $AKS_NAME --resource-group $AKS_PROJECT --overwrite-existing -f "$OPS_TMP/kubeconfig_$AKS_NAME" 2>/dev/null
+    - cp "$OPS_TMP/kubeconfig_$AKS_NAME" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
   config:
     desc: configure an Azure AKS kubernetes cluster

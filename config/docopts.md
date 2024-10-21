@@ -19,11 +19,11 @@ Usage:
   config postgres [--failover] [--backup] [--schedule=<cron_expression>] [--replicas=<replicas>]
   config minio [--s3] [--console]  
   config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>] 
-  config eks [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
+  config eks [--project=<project>] [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
   config gcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]
   config gke [--name=<name>] [--project=<project>] [--region=<region>] [--count=<count>] [--vm=<vm>] [--disk=<disk>]
   config azcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]
-  config aks [--name=<name>] [--region=<region>] [--count=<count>]  [--vm=<vm>] [--disk=<disk>] [--key=<key>]
+  config aks [--project=<project>] [--name=<name>] [--region=<region>] [--count=<count>]  [--vm=<vm>] [--disk=<disk>] [--key=<key>]
   config (status|export|reset)
   config use [<n>] [--delete] [--rename=<rename>]
   config minimal  
@@ -46,7 +46,7 @@ Usage:
   config aws              configure Amazon Web Service (AWS) credentials and parameters
   config gcloud           configure Google Cloud credentials and parameters
   config eks              configure Amazon EKS Kubernetes Cluster
-  config azcloud          configure Azure credentials and parameters
+  config azcloud          configure Azure VM credentials and parameters
   config aks              configure Azure AKS Kubernetes Cluster
   config gke              configure Google Cloud GKE Kubernetes Cluster
   config reset            reset configuration

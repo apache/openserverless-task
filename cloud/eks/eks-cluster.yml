@@ -28,10 +28,10 @@ nodeGroups:
   - name: ${EKS_NAME}-ng-1
     instanceType: $EKS_VM
     desiredCapacity: $EKS_COUNT
-    volumeSize: $EKS_SIZE
+    volumeSize: $EKS_DISK
     ssh:
       allow: true
-      publicKeyName: $EKS_SSHKEY
+      publicKeyName: $AWS_SSHKEY
     iam:
       withAddonPolicies:
         ebs: true
