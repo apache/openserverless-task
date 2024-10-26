@@ -508,7 +508,7 @@ tasks:
             where <location> is your current location.
           VAR: "AZCLOUD_VM"
           VAL: "{{.__vm}}"
-          DEF: "Standard_B4ms"
+          DEF: "Standard_B4s_v2"
       - task: read
         vars:
           MSG: "Azure vm disk size in gigabyte"
