@@ -18,6 +18,7 @@ type Prompts = Record<string, PromptData>;
 type PromptData = {
   label?: string;
   type: string | string[];
+  default?: string;
   value?: string;
 };
 
@@ -36,7 +37,7 @@ Description:
 Prompt the user for configuration data defined in the config.json file. 
 The script will ignore the keys from the input config that are already set in ops
 and only prompt the user for the missing data, unless the override flag is set. 
-Then they will be saved in the ops config.
+Then they will be saved in the ops config. You can also define a default value.
 
 The config.json file must be a JSON file with the following structure:
       
@@ -46,7 +47,8 @@ The config.json file must be a JSON file with the following structure:
     },
     "OTHER_KEY": {
       "label": "An optional custom message",
-      "type": "int"
+      "type": "int",
+      "default": "42"
     },
     ...
   }
@@ -156,17 +158,24 @@ async function askMissingData(missingData: Prompts, override: boolean = false) {
   }
 
   for (const key in missingData) {
-    let inputFromPrompt: string | undefined = undefined;
+    let inputFromPrompt: string;
     const prompt: PromptData = missingData[key];
-    let askedForPassword = false;
+    // let askedForPassword = false;
 
     if (Array.isArray(prompt.type)) {
+      const defaultValueOK = prompt.default && prompt.type.includes(prompt.default);
+      if (prompt.default && !defaultValueOK) {
+        console.log();
+        console.warn(`The default value ${prompt.default} is not in the enum values.`);
+      }
+
       const selected = await select({
         message: prompt.label || `Pick a value for '${key}'`,
         options: prompt.type.map((v) => ({ label: v, value: v })),
+        initialValue: defaultValueOK ? prompt.default : undefined,
       });
 
-      if (!selected) {
+      if (!selected || isCancel(selected)) {
         cancel("Operation cancelled");
         process.exit(0);
       }
@@ -176,6 +185,7 @@ async function askMissingData(missingData: Prompts, override: boolean = false) {
       // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "bool") {
       const selected = await select({
+        initialValue: prompt.default === "true" || prompt.default as unknown as boolean === true ? "true" : "false",
         message: prompt.label || `Pick a true/false for '${key}'`,
         options: [
           { label: "true", value: "true" },
@@ -183,7 +193,7 @@ async function askMissingData(missingData: Prompts, override: boolean = false) {
         ],
       });
 
-      if (!selected) {
+      if (!selected || isCancel(selected)) {
         cancel("Operation cancelled");
         process.exit(0);
       }
@@ -191,8 +201,17 @@ async function askMissingData(missingData: Prompts, override: boolean = false) {
       inputFromPrompt = selected.toString();
       // inputConfigs[key] = { ...prompt, value: selected.toString() };
     } else if (prompt.type === "password") {
+      if (prompt.default) {
+        console.log();
+        console.warn("Default password value is not supported. Please enter the password manually.");
+      }
       const input = await password({
         message: prompt.label || `Enter password value for ${key}`,
+        validate: (value) => {
+          if (!value) {
+            return "Password cannot be empty";
+          }
+        }
       });
 
       if (isCancel(input)) {
@@ -200,44 +219,48 @@ async function askMissingData(missingData: Prompts, override: boolean = false) {
         process.exit(0);
       }
       inputFromPrompt = input;
-      askedForPassword = true;
+      // askedForPassword = true;
     } else {
-      const input = await text({
-        message: prompt.label || `Enter value for ${key} (${prompt.type})`,
-      });
+      const defaultMsgFragment = prompt.default ? `(default: ${prompt.default})` : "";
+      const message = `Enter value for ${key} ${defaultMsgFragment} (${prompt.type})`;
+
+      let input = await text({
+        message: prompt.label || message,
+        // defaultValue: prompt.default?.toString(),
+        initialValue: prompt.default?.toString(),
+        validate: (value) => {
+          switch (prompt.type) {
+            case "int":
+              if (!Number.isInteger(Number(value))) {
+                return `Value for ${key} must be an integer number`;
+              }
+              break;
+            case "float":
+              if (!Number(value)) {
+                return `Value for ${key} must be a number`;
+              }
+          }
+          return;
+        }
+      }) as string;
 
       if (isCancel(input)) {
         cancel("Operation cancelled");
         process.exit(0);
       }
 
-      switch (prompt.type) {
-        case "int":
-          if (!Number.isInteger(Number(input))) {
-            cancel(`Value for ${key} must be an integer`);
-            process.exit(1);
-          }
-          break;
-        case "float":
-          if (!Number(input)) {
-            cancel(`Value for ${key} must be a float`);
-            process.exit(1);
-          }
-          break;
-      }
 
       inputFromPrompt = input;
       // inputConfigs[key] = { ...prompt, value: input };
     }
 
-    if (!askedForPassword) {
-      console.log("Setting", key, "to", inputFromPrompt);
-    } else {
-      console.log("Setting", key, "to", "*".repeat(inputFromPrompt.length));
-    }
+    // if (!askedForPassword) {
+    //   console.log("Setting", key, "to", inputFromPrompt);
+    // } else {
+    //   console.log("Setting", key, "to", "*".repeat(inputFromPrompt.length));
+    // }
 
-    askedForPassword = false;
-
+    console.log(`Setting ${key} to ${inputFromPrompt}`);
     const { exitCode, stderr } =
       await $`${OPS} -config ${key}=${inputFromPrompt}`.nothrow();
     if (exitCode !== 0) {
