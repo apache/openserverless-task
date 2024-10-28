@@ -1,0 +1,26 @@
+{
+  "HELLO": {
+    "type": "string",
+    "default": "world"
+  },
+  "HELLO3": {
+    "type": "int",
+    "default": 3
+  },
+  "A_FLOAT": {
+    "type": "float",
+    "default": 3.14
+  },
+  "A_BOOL": {
+    "type": "bool",
+    "default": false
+  },
+  "A_PASSWORD": {
+    "type": "password",
+    "default": "mypass"
+  },
+  "A_SELECT": {
+    "type": ["one", "two", "three", "four options"],
+    "default": "two"
+  }
+}

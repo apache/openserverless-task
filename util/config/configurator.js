@@ -659,72 +659,84 @@ async function askMissingData(missingData, override = false) {
     console.log("Configuration partially set from ops. Need a few more:");
   }
   for (const key in missingData) {
-    let inputFromPrompt = undefined;
+    let inputFromPrompt;
     const prompt = missingData[key];
-    let askedForPassword = false;
     if (Array.isArray(prompt.type)) {
+      const defaultValueOK = prompt.default && prompt.type.includes(prompt.default);
+      if (prompt.default && !defaultValueOK) {
+        console.log();
+        console.warn(`The default value ${prompt.default} is not in the enum values.`);
+      }
       const selected = await ie({
         message: prompt.label || `Pick a value for '${key}'`,
-        options: prompt.type.map((v2) => ({ label: v2, value: v2 }))
+        options: prompt.type.map((v2) => ({ label: v2, value: v2 })),
+        initialValue: defaultValueOK ? prompt.default : undefined
       });
-      if (!selected) {
+      if (!selected || hD(selected)) {
         ue("Operation cancelled");
         process.exit(0);
       }
       inputFromPrompt = selected.toString();
     } else if (prompt.type === "bool") {
       const selected = await ie({
+        initialValue: prompt.default === "true" || prompt.default === true ? "true" : "false",
         message: prompt.label || `Pick a true/false for '${key}'`,
         options: [
           { label: "true", value: "true" },
           { label: "false", value: "false" }
         ]
       });
-      if (!selected) {
+      if (!selected || hD(selected)) {
         ue("Operation cancelled");
         process.exit(0);
       }
       inputFromPrompt = selected.toString();
     } else if (prompt.type === "password") {
+      if (prompt.default) {
+        console.log();
+        console.warn("Default password value is not supported. Please enter the password manually.");
+      }
       const input = await re({
-        message: prompt.label || `Enter password value for ${key}`
+        message: prompt.label || `Enter password value for ${key}`,
+        validate: (value) => {
+          if (!value) {
+            return "Password cannot be empty";
+          }
+        }
       });
       if (hD(input)) {
         ue("Operation cancelled");
         process.exit(0);
       }
       inputFromPrompt = input;
-      askedForPassword = true;
     } else {
-      const input = await te({
-        message: prompt.label || `Enter value for ${key} (${prompt.type})`
+      const defaultMsgFragment = prompt.default ? `(default: ${prompt.default})` : "";
+      const message = `Enter value for ${key} ${defaultMsgFragment} (${prompt.type})`;
+      let input = await te({
+        message: prompt.label || message,
+        initialValue: prompt.default?.toString(),
+        validate: (value) => {
+          switch (prompt.type) {
+            case "int":
+              if (!Number.isInteger(Number(value))) {
+                return `Value for ${key} must be an integer number`;
+              }
+              break;
+            case "float":
+              if (!Number(value)) {
+                return `Value for ${key} must be a number`;
+              }
+          }
+          return;
+        }
       });
       if (hD(input)) {
         ue("Operation cancelled");
         process.exit(0);
       }
-      switch (prompt.type) {
-        case "int":
-          if (!Number.isInteger(Number(input))) {
-            ue(`Value for ${key} must be an integer`);
-            process.exit(1);
-          }
-          break;
-        case "float":
-          if (!Number(input)) {
-            ue(`Value for ${key} must be a float`);
-            process.exit(1);
-          }
-          break;
-      }
       inputFromPrompt = input;
     }
-    if (!askedForPassword) {
-      console.log("Setting", key, "to", inputFromPrompt);
-    } else {
-      console.log("Setting", key, "to", "*".repeat(inputFromPrompt.length));
-    }
-    askedForPassword = false;
+    console.log(`Setting ${key} to ${inputFromPrompt}`);
     const { exitCode, stderr } = await $2`${OPS} -config ${key}=${inputFromPrompt}`.nothrow();
     if (exitCode !== 0) {
       ue(stderr.toString());
