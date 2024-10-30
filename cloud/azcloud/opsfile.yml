@@ -36,7 +36,17 @@ tasks:
       - task prereq
       - >
         az group show -g "$AZCLOUD_PROJECT" -o none 2>/dev/null ||
-        az group create -l "$AZCLOUD_REGION" -n "$AZCLOUD_PROJECT" -o none 2>/dev/null
+        az group create -l "$AZCLOUD_REGION" -n "$AZCLOUD_PROJECT" --tags ops=true -o none 2>/dev/null
+
+  virtual-network:
+    silent: true
+    cmds:
+      - >
+        az network vnet show -g "$AZCLOUD_PROJECT" -n "$AZCLOUD_PROJECT"-vnet --query "name" -o none 2>/dev/null ||
+        az network vnet create -g "$AZCLOUD_PROJECT" -n "$AZCLOUD_PROJECT"-vnet --tags ops=true -o none 2>/dev/null
+      - >
+        az network vnet subnet show -g "$AZCLOUD_PROJECT" --vnet-name "$AZCLOUD_PROJECT"-vnet -n "$AZCLOUD_PROJECT"-subnet -o none 2>/dev/null ||
+        az network vnet subnet create -g "$AZCLOUD_PROJECT" --vnet-name "$AZCLOUD_PROJECT"-vnet -n "$AZCLOUD_PROJECT"-subnet --address-prefix "10.0.0.0/24" -o none 2>/dev/null
 
   vm-list:
     silent: true
@@ -51,9 +61,10 @@ tasks:
     cmds:
       - task: prereq
       - task: res-group
+      - task: virtual-network
       - >
         az network public-ip show -g "$AZCLOUD_PROJECT" -n {{._name_}}-public-ip --output none 2>/dev/null ||
-        az network public-ip create -g "$AZCLOUD_PROJECT" -n {{._name_}}-public-ip --version IPv4 --sku Standard 
+        az network public-ip create -g "$AZCLOUD_PROJECT" --tags ops=true -n {{._name_}}-public-ip --version IPv4 --sku Standard 
         --zone 1 2 3 -o none
 
   vm-firewall-rule:
@@ -61,7 +72,7 @@ tasks:
     cmds:
       - >
         az network nsg show -g "$AZCLOUD_PROJECT" --name openserverless-vm-nsg -o none 2>/dev/null ||
-        az network nsg create -g "$AZCLOUD_PROJECT" --name openserverless-vm-nsg -o none 2>/dev/null
+        az network nsg create -g "$AZCLOUD_PROJECT" --tags ops=true --name openserverless-vm-nsg -o none 2>/dev/null
       - >
         az network nsg rule show -g "$AZCLOUD_PROJECT" --nsg-name openserverless-vm-nsg
         -n Allow-Ports-22-80-443-6443-16443 -o none 2>/dev/null ||
@@ -76,6 +87,7 @@ tasks:
     cmds:
       - task: prereq
       - task: res-group
+      - task: virtual-network
       - task: vm-firewall-rule
       - task: vm-ip
       - >
@@ -83,8 +95,10 @@ tasks:
       - >
         az vm show -g "$AZCLOUD_PROJECT" --name {{._name_}} --query "name" -o none 2>/dev/null ||
         az vm create -g "$AZCLOUD_PROJECT" --name "{{._name_}}" --location "$AZCLOUD_REGION"
+        --vnet-name "$AZCLOUD_PROJECT"-vnet
+        --subnet "$AZCLOUD_PROJECT"-subnet
         --public-ip-address {{._name_}}-public-ip
-        --nsg openserverless-vm-nsg 
+        --nsg openserverless-vm-nsg        
         --size "$AZCLOUD_VM"
         --image "$AZCLOUD_IMAGE"
         --os-disk-size-gb "$AZCLOUD_DISK"
@@ -102,9 +116,11 @@ tasks:
     silent: true
     cmds:
       - task: prereq
+      - task: virtual-network
       - >
         az network public-ip show -g "$AZCLOUD_PROJECT" -n "{{._name_}}"-public-ip --query ipAddress -o tsv > _vm-ip
       - cat _vm-ip
+
 
   vm-resources-id:
     silent: true
@@ -113,52 +129,43 @@ tasks:
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "storageProfile.osDisk.managedDisk.id" 
-        -o tsv > _vm_disk_id || touch _vm_disk_id
+        -o tsv > _vm_disk_id_{{._name_}} || touch _vm_disk_id_{{._name_}}
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "networkProfile.networkInterfaces[0].id" 
-        -o tsv > _vm_nic_id || touch _vm_nic_id
+        -o tsv > _vm_nic_id_{{._name_}} || touch _vm_nic_id_{{._name_}}
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
-        az network nic show --ids $(cat _vm_nic_id)  --query "ipConfigurations[0].publicIPAddress.id" 
-        -o tsv > _vm_pubip_id || touch _vm_nic_id
-      - >
-        az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null &&
-        az network nic show --ids $(cat _vm_nic_id)  --query "ipConfigurations[0].subnet.id" 
-        -o tsv > _vm_subnet_id || touch _vm_subnet_id
+        az network nic show --ids $(cat _vm_nic_id_{{._name_}})  --query "ipConfigurations[0].publicIPAddress.id" 
+        -o tsv > _vm_pubip_id_{{._name_}} || touch _vm_pubip_id_{{._name_}}      
 
   vm-delete-resources:
     silent: true
     cmds:
       - >
-        if test -s _vm_disk_id; then
-          az disk delete --ids $(cat _vm_disk_id) --yes --no-wait
-          rm -f _vm_disk_id
+        if test -s _vm_disk_id_{{._name_}}; then
+          az disk delete --ids $(cat _vm_disk_id_{{._name_}}) --yes --no-wait
+          rm -f _vm_disk_id_{{._name_}}
         fi
       - >
-        if test -s _vm_nic_id; then
-          az network nic delete --ids $(cat _vm_nic_id)
-          rm -f _vm_nic_id
+        if test -s _vm_nic_id_{{._name_}}; then
+          az network nic delete --ids $(cat _vm_nic_id_{{._name_}})
+          rm -f _vm_nic_id_{{._name_}}
         fi
       - >
-        if test -s _vm_pubip_id; then
-          az network public-ip delete --ids $(cat _vm_pubip_id)
-          rm _vm_pubip_id
+        if test -s _vm_pubip_id_{{._name_}}; then
+          az network public-ip delete --ids $(cat _vm_pubip_id_{{._name_}})
+          rm _vm_pubip_id_{{._name_}}
         fi
-      - >
-        if test -s _vm_subnet_id; then
-          az network vnet delete --ids $(cat _vm_subnet_id)
-          rm _vm_subnet_id
-        fi     
+      
 
   vm-temp-cleanup:
     depends: [vm-delete]
     silent: true
     cmds:
-      - test -f _vm_nic_id && rm -f _vm_nic_id; exit 0
-      - test -f _vm_disk_id && rm -f _vm_disk_id; exit 0
-      - test -f _vm_pubip_id && rm -f _vm_pubip_id; exit 0
-      - test -f _vm_subnet_id && rm -f _vm_subnet_id; exit 0
+      - test -f _vm_nic_id_{{._name_}} && rm -f _vm_nic_id_{{._name_}}; exit 0
+      - test -f _vm_disk_id_{{._name_}} && rm -f _vm_disk_id_{{._name_}}; exit 0
+      - test -f _vm_pubip_id_{{._name_}} && rm -f _vm_pubip_id_{{._name_}}; exit 0
 
   vm-delete:
     silent: true
@@ -166,11 +173,18 @@ tasks:
     cmds:
       - task: prereq
       - task: vm-resources-id
+        vars:
+          name: "{{._name_}}"
       - >
         az vm show -g "$AZCLOUD_PROJECT" -n "{{._name_}}" --query "name" -o none 2>/dev/null && 
         az vm delete -y -g "$AZCLOUD_PROJECT" -n "{{._name_}}" || echo "Vm {{._name_}} not found"
       - task: vm-delete-resources
+        vars:
+          name: "{{._name_}}"
       - task: vm-temp-cleanup
+        vars:
+          name: "{{._name_}}"
+
         
   zone-create:
     silent: true
