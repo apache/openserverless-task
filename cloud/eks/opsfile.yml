@@ -71,7 +71,8 @@ tasks:
   status:
     silent: true
     cmds:
-    - kubectl get nodes
+      - task: prereq
+      - kubectl get nodes
 
   build:
     silent: true
