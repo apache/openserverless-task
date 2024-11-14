@@ -106,7 +106,7 @@ tasks:
   kind:
     desc: download kind
     vars:
-      VERSION: 0.17.0
+      VERSION: 0.22.0
     cmds:
       - task: download
         vars:
