@@ -151,7 +151,6 @@ tasks:
       - bun {{.TASKFILE_DIR}}/deploy/serve.js -h 127.0.0.1 -P $OPSDEV_HOST -d "$OPS_PWD/web"
       #- http-server -a 127.0.0.1 "$OPS_PWD/web" -c-1 --mimetypes mime.types -P $OPSDEV_HOST
 
-
   deploy:
     silent: true
     interactive: true
@@ -172,8 +171,10 @@ tasks:
         fi
         if test -z "{{._action_}}"
         then
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY 
-            $ECHO $OPS util upload web
+            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
+            OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
+            echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
+            $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
             echo "URL: $OPSDEV_HOST"
         else
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            
