@@ -147,9 +147,10 @@ tasks:
     desc: local web server
     ignore_error: true
     cmds:
-      #- >
-      - bun {{.TASKFILE_DIR}}/deploy/serve.js -h 127.0.0.1 -P $OPSDEV_HOST -d "$OPS_PWD/web"
-      #- http-server -a 127.0.0.1 "$OPS_PWD/web" -c-1 --mimetypes mime.types -P $OPSDEV_HOST
+      - |
+        OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
+        echo "Serving assets from ${OPS_UPLOAD_FOLDER:-web}"
+        bun {{.TASKFILE_DIR}}/deploy/serve.js -h 127.0.0.1 -P $OPSDEV_HOST -d "$OPS_PWD/${OPS_UPLOAD_FOLDER:-web}"
 
   deploy:
     silent: true
