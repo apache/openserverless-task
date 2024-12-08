@@ -82,12 +82,14 @@ tasks:
         export USER_SECRET_POSTGRES=$($OPS -config "${upperCaseUser}_SECRET_POSTGRES")
         export USER_SECRET_MONGODB=$($OPS -config "${upperCaseUser}_SECRET_MONGODB")
         export USER_SECRET_MINIO=$($OPS -config "${upperCaseUser}_SECRET_MINIO")
+        export USER_SECRET_MILVUS=$($OPS -config "${upperCaseUser}_SECRET_MILVUS")
 
         export REDIS_ENABLED=false
         export MONGODB_ENABLED=false
         export MINIO_DATA_ENABLED=false
         export MINIO_STATIC_ENABLED=false
         export POSTGRES_ENABLED=false
+        export MILVUS_ENABLED=false
         export MINIO_STORAGE_QUOTA=auto
 
         if {{.__redis}} || {{.__all}}
@@ -134,6 +136,16 @@ tasks:
             $OPS -die "Error! Postgres is not enabled in OpenServerless"
           fi
         fi
+
+        if {{.__milvus}} || {{.__all}}
+        then 
+          if $OPERATOR_COMPONENT_MILVUS
+          then 
+            MILVUS_ENABLED=true
+          else
+            $OPS -die "Error! Milvus is not enabled in OpenServerless"
+          fi
+        fi        
 
         envsubst -i user-crd.yaml -o _user-crd.yaml
       - |

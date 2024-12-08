@@ -24,18 +24,19 @@ Configure OpenServerless
 
 ```text
 Usage:
-  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota]  
+  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] 
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
-  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongogb=<mongodb>]
+  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongogb=<mongodb>] [--etcdvol=<etcd>] [--mvvol=<milvus>] [--mvzookvol=<milvuszook>] [--pulsarjournalvol=<pulsarjournal>] [--pulsarledgelvol=<pulsarledge>]  
   config controller [--javaopts=<javaopts>] [--loglevel=<loglevel>] [--replicas=<replicas>]
   config invoker [--javaopts=<javaopts>] [--poolmemory=<poolmemory>] [--timeoutsrun=<timeoutsrun>] [--timeoutslogs=<timeoutslogs>] [--loglevel=<loglevel>] [--replicas=<replicas>]
   config limits [--time=<time>] [--memory=<memory>] [--sequencelength=<sequencelength>] [--perminute=<perminute>] [--concurrent=<concurrent>] [--triggerperminute=<triggerperminute>] [--activation_max_payload=<activation_max_payload>]
   config storage [--class=<storage_class>] [--provisioner=<storage_provisioner>]
   config postgres [--failover] [--backup] [--schedule=<cron_expression>] [--replicas=<replicas>]
-  config minio [--s3] [--console]  
+  config minio [--s3] [--console]
+  config etcd [--replicas=<replicas>]  
   config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>] 
   config eks [--project=<project>] [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
   config gcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]
@@ -56,12 +57,14 @@ Usage:
   config disable          disable OpenServerless services to install
   config slack            configure Alert Manager over a given slack channel
   config mail             configure Alert Manager over a gmail account
-  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, minio storage, alerting)
+  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, minio storage, alerting, milvus)
   config controller       configure Openwhisk enterprise controller java options
   config invoker          configure Openwhisk enterprise invoker options
   config limits           configure Openwhisk actions limits
   config storage          allows to customize storage persistence class and provider
   config postgres         allows to customize enterprise options for nuvolaris default postgres deployment  
+  config minio            allows to customize MINIO options
+  config etcd             allows to customize ETCD options
   config aws              configure Amazon Web Service (AWS) credentials and parameters
   config gcloud           configure Google Cloud credentials and parameters
   config eks              configure Amazon EKS Kubernetes Cluster
@@ -107,4 +110,5 @@ Usage:
   --s3                  activate s3 compatible ingress on components supporting it
   --console             activate a s3 console ingress on components supporting it (Currently MINIO)
   --quota               select quota checker module
+  --milvus              select MILVUS vector database
 ```

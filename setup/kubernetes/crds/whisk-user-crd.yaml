@@ -179,7 +179,25 @@ spec:
                   required:
                   - enabled
                   - database 
-                  - password                      
+                  - password 
+                milvus:
+                  description: used to configure a user dedicated MILVUS database
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    enabled:
+                      description: boolean flag to enable MILVUS configuration. Defaulted to false
+                      type: boolean
+                    database:
+                      description: user dedicated MILVUS database
+                      type: string
+                    password:
+                      description: user MILVUS password
+                      type: string
+                  required:
+                  - enabled
+                  - database 
+                  - password                                        
               required:
                 - email
                 - password
