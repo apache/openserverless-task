@@ -47,3 +47,7 @@ spec:
     route:
       enabled: ${MINIO_STATIC_ENABLED}
       bucket: ${USERNAME}-web      
+  milvus:
+    enabled: ${MILVUS_ENABLED}
+    database: ${USERNAME}
+    password: ${USER_SECRET_MILVUS}      
