@@ -121,10 +121,12 @@ tasks:
         fi
         echo apihost=$OPSDEV_APIHOST username=$OPSDEV_USERNAME
         if $OPS -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
-        then 
+        then
+          OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
+          OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
           config OPSDEV_APIHOST="$OPSDEV_APIHOST"
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
-          config OPSDEV_HOST=$OPSDEV_APIHOST
+          config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source ~/.wskprops
           #config OPENAI_API_HOST=https://openai.nuvolaris.io
           #config OPENAI_API_KEY="$(echo "$AUTH" | awk -F: '{print $1 }')"
