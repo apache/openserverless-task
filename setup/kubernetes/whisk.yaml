@@ -59,6 +59,10 @@ spec:
     postgres: ${OPERATOR_COMPONENT_POSTGRES:-false}
     # quota enabled or not
     quota: ${OPERATOR_COMPONENT_QUOTA:-false}
+    # etcd enabled or not
+    etcd: ${OPERATOR_COMPONENT_ETCD:-false}
+    # MILVUS enabled or not
+    milvus: ${OPERATOR_COMPONENT_MILVUS:-false}
   tls:
     acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL:-no-reply@email.com}
     acme-server-url: https://acme-v02.api.letsencrypt.org/directory
@@ -207,4 +211,19 @@ spec:
         from: $OPERATOR_CONFIG_EMAIL_FROM
         to: $OPERATOR_CONFIG_EMAIL_TO
         username: $OPERATOR_CONFIG_GMAIL_USERNAME
-        password: $OPERATOR_CONFIG_GMAIL_PASSWORD                     
+        password: $OPERATOR_CONFIG_GMAIL_PASSWORD
+  etcd:
+    volume-size: ${STORAGE_SIZE_ETCD:-25}                         
+    replicas: ${ETCD_CONFIG_REPLICAS:-3}
+    root:
+      password: $SECRET_ETCD_ROOT
+  milvus:
+    volume-size:
+      cluster: ${STORAGE_SIZE_MILVUS_CLUSTER:-20}
+      zookeeper: ${STORAGE_SIZE_MILVUS_ZOOKEEPER:-10}
+      journal: ${STORAGE_SIZE_MILVUS_PULSAR_JOURNAL:-25}
+      ledgers: ${STORAGE_SIZE_MILVUS_PULSAR_LEDGERS:-50}
+    replicas: ${MILVUS_CONFIG_REPLICAS:-1}
+    password:
+      root: $SECRET_MILVUS_ROOT     
+      s3: $SECRET_MILVUS_S3

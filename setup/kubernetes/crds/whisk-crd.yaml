@@ -129,6 +129,12 @@ spec:
                     quota:
                       description: deploys the quota checker if supported by the operator
                       type: boolean
+                    etcd:
+                      description: deploys ETCD to support others components
+                      type: boolean
+                    milvus:
+                      description: deploys Milvus Operator to support deployment of MILVUS Vector DB
+                      type: boolean                                            
                   required:
                     - openwhisk
                     - couchdb
@@ -686,6 +692,74 @@ spec:
                           - mem-lim                           
                       required:
                       - containerPool
+                ectd:
+                  description: used to configure a nuvolaris shared ETCD instance
+                  type: object
+                  properties:
+                    volume-size:
+                      description: ETCD data volume size in GB
+                      type: integer
+                    replicas:
+                      description: number of total postgres replicas (1 primary, N-1 replicas). Defaulted to 1
+                      type: integer
+                    root:
+                      description: ETCD root user credentials
+                      type: object
+                      properties:
+                        password:
+                          description: ETCD root user password
+                          type: string
+                      required:
+                      - password
+                milvus:
+                  description: used to configure a nuvolaris shared MILVUS instance
+                  type: object
+                  properties:
+                    volume-size:
+                      description: ETCD data volume size in GB for the internal PULSAR instances
+                      type: object
+                      properties:
+                          cluster:
+                            description: milvus instance volume size
+                            type: integer 
+                          zookeeper:
+                            description: pulsar zookeeper instance volume size
+                            type: integer
+                          journal:
+                            description: pulsar bookie journal instance volume size
+                            type: integer
+                          ledgers:
+                            description: pulsar bookie ledgers instance volume size
+                            type: integer                                                                                                                                     
+                    replicas:
+                      description: number of total milvus replicas. Defaulted to 1
+                      type: integer
+                    password:
+                      description: MILVUS related user passwords
+                      type: object
+                      properties:
+                        root:
+                          description: milvus root password
+                          type: string
+                        etcd:
+                          description: ETCD milvus user password
+                          type: string
+                        s3:
+                          description: MINIO/S3 milvus user password
+                          type: string                          
+                      required:
+                      - root
+                      - s3
+                    nuvolaris:
+                      description: MILVUS default user setup
+                      type: object
+                      properties:
+                        password:
+                          description: nuvolaris MILVUS password
+                          type: string
+                        collection:
+                          description: nuvolaris MILVUS collection (default to nuvolaris)
+                          type: string                        
             status:
               x-kubernetes-preserve-unknown-fields: true
               # type: object
@@ -783,4 +857,14 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_create.static
-          description: Static                                                                               
+          description: Static
+        - name: Etcd
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.etcd
+          description: Etcd 
+        - name: Milvus
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.milvus
+          description: Milvus                                                                                                    

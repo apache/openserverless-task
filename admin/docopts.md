@@ -27,7 +27,7 @@ You can create namespaces and choose which services to enable.
 
 ```text
 Usage:
-  admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio] [--postgres] [--storagequota=<quota>|auto]
+  admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio] [--postgres] [--milvus] [--storagequota=<quota>|auto]
   admin deleteuser <username>
 ```
 
@@ -44,5 +44,6 @@ Usage:
   --mongodb               enable mongodb
   --minio                 enable minio
   --postgres              enable postgres
+  --milvus                enable milvus vector db
   --storagequota=<quota>
 ```
