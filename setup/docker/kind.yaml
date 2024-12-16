@@ -76,9 +76,6 @@ nodes:
   - containerPort: 6379
     hostPort: 30379
     protocol: TCP
-  - containerPort: 27017
-    hostPort: 32717
-    protocol: TCP
   - containerPort: 28017
     hostPort: 32817
     protocol: TCP
