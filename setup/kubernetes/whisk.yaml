@@ -227,3 +227,5 @@ spec:
     password:
       root: $SECRET_MILVUS_ROOT     
       s3: $SECRET_MILVUS_S3
+    nuvolaris:
+      password: $SECRET_MILVUS_NUVOLARIS  
