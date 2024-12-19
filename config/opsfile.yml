@@ -773,7 +773,7 @@ tasks:
         VAR: "STORAGE_SIZE_MONGODB"
         HINT: | 
               Specifies an integer value
-        VAL: "{{.__mongodb}}"
+        VAL: "{{.__mongodbvol}}"
         DEF: "50"         
     - task: read
       vars:
