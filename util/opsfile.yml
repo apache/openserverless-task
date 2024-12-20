@@ -71,7 +71,7 @@ tasks:
       - config SECRET_MONGODB_ADMIN="$(random --str 12)" SECRET_MONGODB_NUVOLARIS="$(random --str 12)"
       - config SECRET_MINIO_ADMIN="$(random --str 40)" SECRET_MINIO_NUVOLARIS="$(random --str 40)"
       - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_NUVOLARIS="$(random --str 12)"
-      - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)"
+      - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_NUVOLARIS="$(random --str 12)"
       - config SECRET_NUVOLARIS_METADATA="$(random --str 12)"
       - echo "Generated $(config -d | grep SECRET_ | wc -l) secrets."
 
@@ -87,6 +87,7 @@ tasks:
         config "${USR}_SECRET_MONGODB"="$(random --str 12)"
         config "${USR}_SECRET_MINIO"="$(random --str 40)"
         config "${USR}_SECRET_POSTGRES"="$(random --str 12)"
+        config "${USR}_SECRET_MILVUS"="$(random --str 12)"
         echo "Generated ${USR} user secrets."
 
   nosecrets:
@@ -99,6 +100,7 @@ tasks:
       - config -r SECRET_MONGODB_ADMIN SECRET_MONGODB_NUVOLARIS
       - config -r SECRET_MINIO_ADMIN SECRET_MINIO_NUVOLARIS
       - config -r SECRET_POSTGRES_ADMIN SECRET_POSTGRES_REPLICA SECRET_POSTGRES_NUVOLARIS
+      - config -r SECRET_ETCD_ROOT SECRET_MILVUS_ROOT SECRET_MILVUS_S3 SECRET_MILVUS_NUVOLARIS
       - config -r SECRET_NUVOLARIS_METADATA
       - config -d | grep SECRET_
 
