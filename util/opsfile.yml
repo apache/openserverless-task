@@ -59,7 +59,7 @@ tasks:
     desc: check running operator version and warns it is obsolete (TODO)
     silent: true
     cmds:
-      - echo "TODO checking the running operator version"
+      - echo "TODO checking the running operator version" && exit 1
 
   secrets:
     desc: generate secrets
