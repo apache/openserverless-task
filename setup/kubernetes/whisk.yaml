@@ -224,6 +224,11 @@ spec:
       journal: ${STORAGE_SIZE_MILVUS_PULSAR_JOURNAL:-25}
       ledgers: ${STORAGE_SIZE_MILVUS_PULSAR_LEDGERS:-50}
     replicas: ${MILVUS_CONFIG_REPLICAS:-1}
+    proxy:
+      max-role-num: ${PROXY_MILVUS_MAX_ROLE_NUM:-100}
+      max-user-num: ${PROXY_MILVUS_MAX_USER_NUM:-100}
+    root-coord:
+      max-database-num: ${ROOTCOORD_MILVUS_DATABASE_NUM:-64}
     password:
       root: $SECRET_MILVUS_ROOT     
       s3: $SECRET_MILVUS_S3

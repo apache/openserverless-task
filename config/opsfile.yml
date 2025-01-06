@@ -218,6 +218,7 @@ tasks:
         echo '}'
         echo alias RUN:=
 
+
   reset:
     silent: true
     cmds:
@@ -278,6 +279,7 @@ tasks:
           echo $length
         done
         config {{.VAR}}="$input"
+
 
   _aws:
     cmds:
@@ -631,6 +633,7 @@ tasks:
           else echo ../setup/kubernetes/runtimes.json
           fi
 
+
   use:
     silent: true
     desc: select a different kubeconfig among those you created
@@ -692,6 +695,7 @@ tasks:
           fi
         else echo "no available kubeconfig to use"
         fi
+
 
   slack:
     silent: true
@@ -1056,6 +1060,7 @@ tasks:
       then config MINIO_CONFIG_INGRESS_CONSOLE=true
       fi 
 
+
   etcd:
     silent: true
     cmds:
@@ -1066,8 +1071,19 @@ tasks:
         HINT: | 
               Specifies ETCD sts replicas
         VAL: "{{.__replicas}}"
-        DEF: "3"    
-     
+        DEF: "3"
+
+  milvus:
+    silent: true
+    cmds:
+      - task: read
+        vars:
+          MSG: "Milvus Max num of databases"
+          VAR: "ROOTCOORD_MILVUS_DATABASE_NUM"
+          HINT: |
+            Specifies the maximum number of Milvus databases
+          VAL: "{{.__maxdbnum}}"
+          DEF: "64"
 
   minimal:
     silent: true

@@ -72,7 +72,21 @@ env:
       if [ -z "$OPENWHISK_INVOKER_JVMGB" ] && [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
       then echo 4G
       else mem=$OPENWHISK_INVOKER_JVMGB; pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((mem+1))G
-      fi     
+      fi
+
+# sets milvus roles and users from db
+  PROXY_MILVUS_MAX_ROLE_NUM:
+    sh: |
+      if [ -z "$ROOTCOORD_MILVUS_DATABASE_NUM" ]
+      then echo 100
+      else roles=$ROOTCOORD_MILVUS_DATABASE_NUM; echo $((roles+1))
+      fi
+  PROXY_MILVUS_MAX_USER_NUM:
+    sh: |
+      if [ -z "$ROOTCOORD_MILVUS_DATABASE_NUM" ]
+      then echo 100
+      else users=$ROOTCOORD_MILVUS_DATABASE_NUM; echo $((users+1))
+      fi
 
 tasks:
   status:

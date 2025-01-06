@@ -36,6 +36,7 @@ Usage:
   config storage [--class=<storage_class>] [--provisioner=<storage_provisioner>]
   config postgres [--failover] [--backup] [--schedule=<cron_expression>] [--replicas=<replicas>]
   config minio [--s3] [--console]
+  config milvus [--maxdbnum=<maxdbnum>]
   config etcd [--replicas=<replicas>]  
   config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>] 
   config eks [--project=<project>] [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
@@ -64,6 +65,7 @@ Usage:
   config storage          allows to customize storage persistence class and provider
   config postgres         allows to customize enterprise options for nuvolaris default postgres deployment  
   config minio            allows to customize MINIO options
+  config milvus           allows to customize MILVUS options
   config etcd             allows to customize ETCD options
   config aws              configure Amazon Web Service (AWS) credentials and parameters
   config gcloud           configure Google Cloud credentials and parameters
