@@ -734,6 +734,23 @@ spec:
                     replicas:
                       description: number of total milvus replicas. Defaulted to 1
                       type: integer
+                    proxy:
+                      description: MILVUS proxy related params
+                      type: object
+                      properties:
+                        max-role-num:
+                          description: Modify the Milvus maximum role limit
+                          type: integer
+                        max-user-num:
+                          description: Modify the Milvus maximum user limit
+                          type: integer
+                    root-coord:
+                      description: MILVUS rootCoord related params
+                      type: object
+                      properties:
+                        max-database-num:
+                          description: Modify the Milvus maximum database number
+                          type: integer
                     password:
                       description: MILVUS related user passwords
                       type: object
