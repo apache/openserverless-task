@@ -79,7 +79,7 @@ env:
     sh: |
       if [ -z "$ROOTCOORD_MILVUS_DATABASE_NUM" ]
       then echo 100
-      else roles=$ROOTCOORD_MILVUS_DATABASE_NUM; echo $((roles+1))
+      else roles=$ROOTCOORD_MILVUS_DATABASE_NUM; echo $((roles+2))
       fi
   PROXY_MILVUS_MAX_USER_NUM:
     sh: |
