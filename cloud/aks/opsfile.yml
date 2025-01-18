@@ -85,7 +85,6 @@ tasks:
     - echo "*** Deleting the $AKS_NAME cluster"
     - az account set --subscription $(az account show --query 'id' -o tsv)
     - az aks delete --name $AKS_NAME --resource-group $AKS_PROJECT
-    - az group delete --resource-group $AKS_PROJECT
     - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
   certman: 
