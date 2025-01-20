@@ -26,7 +26,7 @@ import { build } from './client.js';
 
 function signalHandler() {
   console.log('Termination requested.');
-  unlinkSync(expanduser('~/.nuv/tmp/deploy.pid'));
+  unlinkSync(expanduser('~/.ops/tmp/deploy.pid'));
   process.kill(process.getpgrp(), 'SIGKILL');
   process.exit(0); // should not be reached but just in case...
 }
@@ -47,14 +47,15 @@ function expanduser(path) {
 
 async function main() {
   
-  const pgrp = process.getgid();
+  const pid = process.pid;
+
 
   process.on('SIGTERM', signalHandler);
-  const pidfile = expanduser('~/.ops/tmp/deploy.pgrp');
-  console.log('PID GROUP', pgrp);
+  const pidfile = expanduser('~/.ops/tmp/deploy.pid');
+  console.log('PID', pid);
 
   mkdirSync(expanduser('~/.ops/tmp'), { recursive: true });
-  writeFileSync(pidfile, pgrp.toString());
+  writeFileSync(pidfile, pid.toString());
 
   program
     .description('Deployer')
