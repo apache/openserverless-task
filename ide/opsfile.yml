@@ -56,28 +56,26 @@ tasks:
     silent: true
     ignore_errors: true
     cmds:
-      - |
-        if test -e ~/.ops/tmp/deploy.pgrp
-        then
-          PGRP="$(cat ~/.ops/tmp/deploy.pgrp)"
-          LOOP=true
-          while $LOOP
-          do
-            LOOP=false
-            ps -a -o pgid,pid,stat | rg -v 'Z' | while read GRP PID STAT
-            do 
-              echo Terminating $PID in $GRP
-              if test "$GRP" = "$PGRP"
-              then #echo $GRP $PID
-                   kill -9 "$PID" 
-                   LOOP=true
-              fi 
-            done
-            sleep 2
-          done
-          rm ~/.ops/tmp/deploy.pgrp
+      - |        
+        PIDFILE=$(ops -opspath ~/.ops/tmp/deploy.pid)
+        echo $PIDFILE
+        if test -e $PIDFILE
+        then          
+          PID=$(cat $PIDFILE)
+          if [ ! -z "$PID" ]; then 
+            PGRP=$(ps -o 'pgid=' -p $PID)
+            if [ ! -z "$PGRP" ];
+            then 
+              echo "Terminating group $PGRP"
+              kill -9 "$PGRP"
+            else 
+              echo "Terminating only pid $PID"
+              kill -9 "$PID" 
+            fi
+          fi
+          rm $PIDFILE
         fi
-
+        
 
   setup:
     silent: true
