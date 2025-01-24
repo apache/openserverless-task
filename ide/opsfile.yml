@@ -56,26 +56,30 @@ tasks:
     silent: true
     ignore_errors: true
     cmds:
-      - |        
+      - |
         PIDFILE=$(ops -opspath ~/.ops/tmp/deploy.pid)
         echo $PIDFILE
         if test -e $PIDFILE
         then          
           PID=$(cat $PIDFILE)
-          if [ ! -z "$PID" ]; then 
-            PGRP=$(ps -o 'pgid=' -p $PID)
-            if [ ! -z "$PGRP" ];
-            then 
-              echo "Terminating group $PGRP"
-              kill -9 "$PGRP"
-            else 
-              echo "Terminating only pid $PID"
-              kill -9 "$PID" 
+          
+          if [ ! -z "$PID" ]; then
+            if ps -p "$PID" > /dev/null;
+            then
+              echo "Found previous deploy pid: $PID"
+              PGRP=$(ps -o 'pgid=' -p $PID | xargs)              
+              if [ ! -z "$PGRP" ];
+              then 
+                echo "Terminating deploy process group $PGRP"
+                kill -9 "$PGRP"
+              else
+                echo "Terminating deploy process $PID"
+                kill -9 "$PID" 
+              fi
             fi
           fi
           rm $PIDFILE
         fi
-        
 
   setup:
     silent: true
