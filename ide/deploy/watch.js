@@ -25,6 +25,7 @@ import process from 'process';
 
 export function checkAndDeploy(changeType, path) {
   path = resolve(path);
+  if (path.endsWith('.zip') || path.endsWith('.tmp')) return;
   const curDirLen = process.cwd().length + 1;
   const src = path.slice(curDirLen);
 
@@ -41,7 +42,14 @@ export function checkAndDeploy(changeType, path) {
 
 async function redeploy() {
   console.log("> Watching:");
-  const watcher = watch('packages', { persistent: true, ignoreInitial: true, recursive: true });
+  const watcher = watch('packages', {
+    persistent: true,
+    ignoreInitial: true,
+    recursive: true,
+    //awaitWriteFinish: true,
+    atomic: 250,
+    ignored: (file) => file.endsWith('.zip') || file.endsWith('.tmp'),
+  });
 
   watcher.on('all', (event, path) => {
     try {

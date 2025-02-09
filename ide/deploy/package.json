@@ -1,6 +1,6 @@
 {
-  "dependencies": { "chokidar": "^3.6.0", "commander": "^12.1.0", "glob": "^10.4.3" },
+  "dependencies": { "chokidar": "^4.0.3", "commander": "^13.1.0", "glob": "^11.0.1" },
   "devDependencies": {
-    "@types/bun": "^1.1.9"
+    "@types/bun": "^1.2.2"
   }
 }

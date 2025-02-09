@@ -20,6 +20,9 @@ const fs = require("fs");
 
 const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
 
+const queue = [];
+const activeDeployments = new Map();
+
 let dryRun = false;
 
 export function setDryRun(b) {
@@ -75,6 +78,18 @@ export function buildAction(pkg, action) {
 
 export function deployAction(artifact) {
   let pkg = '', name='', typ = '';
+
+  if (activeDeployments.has(artifact)) {
+    queue.push(artifact);
+    return;
+  }
+
+  activeDeployments.set(artifact, true);
+  const indexInQueue = queue.indexOf(artifact);
+  if (indexInQueue>-1) {
+    console.log(`> Deploying ${artifact} (from queue: ${indexInQueue})`);
+  }
+
   try {
     const sp = artifact.split("/");
     const spData = sp[sp.length - 1].split(".");
@@ -97,7 +112,16 @@ export function deployAction(artifact) {
   }
 
   const args = extractArgs(toInspect).join(" ");
-  exec(`$OPS action update ${pkg}/${name} ${artifact} ${args}`);
+  const actionName = `${pkg}/${name}`;
+  exec(`$OPS action update ${actionName} ${artifact} ${args}`);
+
+  activeDeployments.delete(artifact);
+
+  if (queue.length > 0) {
+    const nextArtifact = queue.shift();
+    console.debug(`deployding from queue artifact ${nextArtifact}`);
+    deploy(nextArtifact);
+  }
 }
 
 
