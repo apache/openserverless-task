@@ -128,7 +128,7 @@ async function main() {
         console.log(output);
         await Secrets.checkEnv(env, sysenv);
     } catch (error) {
-        console.error("Error while making API request:", error);
+        console.error("Error while making API request");
         process.exit(1);
     }
     process.exit(0);
