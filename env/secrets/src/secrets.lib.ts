@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import {$} from "bun";
-import {SecretResponse} from "./secrets.entities";
+import { $ } from "bun";
+import { SecretResponse } from "./secrets.entities";
 
 export class Secrets {
 
@@ -93,8 +93,8 @@ export class Secrets {
         try {
             const OPS = process.env["OPS_CMD"] || null;
             const ARGS = args.length > 0 ? " " + args.concat(" ") : "";
-            
-            const result = await $`$OPS_CMD ${{ raw: ARGS}}`.text()
+
+            const result = await $`$OPS_CMD ${{ raw: ARGS }}`.text()
             return result;
         } catch (err) {
             return false;
@@ -124,8 +124,8 @@ export class Secrets {
 
         let result = true;
         try {
-            const output = await Secrets.runOps('-config -d');            
-            const lines = String(output).split("\n");            
+            const output = await Secrets.runOps('-config -d');
+            const lines = String(output).split("\n");
             const opsKeys: string[] = [];
             // build the array of local configuration
             for (const line of lines) {
@@ -163,19 +163,23 @@ export class Secrets {
     public static async requestSecrets(operation: string, username: string, apihost: string, secrets?: Record<string, string>): Promise<SecretResponse> {
         const apiUrl = `${apihost}/api/v1/web/whisk-system/nuv/secrets`;
         const AUTH = process.env['AUTH'] || '';
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `${AUTH}`
-            },
-            body: JSON.stringify({login: username, env: secrets})
-        });
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `${AUTH}`
+                },
+                body: JSON.stringify({ login: username, env: secrets })
+            });
 
-        if (!response.ok) {
-            throw new Error(`Failed to ${operation} secrets: ${await response.text()}`);
+            if (!response.ok) {
+                throw new Error(`Failed to ${operation} secrets: ${await response.text()}`);
+            }
+
+            return response.json();
+        } catch (err) {
+            throw new Error(`Failed to ${operation} secrets`);
         }
-
-        return response.json();
     }
 }
