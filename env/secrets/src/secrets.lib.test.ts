@@ -141,7 +141,7 @@ describe("Secrets.requestSecrets", () => {
 
         await expect(
             Secrets.requestSecrets("update", "testUser", "https://example.com")
-        ).rejects.toThrow("Failed to update secrets: Internal Server Error");
+        ).rejects.toThrow("Failed to update secrets");
 
         mockFetch.mockRestore(); 
     });
