@@ -19,6 +19,22 @@ import { glob } from 'glob';
 import { buildZip, buildAction, deployPackage, deployAction } from './deploy.js';
 import { getOpenServerlessConfig } from './client.js';
 
+/**
+ * This function will prepare and deploy the functions in `packages` directory.
+ * The user can specify different globs for packages, main and singles using a
+ * `package.json` file in the application root directory.
+ * In the `package.json` the user can add an `openserverless` object like this:
+ * ```package.json
+ * [...]
+ * "openserverless": {
+ *  "requirements": [ array of custom requirements ],
+ *  "mains": [ array of custom mains ],
+ *  "singles": [ array of custom singles ],
+ * }.
+ * [...]
+ * ```
+ * @returns {Promise<void>}
+ */
 export async function scan() {
   const deployments = new Set();
   const packages = new Set();
@@ -32,9 +48,13 @@ export async function scan() {
     "packages/*/*/composer.json",
     "packages/*/*/go.mod"
   ];
+  // load user defined requirements or use `defaultReqsGlobs`
   const packageGlobs = getOpenServerlessConfig("requirements", defaultReqsGlobs);
+  // requirements
   const reqs = [];
 
+  // Check for additional packages from each package
+  // and add them to the requirements array
   for (const pkgGlob of packageGlobs) {
     const items = await glob(pkgGlob);
     for (const item of items) {
@@ -44,6 +64,7 @@ export async function scan() {
     }
   }
 
+  // let's package the functions that have requirements
   for (const req of reqs) {
     console.log(">> Requirements:", req);
     const sp = req.split("/");
@@ -59,6 +80,7 @@ export async function scan() {
     "packages/*/*/index.php",
     "packages/*/*/main.go"
   ];
+  // load user defined main functions or use `defaultMainsGlobs`
   const mainsGlobs = getOpenServerlessConfig("mains", defaultMainsGlobs);
   const mains = [];
 

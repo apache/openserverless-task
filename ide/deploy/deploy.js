@@ -119,13 +119,16 @@ export function deployAction(artifact) {
 
   if (queue.length > 0) {
     const nextArtifact = queue.shift();
-    console.debug(`deployding from queue artifact ${nextArtifact}`);
+    console.debug(`deploying from queue artifact ${nextArtifact}`);
     deploy(nextArtifact);
   }
 }
 
 
-
+/**
+ * Deploy a `file`
+ * @param file
+ */
 export function deploy(file) {
   // Uncomment the lines below to test specific files
   // const file = "packages/deploy/hello.py";

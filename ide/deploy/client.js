@@ -21,6 +21,13 @@ import { resolve } from 'path';
 import process from 'process';
 import { createInterface } from 'readline';
 
+/**
+ * Read a key from OpenServerless configuration added to a `package.json` file in the
+ * root of the project
+ * @param key the key to read
+ * @param defaultValue a default value to be returned when the key is not found
+ * @returns {*}
+ */
 export function getOpenServerlessConfig(key, defaultValue) {
   try {
     const dir = process.env.OPS_PWD || '/do_not_exists';
@@ -32,6 +39,12 @@ export function getOpenServerlessConfig(key, defaultValue) {
   }
 }
 
+/**
+ * This function creates a line-by-line interface over the provided input stream
+ * and logs each line to the console as it is received.
+ * @param {ReadableStream} inp - The input stream to read lines from.
+ * @returns {void}
+ */
 function readlines(inp) {
   const rl = createInterface({ input: inp, terminal: false });
   rl.on('line', (line) => {
@@ -39,6 +52,12 @@ function readlines(inp) {
   });
 }
 
+/**
+ * laungh a process with the command taken from OpenServerless Config
+ * (see `getOpenServerlessConfig`)
+ * @param key
+ * @param defaultValue
+ */
 export function launch(key, defaultValue) {
   const cmd = getOpenServerlessConfig(key, defaultValue);
   const proc = spawn(cmd, {
@@ -52,14 +71,26 @@ export function launch(key, defaultValue) {
   readlines(proc.stderr);
 }
 
+/**
+ * start `ops ide serve` or a custom devel function specified
+ * through `getOpenServerlessConfig` mechanism
+ */
 export function serve() {
   launch('devel', 'ops ide serve');
 }
 
+/**
+ * start `ops activation poll` or a custom logs function
+ * through `getOpenServerlessConfig` mechanism
+ */
 export function logs() {
   launch('logs', 'ops activation poll');
 }
 
+/**
+ * start a custom deploy function if required from the user
+ * through `getOpenServerlessConfig` mechanism
+ */
 export function build() {
   const deploy = getOpenServerlessConfig('deploy', 'true');
   const proc = spawn(deploy, {

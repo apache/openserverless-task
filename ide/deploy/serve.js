@@ -20,7 +20,12 @@ import {resolve, extname} from "path";
 import {parse} from "url";
 import process from 'process';
 
-// Helper function to find the first available port starting from 8080
+/**
+ * Helper function to find the first available port starting from 8080
+ * @param host
+ * @param startPort
+ * @returns {Promise<number>}
+ */
 async function findAvailablePort(host, startPort = 8080) {
     host = host || '127.0.0.1';
     for (let port = startPort; port < 65535; port++) {
@@ -42,6 +47,11 @@ async function findAvailablePort(host, startPort = 8080) {
     throw new Error("No available port found.");
 }
 
+/**
+ * Helper function thath convert the input stream to a Buffer
+ * @param stream
+ * @returns {Promise<Buffer<ArrayBuffer>>}
+ */
 async function toBuffer(stream) {
     const list = []
     const reader = stream.getReader();
@@ -55,7 +65,12 @@ async function toBuffer(stream) {
     return Buffer.concat(list)
 }
 
-// Helper function to determine MIME type based on file extension
+//
+/**
+ * Helper function to determine MIME type based on file extension
+ * @param filePath
+ * @returns {*|string}
+ */
 function getMimeType(filePath) {
     const ext = extname(filePath).toLowerCase();
     const mimeTypes = {
@@ -75,6 +90,14 @@ function getMimeType(filePath) {
 
 const excludedAssets = ['favicon.ico'];
 
+/**
+ * Entry point. This will start a web server on the first available port
+ * starting from 8080. When the file ot serve is not local and a proxy host
+ * is specified by the `-P flag`, the request will be sent to the proxy host
+ * and the response returned back.
+ *
+ * @returns {Promise<Response>}
+ */
 async function main() {
 
     // Get command-line arguments
@@ -164,11 +187,11 @@ async function main() {
                         method: req.method,
                         headers: newHeaders,
                     };
-                    if (req.method.toLowerCase() != 'get') {
+                    if (req.method.toLowerCase() !== 'get') {
                         let body = await toBuffer(req.body);
                         body = body.toString('utf8');
 
-                        if (body != undefined) {
+                        if (body !== undefined) {
                             init['body'] = body;
                         }
                     }
