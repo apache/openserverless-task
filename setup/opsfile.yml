@@ -65,11 +65,11 @@ tasks:
         for entry in {{ .PORTS }}; do
           port="${entry%/*}"
           protocol="${entry#*/}"
-          if [[ "$protocol" == "tcp" ]] && ss -tuln | grep -qE ":(^| )$port "; then
+          if [[ "$protocol" == "tcp" ]] && ss -tuln | rg -q ":(^| )$port "; then
             echo "TCP Port $port is in use!" >&2
             exit 1
           fi
-          if [[ "$protocol" == "udp" ]] && ss -uln | grep -qE ":(^| )$port "; then
+          if [[ "$protocol" == "udp" ]] && ss -uln | rg -q ":(^| )$port "; then
             echo "UDP Port $port is in use!" >&2
             exit 1
           fi
@@ -92,7 +92,10 @@ tasks:
       elif  {{.__uninstall}}
       then  {{.RUN}} $OPS setup docker delete
       else
-        task check-ports PORTS="{{ .PORTS }}"
+        if test -z {{.__skip_check_ports}}
+        then 
+          task check-ports PORTS="{{ .PORTS }}"
+        fi
         {{.RUN}} $OPS setup docker create         
         {{.RUN}} $OPS setup kubernetes create
         {{.RUN}} $OPS setup nuvolaris login

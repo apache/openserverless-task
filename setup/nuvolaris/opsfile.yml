@@ -136,7 +136,7 @@ tasks:
     cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - "{{.RUN}} wsk {{.ETC}} action update hello/hello hello.js"
-    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name Nuvolaris -r | grep hello"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name Nuvolaris -r | rg hello"
 
   mongodb:
     silent: true
@@ -147,7 +147,7 @@ tasks:
     - |
       MONGODB_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.mongodb_url}')"
       {{.RUN}} wsk {{.ETC}} action update hello/mongodb mongodb.js -p mongodb_url "$MONGODB_URL"
-    - "{{.RUN}} wsk {{.ETC}} action invoke hello/mongodb -r | grep 'hello'"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/mongodb -r | rg 'hello'"
   
   redis:
     silent: true
@@ -158,7 +158,7 @@ tasks:
       REDIS_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.redis_url}')"
       REDIS_PREFIX="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.redis_prefix}')"
       {{.RUN}} wsk {{.ETC}} action update hello/redis redis.js -p redis_url "$REDIS_URL" -p redis_prefix "$REDIS_PREFIX"
-    - "{{.RUN}} wsk {{.ETC}} action invoke hello/redis -r | grep 'hello'"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/redis -r | rg 'hello'"
 
   minio:
     silent: true
