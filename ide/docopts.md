@@ -18,7 +18,7 @@ under the License.
 -->
 # Tasks  `ops ide`
 
-OpenServerless Development Utilities.
+OpenServerless Ide Development Utilities.
 
 ## Synopsis
 

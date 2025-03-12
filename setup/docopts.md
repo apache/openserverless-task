@@ -24,7 +24,7 @@ Manage installation
 
 ```text
 Usage:
-  setup devcluster [--uninstall|--status] 
+  setup devcluster [--uninstall|--status|--skip-check-ports] 
   setup cluster [<context>] [--uninstall|--status]
   setup server <server> [<user>] [--uninstall|--status]
   setup status
@@ -50,6 +50,7 @@ Usage:
 ```
   --uninstall         execute an uninstall instead of an installation 
   --status            show the status instead of an installation 
+  --skip-check-ports  ignore the check of already used ports
 ```
 
 ## Subtasks
