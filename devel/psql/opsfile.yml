@@ -1,0 +1,75 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+env:
+  
+  KUBECONFIG:
+    sh: |
+      if test -e $($OPS -opspath "$OPS_TMP/kubeconfig")
+      then echo $($OPS -opspath "$OPS_TMP/kubeconfig")
+      else echo ~/.kube/config
+      fi
+
+  APIHOST:
+    sh: |
+      if test -e ~/.wskprops
+      then source ~/.wskprops; echo $APIHOST
+      fi
+        
+  AUTHB64:
+    sh: |
+      if test -e ~/.wskprops
+      then source ~/.wskprops; echo $(base64 -e $AUTH)
+      fi      
+
+tasks:
+  # read a value, empty is not accepted
+  readforce:
+    silent: true
+    cmds:
+      - test -n "{{.VAR}}" || die "specify variable VAR="
+      - test -n "{{.MSG}}" || die "specify message MSG="
+      - |
+        input="{{.VAL}}"
+        length=${#input}
+        while [ "$length" -eq "0" ]; do 
+          echo "*** Please, specify {{.MSG}} and press enter."
+          test -n "{{.HINT}}" && echo "{{.HINT}}"
+          {{if eq OS "windows"}} 
+            input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
+            input=${input%?} # For some reason, powershell adds a character (\n?) at the end
+          {{else}}
+            read -p "{{.MSG}}: " input
+          {{end}} 
+          length=${#input}
+          echo $length
+        done
+        config {{.VAR}}="$input"    
+
+  # the input command is encoded as base64 to avoid parsing issues with the nuv js wrapper
+  describe:
+    desc: execute a query to get the description of a Psql table
+    silent: true
+    cmds:      
+      - bun psql.js desc $($OPS -base64 -e "{{._table_}}") {{.__format}}
+
+  sql:
+      desc: submit the given argument as SQL statement
+      silent: true
+      cmds:
+        - bun psql.js sql $($OPS -base64 -e "{{._sql_}}") {{.__format}}
