@@ -38,40 +38,17 @@ env:
       fi      
 
   REDIS_PREFIX:
-        sh: wsk property get | awk '/whisk namespace/{print $3":"}'        
+        sh: wsk property get | awk '/whisk namespace/{print $3":"}'
 
 tasks:
-  # read a value, empty is not accepted
-  readforce:
+  prefix:
+    desc: get user defined redis key prefix to be used to interact with REDIS
     silent: true
     cmds:
-      - test -n "{{.VAR}}" || die "specify variable VAR="
-      - test -n "{{.MSG}}" || die "specify message MSG="
-      - |
-        input="{{.VAL}}"
-        length=${#input}
-        while [ "$length" -eq "0" ]; do 
-          echo "*** Please, specify {{.MSG}} and press enter."
-          test -n "{{.HINT}}" && echo "{{.HINT}}"
-          {{if eq OS "windows"}} 
-            input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
-            input=${input%?} # For some reason, powershell adds a character (\n?) at the end
-          {{else}}
-            read -p "{{.MSG}}: " input
-          {{end}} 
-          length=${#input}
-          echo $length
-        done
-        config {{.VAR}}="$input"    
-
-  # the input command is encoded as base64 to avoid parsing issues
-  prefix:
-    desc: get user defined redis key prefix to be used to interact with REDIS    
-    cmds:
-      - echo $REDIS_PREFIX
+      - echo "Redis prefix is $REDIS_PREFIX"
 
   command:
     desc: execute a redis command
     silent: true
     cmds:
-      - bun redis.js $($OPS -base64 -e '{{._command_}}')
+      - bun redis.js "{{._command_}}"

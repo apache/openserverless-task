@@ -144,14 +144,19 @@ async function main() {
             };
             const response = await fetch(`${minioAddr}`, init);
 
-            if (format === 'table') {
-                const tableData = await response.json();
-                console.log(Bun.inspect.table(tableData));
+            const contentType = response.headers.get('Content-Type');
+            const isJson = contentType && contentType.includes('application/json')
+            let outputData = '';
+            if (isJson) {
+                outputData = await response.json();
             } else {
-                const resp = await response.text();
-                console.log(resp);
+                outputData = await response.text();
             }
-            return
+            if (format === 'table' && isJson && outputData!=='') {
+                outputData = Bun.inspect.table(outputData);
+            }
+            console.log(outputData);
+            return;
         }
 
         if (command === "put") {
@@ -168,12 +173,13 @@ async function main() {
             } else {
                 console.log(`invalid filename ${localfile} provided`)
             }
+            return;
         }
 
         if (command === "get") {
             let split = file.split("/")
             let output_file = split[split.length - 1]
-            console.log(output_file)
+            console.log(output_file);
 
             const init = {
                 method: "GET",
