@@ -22,20 +22,9 @@ async function main() {
     const auth = process.env.AUTHB64
     const redisAddr = `${process.env.APIHOST}/api/v1/web/whisk-system/nuv/redis`
 
-    let decoded = atob(Bun.argv[2]);
+    let decoded = Bun.argv[2];
     decoded = decoded.replace(/(\r\n|\n|\r)/gm,"")
     let cmd = {"command" : decoded };
-
-    let format = Bun.argv[3];
-
-    if (!format) {
-        format = 'json';
-    }
-    if (['json', 'table'].indexOf(format) === -1) {
-        console.log(Bun.argv.length, Bun.argv);
-        console.log(`Unsupported output format ${format}`);
-        usage();
-    }
 
     try {
         const response = await fetch(`${redisAddr}`, {
@@ -44,18 +33,12 @@ async function main() {
             headers: {'x-impersonate-auth': `${auth}`, 'Content-Type': 'application/json'},
         });
 
-        if (format === 'table') {
-            const tableData = await response.json();
-            console.log(Bun.inspect.table(tableData));
-        } else {
-            const resp = await response.text();
-            console.log(resp);
-        }
+        let outputData = await response.text();
+
+        console.log(outputData);
         process.exit(0);
     } catch (err) {
         console.error(err.message);
         process.exit(1);
     }
-    
-
 }

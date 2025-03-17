@@ -14,8 +14,8 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { parseArgs } from "util";
 const fs = require("fs");
+import path from "path";
 
 // *** Main ***
 main();
@@ -27,9 +27,19 @@ main();
  * @returns {Promise<string>}
  */
 async function getFile(filename) {
-    const file = Bun.file(filename);
+    let fullFileName = '';
+    if (!path.isAbsolute(filename)) {
+        fullFileName = [
+            process.env.OPS_PWD,
+            filename
+        ].join(path.sep);
+    } else {
+        fullFileName = filename;
+    }
+
+    const file = Bun.file(fullFileName);
     if (!await file.exists()) {
-        throw Error(`File ${filename} doesn't exists`);
+        throw Error(`File ${fullFileName} doesn't exists`);
     }
     return await file.text();
 }
@@ -62,7 +72,7 @@ async function main() {
     param = param.replace(/(\r\n|\n|\r)/gm, "");
 
     let format;
-    if (['command','find'].indexOf(command) !== -1) {
+    if (['command', 'find'].indexOf(command) !== -1) {
         if (command === 'command') {
             format = Bun.argv.length === 5 ? Bun.argv[4] : Bun.argv[3];
         } else {
@@ -87,15 +97,14 @@ async function main() {
 
         // example: `ops devel ferretdb delete <collection_name>`
         if ('delete' === command) {
-            cmd = JSON.stringify({"delete": `${param}`, "deletes": [{ "q": {}, "limit": 0 }]});
+            cmd = JSON.stringify({"delete": `${param}`, "deletes": [{"q": {}, "limit": 0}]});
         }
 
         // example: `ops devel ferretdb submit <collection_name> /path/to/jsonfile`
         if ('submit' === command) {
-            const filename = Bun.argv[4] ;
+            const filename = Bun.argv[4];
             const data = await getFile(filename);
-            cmd = JSON.stringify({"insert": `${param}`,"documents": JSON.parse(data) });
-            console.log(cmd);
+            cmd = JSON.stringify({"insert": `${param}`, "documents": JSON.parse(data)});
         }
 
         // example: `ops devel ferretdb command /path/to/file`
@@ -135,20 +144,27 @@ async function main() {
             headers: {'x-impersonate-auth': `${auth}`},
         };
         const response = await fetch(`${develAddr}`, init);
-        if (format==='table'){
-            const tableData = await response.json();
-            /*let headData = structuredClone(tableData);
-            delete headData['cursor'];
-            console.log(Bun.inspect.table(headData));*/
-            if (tableData['cursor'] && tableData['cursor']['firstBatch']) {
-                let bodyData = tableData['cursor']['firstBatch'];
-                if (bodyData.length > 0)
-                    console.log(Bun.inspect.table(bodyData));
+
+        // format the output
+        let outputData = '';
+        const contentType = response.headers.get('Content-Type');
+        const isJson = contentType && contentType.includes('application/json')
+
+        if (isJson) {
+            let jsonData = await response.json();
+            if (jsonData['cursor'] && jsonData['cursor']['firstBatch']) {
+                jsonData = jsonData['cursor']['firstBatch'];
             }
+            outputData = jsonData;
         } else {
-            const resp = await response.text();
-            console.log(resp);
+            outputData = await response.text();
         }
+
+        if (format === 'table' && isJson && outputData!=='') {
+            outputData = Bun.inspect.table(outputData);
+        }
+        console.log(outputData);
+
     } catch (err) {
         console.error(`[ERROR]: ${err.message}`);
     }

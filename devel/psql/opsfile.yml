@@ -38,38 +38,20 @@ env:
       fi      
 
 tasks:
-  # read a value, empty is not accepted
-  readforce:
-    silent: true
-    cmds:
-      - test -n "{{.VAR}}" || die "specify variable VAR="
-      - test -n "{{.MSG}}" || die "specify message MSG="
-      - |
-        input="{{.VAL}}"
-        length=${#input}
-        while [ "$length" -eq "0" ]; do 
-          echo "*** Please, specify {{.MSG}} and press enter."
-          test -n "{{.HINT}}" && echo "{{.HINT}}"
-          {{if eq OS "windows"}} 
-            input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
-            input=${input%?} # For some reason, powershell adds a character (\n?) at the end
-          {{else}}
-            read -p "{{.MSG}}: " input
-          {{end}} 
-          length=${#input}
-          echo $length
-        done
-        config {{.VAR}}="$input"    
-
-  # the input command is encoded as base64 to avoid parsing issues with the nuv js wrapper
   describe:
     desc: execute a query to get the description of a Psql table
     silent: true
     cmds:      
-      - bun psql.js desc $($OPS -base64 -e "{{._table_}}") {{.__format}}
+      - bun psql.js describe "{{._table_}}" {{.__format}}
 
   sql:
       desc: submit the given argument as SQL statement
       silent: true
       cmds:
-        - bun psql.js sql $($OPS -base64 -e "{{._sql_}}") {{.__format}}
+        - |
+          if test "{{._file_}}"
+          then
+            bun psql.js sql "{{._file_}}" {{.__format}}
+          else
+            bun psql.js sql {{.__format}}
+          fi
