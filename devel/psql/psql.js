@@ -61,13 +61,12 @@ async function main() {
 
     // parse command line
     let command, param, format;
-
     command = String(Bun.argv[2]);
     if (Bun.argv[3] && Bun.argv[3].length > 0) {
         param = String(Bun.argv[3]);
         param = param.replace(/(\r\n|\n|\r)/gm, "");
     }
-    format = (param && param.length > 0) ? Bun.argv[4] : Bun.argv[3];
+    format = (Bun.argv.length === 5) ? Bun.argv[4] : Bun.argv[3];
     if (!format) {
         format = 'json';
     }
@@ -129,6 +128,7 @@ async function main() {
             let outputData = '';
             const contentType = response.headers.get('Content-Type');
             const isJson = contentType && contentType.includes('application/json')
+
             if (isJson) {
                 outputData = await response.json();
             } else {
