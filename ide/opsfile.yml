@@ -247,6 +247,10 @@ tasks:
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
         fi
+        if {{.__fast}}
+        then FAST="-f"
+        else FAST=""
+        fi
         if [ -f /proc/version ]; then
           if rg -i microsoft /proc/version >/dev/null 2>&1; then
             export WATCHFILES_FORCE_POLLING=1
@@ -261,7 +265,7 @@ tasks:
             export WATCHFILES_FORCE_POLLING=1
           fi
         fi
-        bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -w $DRY
+        bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -w $FAST $DRY
         true
 
 
