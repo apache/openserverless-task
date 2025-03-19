@@ -83,7 +83,7 @@ tasks:
   bun:
     desc: download bun
     vars:
-      VERSION: "1.1.27"
+      VERSION: "1.2.5"
       ARCH2: '{{if eq .ARCH "amd64"}}x64{{else}}aarch64{{end}}'
       URL: 'https://github.com/oven-sh/bun/releases/download/bun-v{{.VERSION}}/bun-{{.OS}}-{{.ARCH2}}.zip'
       FILE: '{{base .URL}}'

@@ -23,8 +23,26 @@ import {deploy} from './deploy.js';
 import {logs, serve} from './client.js';
 import process from 'process';
 
+/**
+ * This function will return true when the file should
+ * be ignored by fs watcher or the deployer
+ * @param path
+ * @returns {*|boolean}
+ */
+export function shouldIgnoreFile(path) {
+  return path.endsWith('.zip') || /\.tmp\d*$/.test(path);
+}
+
+/**
+ * This function will receive fs watcher events and
+ * decide if the file should be deployed
+ *
+ * @param changeType
+ * @param path
+ */
 export function checkAndDeploy(changeType, path) {
   path = resolve(path);
+  if (shouldIgnoreFile(path)) return;
   const curDirLen = process.cwd().length + 1;
   const src = path.slice(curDirLen);
 
@@ -34,14 +52,27 @@ export function checkAndDeploy(changeType, path) {
   for (const dir of src.split('/').slice(0, -1)) {
     if (SKIPDIR.includes(dir)) return;
   }
-  if (src.endsWith('.zip')) return;
-
+  // this should not even happen
+  if (shouldIgnoreFile(src)) return;
   deploy(src);
 }
 
+/**
+ * Called by `watchAndDeploy`, this function will install
+ * a filesystem watcher on packages dir and catch every
+ * event and send them to `checkAndDeploy`
+ * @returns {Promise<unknown>}
+ */
 async function redeploy() {
   console.log("> Watching:");
-  const watcher = watch('packages', { persistent: true, ignoreInitial: true, recursive: true });
+  const watcher = watch('packages', {
+    persistent: true,
+    ignoreInitial: true,
+    recursive: true,
+    //awaitWriteFinish: true,
+    atomic: 250,
+    ignored: (file) => shouldIgnoreFile(file),
+  });
 
   watcher.on('all', (event, path) => {
     try {
@@ -61,6 +92,10 @@ async function redeploy() {
   });
 }
 
+/**
+ * This function is the entry point and is called when
+ * the program is started with the watch flag on
+ */
 export function watchAndDeploy() {
   serve();
   logs();

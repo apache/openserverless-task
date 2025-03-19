@@ -25,8 +25,65 @@ vars:
   ARCH: '{{ARCH}}'
 
 tasks:
-  
+  check-ports:
+    desc: "Check if an array of TCP/UDP ports is free and fail if any are in use"
+    silent: true
+    vars:
+      PORTS: "{{ .PORTS | default \"\" }}"
+    cmds:
+      - |        
+        {{if eq OS "windows"}}
+        $ports = "{{ .PORTS }}".Split(" ")
+        foreach ($entry in $ports) {
+          $parts = $entry -split "/"
+          $port = $parts[0]
+          $protocol = $parts[1].ToLower()
+        
+          if ($protocol -eq "tcp" -and (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue)) {
+            Write-Host "TCP Port $port is in use!" -ForegroundColor Red
+            exit 1
+          }
+          if ($protocol -eq "udp" -and (Get-NetUDPEndpoint -LocalPort $port -ErrorAction SilentlyContinue)) {
+            Write-Host "UDP Port $port is in use!" -ForegroundColor Red
+            exit 1
+          }
+        }
+        {{else if eq OS "darwin"}}
+        for entry in {{ .PORTS }}; do
+          port="${entry%/*}"
+          protocol="${entry#*/}"
+          if [[ "$protocol" == "tcp" ]] && lsof -i TCP:$port -sTCP:LISTEN -t > /dev/null 2>&1; then
+            echo "TCP Port $port is in use!" >&2
+            exit 1
+          fi
+          if [[ "$protocol" == "udp" ]] && lsof -i UDP:$port -t > /dev/null 2>&1; then
+            echo "UDP Port $port is in use!" >&2
+            exit 1
+          fi
+        done
+        {{else}}
+        for entry in {{ .PORTS }}; do
+          port="${entry%/*}"
+          protocol="${entry#*/}"
+          if [[ "$protocol" == "tcp" ]] && ss -tuln | rg -q ":(^| )$port "; then
+            echo "TCP Port $port is in use!" >&2
+            exit 1
+          fi
+          if [[ "$protocol" == "udp" ]] && ss -uln | rg -q ":(^| )$port "; then
+            echo "UDP Port $port is in use!" >&2
+            exit 1
+          fi
+        done
+        {{end}}
+
+  prereq:
+    silent: true
+    cmds:
+    - exit 0
+
   devcluster:
+    vars:
+      PORTS: '9010/tcp 9080/tcp 30379/tcp 32817/tcp 3232/tcp 3233/tcp 9644/tcp 7896/tcp 5984/tcp 9092/tcp 9000/tcp 9090/tcp 19530/tcp 9091/tcp, 27017/tcp 80/tcp 443/tcp 57817/tcp'
     silent: true
     cmds:
     - |
@@ -35,11 +92,15 @@ tasks:
       elif  {{.__uninstall}}
       then  {{.RUN}} $OPS setup docker delete
       else
-          {{.RUN}} $OPS setup docker create         
-          {{.RUN}} $OPS setup kubernetes create
-          {{.RUN}} $OPS setup nuvolaris login
-          config STATUS_LAST=devcluster
-      fi
+        if test -z {{.__skip_check_ports}}
+        then 
+          task check-ports PORTS="{{ .PORTS }}"
+        fi
+        {{.RUN}} $OPS setup docker create         
+        {{.RUN}} $OPS setup kubernetes create
+        {{.RUN}} $OPS setup nuvolaris login
+        config STATUS_LAST=devcluster
+      fi   
 
   cluster:
     silent: true

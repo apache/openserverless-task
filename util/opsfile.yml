@@ -6,6 +6,25 @@ vars:
   ARC: '{{if eq .OS "windows"}}.zip{{else}}.tar.gz{{end}}'
   EXE: '{{if eq .OS "windows"}}.exe{{else}}{{end}}'
   DRY: ""
+  APIHOST:
+    sh: |
+      if test -z "$APIHOST"
+      then
+        wsk property get --apihost | awk '/whisk API host/{print $4}'
+      else
+        echo $APIHOST
+      fi
+  AUTH:
+    sh: |
+      if test -z "$AUTH"
+      then
+        wsk property get --apihost | awk '/whisk API auth/{print $4}'
+      else
+        echo $AUTH
+      fi
+  USERNAME:
+    sh: |
+      wsk property get --namespace | awk '{ print $3 }'
 
 tasks:
   config:
@@ -183,3 +202,8 @@ tasks:
           then P="$($OPS -opspath {{._folder_}})"
           fi
           echo $P
+
+  
+
+    
+
