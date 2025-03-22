@@ -78,6 +78,7 @@ async function main() {
         if (!options.fast)  await scan();
         watchAndDeploy();
     } else if (options.deploy) {
+        await scan();
         await build();
     } else if (options.single !== '') {
         let action = options.single;

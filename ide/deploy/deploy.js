@@ -152,3 +152,18 @@ export function deploy(file) {
   }
   deployAction(file);
 }
+
+/**
+ * Deploy a `manifest.yaml` file using `ops -wsk project`
+ * @param artifact
+ */
+export function deployProject(artifact) {
+  if (fs.existsSync(artifact)) {
+    const manifestContent = fs.readFileSync(artifact);
+    if (manifestContent.indexOf('packages:')!==-1) {
+      exec(`$OPS -wsk project deploy --manifest ${artifact}`);
+    } else {
+      console.log(`Wanring: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
+    }
+  }
+}
