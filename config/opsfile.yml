@@ -1072,6 +1072,23 @@ tasks:
               Specifies ETCD sts replicas
         VAL: "{{.__replicas}}"
         DEF: "3"
+    - task: read
+      vars:
+        MSG: "ETCD Auto Compaction Retention"
+        VAR: "ETCD_AUTO_COMPACTION_RETENTION"
+        HINT: |
+          Specifies ETCD auto compaction retention
+        VAL: "{{.__auto_compaction_retention}}"
+        DEF: "1"
+    - task: read
+      vars:
+        MSG: "ETCD Quota Backend Bytes"
+        VAR: "ETCD_QUOTA_BACKEND_BYTES"
+        HINT: |
+          Specifies ETCD quota backend bytes
+        VAL: "{{.__quota_backend_bytes}}"
+        DEF: "2147483648"
+
 
   milvus:
     silent: true
