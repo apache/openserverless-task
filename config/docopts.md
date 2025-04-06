@@ -37,7 +37,7 @@ Usage:
   config postgres [--failover] [--backup] [--schedule=<cron_expression>] [--replicas=<replicas>]
   config minio [--s3] [--console]
   config milvus [--maxdbnum=<maxdbnum>]
-  config etcd [--replicas=<replicas>]  
+  config etcd [--replicas=<replicas>] [--quota_backend_bytes=<bytes>] [--auto_compaction_retention=<retention_period>]  
   config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>] 
   config eks [--project=<project>] [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
   config gcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]

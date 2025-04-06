@@ -215,6 +215,8 @@ spec:
   etcd:
     volume-size: ${STORAGE_SIZE_ETCD:-25}                         
     replicas: ${ETCD_CONFIG_REPLICAS:-3}
+    auto-compaction-retention: "${ETCD_AUTO_COMPACTION_RETENTION:-1}"
+    quota-backend-bytes: ${ETCD_QUOTA_BACKEND_BYTES:-2147483648}
     root:
       password: $SECRET_ETCD_ROOT
   milvus:
