@@ -159,6 +159,52 @@ tasks:
         FILE: "{{.FILE}}"
         OUT: "{{.OUT}}"
 
+  uv:
+    desc: install uv
+    vars:
+      VERSION: "0.6.7"
+      FILE:
+         sh: |
+             case "{{.OS}}-{{.ARCH}}" in
+              linux-amd64) echo uv-x86_64-unknown-linux-gnu.tar.gz ;;
+              linux-arm64) echo uv-aarch64-unknown-linux-gnu.tar.gz ;;
+              darwin-arm64) echo uv-aarch64-apple-darwin.tar.gz ;;
+              darwin-amd64) echo uv-x86_64-apple-darwin.tar.gz ;;
+              windows-*) echo uv-aarch64-pc-windows-msvc.zip ;;
+              *) echo "unknown" ;;
+             esac
+      URL: "https://github.com/astral-sh/uv/releases/download/{{.VERSION}}/{{.FILE}}"
+      OUT: uv
+    cmds:
+    - curl -sL "{{.URL}}"  -o "{{.FILE}}"
+    - extract "{{.FILE}}" "{{.OUT}}{{.EXE}}"
+    - remove "{{.FILE}}"
+
+  hugo:
+    desc: download hugo
+    vars:
+      VERSION: 0.145.0
+      SUFFIX:
+         sh: |
+             case "{{.OS}}-{{.ARCH}}" in
+              linux-amd64) echo Linux-64bit.tar.gz ;;
+              linux-arm64) echo "linux-arm64.tar.gz" ;;
+              darwin-arm64) echo darwin-universal.tar.gz ;;
+              darwin-amd64) echo darwin-universal.tar.gz ;;
+              windows-*) echo windows-amd64.zip ;;
+              *) echo "unknown" ;;
+             esac
+      URL: "https://github.com/gohugoio/hugo/releases/download/v{{.VERSION}}/hugo_extended_{{.VERSION}}_{{.SUFFIX}}"
+      FILE: "{{base .URL}}"
+      OUT: hugo
+    cmds:
+    - task: download-and-extract
+      vars:
+        URL: "{{.URL}}"
+        FILE: "{{.FILE}}"
+        OUT: "{{.OUT}}"
+
+
   all:
     - task: 7zz
     - task: coreutils    
@@ -167,6 +213,8 @@ tasks:
     - task: k3sup
     - task: kubectl
     - task: rg
+    - task: uv
+    - task: hugo
 
   test:
     vars:
@@ -204,3 +252,4 @@ tasks:
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
+      
