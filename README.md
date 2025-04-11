@@ -7,3 +7,7 @@ Note the tasks are automatically downloaded from the designated branch in the CL
 You can run this branch either setting "OPS_BRANCH=main" or cloning this in a local directory named `olaris`.
 
 
+
+WIP mcp supporto
+
+
