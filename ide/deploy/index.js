@@ -75,7 +75,10 @@ async function main() {
 
     if (options.watch) {
         checkPort();
-        if (!options.fast)  await scan();
+        if (!options.fast) {
+            await scan();
+            await build();
+        }
         watchAndDeploy();
     } else if (options.deploy) {
         await scan();
