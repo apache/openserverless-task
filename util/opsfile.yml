@@ -203,7 +203,15 @@ tasks:
           fi
           echo $P
 
-  
+  clean:
+    silent: true
+    cmds:
+      - |
+        bun upload.js $FOLDER_PATH --clean
+    env:
+      FOLDER_PATH:
+        sh: |
+          echo "$OPS_ROOT/util/upload/assets"
 
     
 
