@@ -210,6 +210,12 @@ tasks:
            else $OPS package delete "$package" 
            fi
         done
+      - >
+        if {{.__dry_run}}
+            then echo '$' $OPS util clean
+            else $OPS util clean
+          fi
+        
 
 
   clean:
