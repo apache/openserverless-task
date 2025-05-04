@@ -22,7 +22,7 @@ import {docopt} from "docopt";
 export function parseDocopt(): ProgramOptions {
     const doc=`Synchronize file from a local path to upload or delete static contents from user's minio bucket.
 Usage:
-    upload.ts <path> [--clean] [--verbose] [--batchsize=1]
+    upload.ts [<path>] [--clean] [--verbose] [--batchsize=1]
     `;
     return docopt(doc);
 }

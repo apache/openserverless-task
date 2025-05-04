@@ -58,7 +58,7 @@ main().then((res) => {
     process.exit(res);
 });
 
-async function main() {
+export async function main() {
 
     const startTime = performance.now();
 
@@ -73,6 +73,18 @@ async function main() {
         errors: 0
     };
 
+    // delete flag
+    if (programOptions["--clean"]) {
+        await minioUtils.cleanBucket();
+    }
+
+    if (path === null || path === undefined) {
+        if (programOptions["--verbose"]) {
+            console.log("Path is not set");
+        }
+        return 0;
+    }
+
     // Check if path exists
     const pathFoundAsDir = await fs.exists(path);
     if (!pathFoundAsDir) {
@@ -82,11 +94,6 @@ async function main() {
 
     // list files in path recursively
     const glob = new Glob(`${path}/**/*`);
-
-    // delete flag
-    if (programOptions["--clean"]) {
-        await minioUtils.cleanBucket();
-    }
 
     for await (const file of glob.scan({onlyFiles: true})) {
 
