@@ -18,7 +18,7 @@
 version: "3"
 
 vars:
-  SSH: "/usr/bin/ssh -oStrictHostKeyChecking=no"
+  SSH: "ssh -oStrictHostKeyChecking=no"
 
 tasks:
   prereq:
@@ -66,6 +66,7 @@ tasks:
         az network public-ip show -g "$AZCLOUD_PROJECT" -n {{._name_}}-public-ip --output none 2>/dev/null ||
         az network public-ip create -g "$AZCLOUD_PROJECT" --tags ops=true -n {{._name_}}-public-ip --version IPv4 --sku Standard 
         --zone 1 2 3 -o none
+      - tr -d '[:space:]' < _vm-ip > _vm-ip.tmp && mv _vm-ip.tmp _vm-ip
 
   vm-firewall-rule:
     silent: true
@@ -109,8 +110,7 @@ tasks:
       - task: vm-getip
       - >
         echo "*** Waiting until the VM is ready..." ;
-        retry -t 1000 -m 1800 {{.SSH}} 
-        "ubuntu@$(cat _vm-ip)" hostname
+        retry -t 1000 -m 1800 {{.SSH}} "ubuntu@$(cat _vm-ip)" hostname
 
   vm-getip:
     silent: true
@@ -118,7 +118,7 @@ tasks:
       - task: prereq
       - task: virtual-network
       - >
-        az network public-ip show -g "$AZCLOUD_PROJECT" -n "{{._name_}}"-public-ip --query ipAddress -o tsv > _vm-ip
+        az network public-ip show -g "$AZCLOUD_PROJECT" -n "{{._name_}}"-public-ip --query ipAddress -o tsv | tr -d '[:space:]' > _vm-ip
       - cat _vm-ip
 
 
