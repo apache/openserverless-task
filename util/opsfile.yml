@@ -92,7 +92,7 @@ tasks:
       - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_NUVOLARIS="$(random --str 12)"
       - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_NUVOLARIS="$(random --str 12)"
       - config SECRET_NUVOLARIS_METADATA="$(random --str 12)"
-      - echo "Generated $(config -d | grep SECRET_ | wc -l) secrets."
+      - echo "Generated $(config -d | rg SECRET_ | wc -l) secrets."
 
   user-secrets:
     desc: generate user secrets (auth, couchdb, redis, mongodb, minio, postgres)
@@ -121,7 +121,7 @@ tasks:
       - config -r SECRET_POSTGRES_ADMIN SECRET_POSTGRES_REPLICA SECRET_POSTGRES_NUVOLARIS
       - config -r SECRET_ETCD_ROOT SECRET_MILVUS_ROOT SECRET_MILVUS_S3 SECRET_MILVUS_NUVOLARIS
       - config -r SECRET_NUVOLARIS_METADATA
-      - config -d | grep SECRET_
+      - config -d | rg SECRET_
 
   no-user-secrets:
     desc: remove user secrets
