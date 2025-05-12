@@ -114,11 +114,13 @@ tasks:
         if test -z "{{._apihost_}}"
         then echo -n "Enter Apihost: "
               read OPSDEV_APIHOST
+              OPSDEV_APIHOST="$(echo $OPSDEV_APIHOST | tr -d '\r')"
         else OPSDEV_APIHOST="{{._apihost_}}"
         fi
         if test -z "{{._username_}}"
         then  echo -n "Enter Username: "
               read OPSDEV_USERNAME
+              OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
         else OPSDEV_USERNAME="{{._username_}}"
         fi
         echo apihost=$OPSDEV_APIHOST username=$OPSDEV_USERNAME
