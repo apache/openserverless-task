@@ -205,6 +205,34 @@ tasks:
         OUT: "{{.OUT}}"
 
 
+  helm:
+    desc: download helm
+    vars:
+      VERSION: "3.14.4"
+      SUFFIX: "linux-amd64"
+      FILE: "helm-v{{.VERSION}}-{{.SUFFIX}}.tar.gz"
+      URL: "https://get.helm.sh/{{.FILE}}"
+      OUT: "helm"
+    cmds:
+      - echo "Downloading Helm {{.VERSION}}"
+      - curl -sL "{{.URL}}" -o "{{.FILE}}"
+      - tar -xzf "{{.FILE}}"
+      - mv {{.SUFFIX}}/helm "{{.OUT}}"
+      - chmod +x "{{.OUT}}"
+      - rm -rf {{.SUFFIX}} "{{.FILE}}"
+
+  k3d:
+    desc: download k3d
+    vars:
+      VERSION: "5.6.3"
+      SUFFIX: "k3d-linux-amd64"
+      URL: "https://github.com/k3d-io/k3d/releases/download/v{{.VERSION}}/{{.SUFFIX}}"
+      OUT: "k3d"
+    cmds:
+      - echo "Downloading k3d {{.VERSION}}"
+      - curl -sL -o "{{.OUT}}" "{{.URL}}"
+      - chmod +x "{{.OUT}}"
+
   all:
     - task: 7zz
     - task: coreutils    
@@ -215,6 +243,8 @@ tasks:
     - task: rg
     - task: uv
     - task: hugo
+    - task: helm
+    - task: k3d
 
   test:
     vars:
