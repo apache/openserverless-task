@@ -204,34 +204,51 @@ tasks:
         FILE: "{{.FILE}}"
         OUT: "{{.OUT}}"
 
-
   helm:
     desc: download helm
     vars:
-      VERSION: "3.14.4"
-      SUFFIX: "linux-amd64"
-      FILE: "helm-v{{.VERSION}}-{{.SUFFIX}}.tar.gz"
-      URL: "https://get.helm.sh/{{.FILE}}"
-      OUT: "helm"
+      VERSION: "3.18.0"
+      SUFFIX:
+        sh: |
+          case "{{.OS}}-{{.ARCH}}" in
+            linux-amd64) echo "linux-amd64" ;;
+            linux-arm64) echo "linux-arm64" ;;
+            darwin-amd64) echo "darwin-amd64" ;;
+            darwin-arm64) echo "darwin-arm64" ;;
+            windows-amd64) echo "windows-amd64" ;;
+            *) echo "unknown" ;;
+          esac
+      URL: "https://get.helm.sh/helm-v{{.VERSION}}-{{.SUFFIX}}{{.ARC}}"
+      FILE: "{{base .URL}}"
+      OUT: helm
     cmds:
-      - echo "Downloading Helm {{.VERSION}}"
-      - curl -sL "{{.URL}}" -o "{{.FILE}}"
-      - tar -xzf "{{.FILE}}"
-      - mv {{.SUFFIX}}/helm "{{.OUT}}"
-      - chmod +x "{{.OUT}}"
-      - rm -rf {{.SUFFIX}} "{{.FILE}}"
+      - task: download-and-extract
+        vars:
+          URL: "{{.URL}}"
+          FILE: "{{.FILE}}"
+          OUT: "{{.OUT}}"
 
   k3d:
     desc: download k3d
     vars:
       VERSION: "5.6.3"
-      SUFFIX: "k3d-linux-amd64"
+      SUFFIX:
+        sh: |
+          case "{{.OS}}-{{.ARCH}}" in
+            linux-amd64) echo "k3d-linux-amd64" ;;
+            linux-arm64) echo "k3d-linux-arm64" ;;
+            darwin-amd64) echo "k3d-darwin-amd64" ;;
+            darwin-arm64) echo "k3d-darwin-arm64" ;;
+            windows-amd64) echo "k3d-windows-amd64.exe" ;;
+            *) echo "unknown" ;;
+          esac
       URL: "https://github.com/k3d-io/k3d/releases/download/v{{.VERSION}}/{{.SUFFIX}}"
-      OUT: "k3d"
+      OUT: k3d
     cmds:
-      - echo "Downloading k3d {{.VERSION}}"
-      - curl -sL -o "{{.OUT}}" "{{.URL}}"
-      - chmod +x "{{.OUT}}"
+      - task: download
+        vars:
+          URL: "{{.URL}}"
+          OUT: "{{.OUT}}{{.EXE}}"
 
   all:
     - task: 7zz
@@ -245,7 +262,7 @@ tasks:
     - task: hugo
     - task: helm
     - task: k3d
-
+    
   test:
     vars:
       DIR: "{{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}"
