@@ -158,9 +158,9 @@ export async function scan() {
         manifests.sort((a, b) => a.localeCompare(b));
     }
     if (manifests.length >0 ) {
-        if (Bun.file('packeges/.env')) {
+        if (Bun.file('packages/.env')) {
             console.log("Found packages .env file. Reading it");
-            config({ path: "./package/.env" });
+            config({ path: "./packages/.env" });
         }
         for (const manifest of manifests) {
             console.log(">>> Manifest:", manifest);
