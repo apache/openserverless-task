@@ -22,6 +22,7 @@ import {program} from 'commander';
 import {scan} from './scan.js';
 import {watchAndDeploy} from './watch.js';
 import {setDryRun, deploy} from './deploy.js';
+import {undeploy, setDryRun as setUndeployDryRun} from './undeploy.js';
 import {build} from './client.js';
 
 function signalHandler() {
@@ -65,15 +66,46 @@ async function main() {
         .option('-d, --deploy', 'Deploy')
         .option('-w, --watch', 'Watch for changes')
         .option('-s, --single <string>', 'Deploy a single action, either a single file or a directory.', '')
+        .option('-u, --undeploy', 'Undeploy actions and packages from the current project')
         .parse(process.argv);
 
     const options = program.opts();
     const directory = program.args[0];
 
     setDryRun(options.dryRun);
+    setUndeployDryRun(options.dryRun);
     process.chdir(directory);
 
-    if (options.watch) {
+    if (options.undeploy) {
+        // Undeploy actions and packages from the current project
+        let success;
+
+        if (options.single !== '') {
+            // If a single action is specified, undeploy just that action
+            let action = options.single;
+            if (!action.startsWith('packages/')) {
+                action = `packages/${action}`;
+            }
+
+            // Extract the package and action name
+            const parts = action.split('/');
+            if (parts.length >= 3) {
+                const pkg = parts[1];
+                const actionName = parts[2].split('.')[0]; // Remove file extension if present
+                success = undeploy(`${pkg}/${actionName}`);
+            } else {
+                // If the format is already package/action
+                success = undeploy(action);
+            }
+        } else {
+            // Otherwise, undeploy all actions and packages from the current project
+            success = undeploy();
+        }
+
+        if (!success) {
+            process.exit(1);
+        }
+    } else if (options.watch) {
         checkPort();
         if (!options.fast) {
             await scan();
