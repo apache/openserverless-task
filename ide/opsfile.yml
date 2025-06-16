@@ -62,7 +62,7 @@ tasks:
         if test -e $PIDFILE
         then          
           PID=$(cat $PIDFILE)
-          
+
           if [ ! -z "$PID" ]; then
             if ps -p "$PID" > /dev/null;
             then
@@ -139,8 +139,8 @@ tasks:
         else 
           false
         fi
-  
-  
+
+
 
   poll:
     silent: true
@@ -189,35 +189,32 @@ tasks:
 
 
   undeploy:
-    desc: undeploy all the actions
-    prompt: "are you sure you want to remove all actions and packages?"
+    desc: undeploy actions and packages from the current project
     silent: true
     cmds:
       - task: prereq
-      - >
-        $OPS action list
-        | awk  'NR>1 { print $1}' 
-        | while read action ;
-        do  if {{.__dry_run}}
-            then echo '$' $OPS action delete "$action"
-            else $OPS action delete "$action"
-            fi
-        done
-      - >
-        $OPS package list
-        | awk  'NR>1 { print $1}'
-        | while read package ;
-        do if {{.__dry_run}}
-           then echo '$' $OPS package delete "$package" 
-           else $OPS package delete "$package" 
-           fi
-        done
+      - |
+        if {{.__dry_run}}
+        then DRY="--dry-run"
+        else DRY=""
+        fi
+
+        # Check if an action argument is provided
+        if test -n "{{._action_}}"
+        then
+          # Undeploy a specific action
+          echo "Undeploying specific action: {{._action_}}"
+          bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -u -s "{{._action_}}" $DRY
+        else
+          # Undeploy all actions and packages from the current project
+          bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -u $DRY
+        fi
       - >
         if {{.__dry_run}}
             then echo '$' $OPS util clean
             else $OPS util clean
           fi
-        
+
 
 
   clean:
