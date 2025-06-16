@@ -19,6 +19,7 @@ import {glob} from 'glob';
 import {buildAction, buildZip, deployAction, deployPackage, deployProject} from './deploy.js';
 import {getOpenServerlessConfig} from './client.js';
 import {config} from "dotenv";
+import {syncDeployInfo} from "./syncDeployInfo";
 
 /**
  * This function will prepare and deploy the functions in `packages` directory.
@@ -166,5 +167,12 @@ export async function scan() {
             console.log(">>> Manifest:", manifest);
             deployProject(manifest);
         }
+    }
+
+    try {
+        // Save deployment information with the new structure
+        syncDeployInfo(packages, deployments);
+    } catch (error) {
+        console.error("Error saving deployment information:", error);
     }
 }
