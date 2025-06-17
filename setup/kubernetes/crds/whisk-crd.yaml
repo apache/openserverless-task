@@ -82,7 +82,10 @@ spec:
                       type: boolean
                     tolerations:
                       description: enable/disable openwhisk toleration. This flag can be true only on multinode cluster deployment. Default to false
-                      type: boolean                                                                                                                                         
+                      type: boolean
+                    slim:
+                      description: boolean flag to enable/disable nuvolaris slim mode. Defaulted to false
+                      type: boolean
                   required:
                   - password    
                 components:

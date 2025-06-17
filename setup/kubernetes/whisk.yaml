@@ -28,19 +28,20 @@ spec:
       storageclass: ${OPERATOR_CONFIG_STORAGECLASS:-auto}
       provisioner: ${OPERATOR_CONFIG_STORAGEPROVISIONER:-auto}
       protocol: ${OPERATOR_CONFIG_HOSTPROTOCOL:-auto}
+      slim: ${OPERATOR_CONFIG_SLIM:-false}
       affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
-      tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}      
   components:
     # start openwhisk controller
     openwhisk: true
     # start openwhisk invoker
-    invoker: true    
+    invoker: ${OPERATOR_COMPONENT_INVOKER:-true}        
     # start couchdb
     couchdb: true
     # start zookeeper
-    zookeeper: true    
+    zookeeper: ${OPERATOR_COMPONENT_ZOOKEEPER:-true}    
     # start kafka
-    kafka: true
+    kafka: ${OPERATOR_COMPONENT_KAFKA:-true}
     # prometheus monitoring enabled or not
     monitoring: ${OPERATOR_COMPONENT_PROMETHEUS:-false}        
     # start mongodb
@@ -234,5 +235,6 @@ spec:
     password:
       root: $SECRET_MILVUS_ROOT     
       s3: $SECRET_MILVUS_S3
+      etcd: $SECRET_ETCD_ROOT
     nuvolaris:
       password: $SECRET_MILVUS_NUVOLARIS  
