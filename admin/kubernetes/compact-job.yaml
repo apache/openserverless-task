@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: couchdb-compact-job
+  namespace: nuvolaris
+  labels:
+    app: couchdb-compact-job
+spec:
+  ttlSecondsAfterFinished: ${JOB_TTL}
+  template:
+    metadata:
+      labels:
+        app: couchdb-compact-job
+    spec:
+      containers:
+      - name: couchdb-compactor
+        image: alpine:3.14
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            apk add --no-cache curl jq;
+            echo "COUCHDB_HOST: $COUCHDB_HOST";
+            echo "COUCHDB_USER: $$COUCHDB_USER";
+
+            # List all databases
+            databases=$(curl -s -u "$$COUCHDB_USER:$$COUCHDB_PASSWORD" "http://$$COUCHDB_HOST/_all_dbs" | jq -r '.[]');
+
+            echo "Found databases: $databases";
+
+            # Trigger compact operation for each database
+            for db in $$databases; do
+              echo "Triggering compact for database: $db";
+              curl -s -X POST -H "Content-Type: application/json" -u "$$COUCHDB_USER:$$COUCHDB_PASSWORD" "http://$$COUCHDB_HOST/$$db/_compact" -d '{}';
+              echo "Compaction triggered for $$db";
+            done;
+            echo "CouchDB compat script finished.";
+        env:
+        - name: COUCHDB_HOST
+          value: "${COUCHDB_HOST:-couchdb}:${COUCHDB_PORT:-5984}"
+        - name: COUCHDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: ${COUCHDB_SECRET_NAME}
+              key: db_username
+        - name: COUCHDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ${COUCHDB_SECRET_NAME}
+              key: db_password
+      restartPolicy: OnFailure
