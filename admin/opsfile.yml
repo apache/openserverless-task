@@ -154,3 +154,31 @@ tasks:
         else 
           kubectl apply -f _user-crd.yaml          
         fi
+
+  usage:
+    silent: true
+    cmds:
+      - |
+        PVC_LIST=$(kubectl get pvc -o jsonpath='{range .items[?(@.status.phase=="Bound")]}{.metadata.name}{"\n"}{end}')
+        if [ -z "$PVC_LIST" ]; then
+          echo "No Bound PVCs found in the current namespace."
+          exit 0
+        fi
+        echo -e "PVC\tTotal\tSize\tAvailable" > /tmp/pvc_data.txt
+        for PVC_NAME in $PVC_LIST; do
+          JOB_NAME="pvc-usage-checker-${PVC_NAME//./-}"
+          export JOB_NAME=$JOB_NAME PVC_NAME=$PVC_NAME
+          envsubst -i kubernetes/df-job.yaml -o kubernetes/_df-job-${PVC_NAME}.yaml
+          kubectl apply -f kubernetes/_df-job-${PVC_NAME}.yaml > /dev/null 2>&1
+          kubectl wait --for=condition=complete job/$JOB_NAME --timeout=1m > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            echo "Job $JOB_NAME did not complete within the timeout or encountered an error. Checking logs anyway."
+            kubectl get job $JOB_NAME
+            exit 1
+          fi
+          OUTPUT=$(kubectl logs job/$JOB_NAME)
+          echo -n $OUTPUT| awk -v pvc_name=${PVC_NAME} '{print pvc_name "\t" $1 "\t" $2 "\t" $4 }' >> /tmp/pvc_data.txt
+          kubectl delete job/$JOB_NAME --ignore-not-found=true > /dev/null 2>&1
+          unset PVC_NAME
+        done
+        column -t /tmp/pvc_data.txt && rm /tmp/pvc_data.txt
