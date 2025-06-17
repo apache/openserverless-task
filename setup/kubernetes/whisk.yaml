@@ -30,6 +30,7 @@ spec:
       protocol: ${OPERATOR_CONFIG_HOSTPROTOCOL:-auto}
       affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
       tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      ingresslb: ${OPERATOR_CONFIG_INGRESSLB:-auto}
   components:
     # start openwhisk controller
     openwhisk: true
