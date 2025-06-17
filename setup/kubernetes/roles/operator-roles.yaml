@@ -101,6 +101,11 @@ rules:
   resources: ["poddisruptionbudgets"]
   verbs: ["get","patch","list","update","watch","create","delete"]      
 
+# required for patching kopf related resources
+- apiGroups: ["zalando.org"]
+  resources: ["kopfpeerings"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
