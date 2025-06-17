@@ -39,7 +39,12 @@ tasks:
         fi        
       - config -dump | rg OPERATOR_COMPONENT_TLS
       - config -dump | rg OPERATOR_CONFIG_HOSTPROTOCOL
-
+  ingresslb:
+    silent: true
+    cmds:
+      - echo "cfg {{._ingresslb_}}"
+      - config OPERATOR_CONFIG_INGRESSLB="{{._ingresslb_}}"
+      - config -dump | rg OPERATOR_CONFIG_INGRESSLB
   enable:
     silent: true
     cmds:

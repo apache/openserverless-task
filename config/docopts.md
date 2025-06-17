@@ -26,6 +26,7 @@ Configure OpenServerless
 Usage:
   config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] 
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
+  config ingresslb (<ingresslb>|auto)
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
@@ -53,6 +54,7 @@ Usage:
 
 ```
   config apihost          configure the apihost (auto: auto assign) and enable tls
+  config ingresslb        configure the ingress LB (auto: auto discover). Provide a custom ingress namespace and a custom ingress controller service (e.g. my-ns/my-svc)
   config runtime          show the current runtime.json or import the <runtime-json> if provided
   config enable           enable OpenServerless services to install
   config disable          disable OpenServerless services to install
