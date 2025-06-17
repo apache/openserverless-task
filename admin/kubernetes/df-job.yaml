@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  labels:
+    app.kubernetes.io/name: pvc-usage-checker
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: df-checker
+          image: busybox:1.36
+          command: [ "sh", "-c" ]
+          args:
+            - |
+              df -h /mnt/data | tail -n 1 | awk '{gsub(/^ +/, ""); print}';
+          volumeMounts:
+            - name: data-volume
+              mountPath: /mnt/data
+              readOnly: true
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: ${PVC_NAME}
