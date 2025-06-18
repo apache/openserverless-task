@@ -155,6 +155,31 @@ tasks:
           kubectl apply -f _user-crd.yaml          
         fi
 
+  compact:
+    silent: true
+    vars:
+      COUCHDB_HOST: couchdb
+      COUCHDB_PORT: "5984"
+      JOB_TTL: "10" # cleanup job after 10 seconds
+      DB_NAME: "nuvolaris_activations"
+    cmds:
+      - |
+        JOB_TTL={{.__ttl}}
+        if test -z $JOB_TTL; then
+          JOB_TTL=10
+        fi
+        export COUCHDB_HOST={{.COUCHDB_HOST}}
+        export COUCHDB_PORT="{{.COUCHDB_PORT}}"
+        export JOB_TTL=$JOB_TTL
+        export DB_NAME={{.DB_NAME}}
+        export COUCHDB_SECRET_NAME=$(kubectl -n nuvolaris get secrets -o name | awk -F'/' '{print $2}' | rg couchdb-auth-)
+        envsubst -i kubernetes/compact-job.yaml -o kubernetes/_compact-job.yaml
+        if {{.DRY}}
+        then cat kubernetes/_compact-job.yaml
+        else
+          kubectl apply -f kubernetes/_compact-job.yaml
+        fi
+
   usage:
     silent: true
     cmds:

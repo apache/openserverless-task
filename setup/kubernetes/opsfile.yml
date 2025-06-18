@@ -189,6 +189,7 @@ tasks:
       - "kubectl apply  -f common -f roles -f crds"
 
   storageclass-env:
+    silent: true
     vars:
       OP_VOL_STORAGE_CLASS:
         sh: |
@@ -276,6 +277,7 @@ tasks:
 
   permission:
     desc: assign permissions (required cluster-admin)
+    silent: true
     cmds:
       - task: context
       - task: prepare

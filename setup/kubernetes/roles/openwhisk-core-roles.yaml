@@ -16,17 +16,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# ---
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: openwhisk-core
+#   namespace: nuvolaris
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: view
+# subjects:
+#   - kind: ServiceAccount
+#     name:  openwhisk-core
+#     namespace: nuvolaris
+---    
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nuvolaris-openwhisk-core
+  namespace: nuvolaris
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: openwhisk-core-role
+  namespace: nuvolaris
+rules:
+- apiGroups: ["extensions", "apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: openwhisk-core
+  name: openwhisk-controller-role-rb
   namespace: nuvolaris
 roleRef:
+  kind: Role
+  name: openwhisk-core-role
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: view
 subjects:
   - kind: ServiceAccount
-    name:  openwhisk-core
+    name:  nuvolaris-openwhisk-core
     namespace: nuvolaris
+
