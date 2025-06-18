@@ -163,7 +163,7 @@ export function deployProject(artifact) {
     if (manifestContent.indexOf('packages:')!==-1) {
       exec(`$OPS -wsk project deploy --manifest ${artifact}`);
     } else {
-      console.log(`Wanring: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
+      console.log(`Warning: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
     }
   }
 }
