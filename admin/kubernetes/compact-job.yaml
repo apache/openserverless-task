@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: couchdb-compact-job
+  namespace: nuvolaris
+  labels:
+    app: couchdb-compact-job
+spec:
+  ttlSecondsAfterFinished: ${JOB_TTL}
+  template:
+    metadata:
+      labels:
+        app: couchdb-compact-job
+    spec:
+      containers:
+      - name: couchdb-compactor
+        image: alpine:3.14
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            apk add --no-cache curl jq;
+            
+            DAY_MS=$$((1000 * 60 * 60 * 24))
+            CURRENT_TIME_MS=$$(($$(date +%s) * 1000))
+            ENDKEY=$$((CURRENT_TIME_MS - DAYS * DAY_MS))
+            
+            # ported from https://github.com/francescotimperi/openwhisk/blob/0f48cd5b32adc3867df57e0f3ad8f5acd9ea9d8e/tools/db/cleanUpActivations.py
+            delete_old_activations() {
+              while : ; do
+                RESPONSE=$$(curl -s -X GET -H "Content-Type: application/json" -u "$$COUCHDB_USER:$$COUCHDB_PASSWORD" "http://$$COUCHDB_HOST/$$DB_NAME/_design/activations/_view/byDate?startkey=0&endkey=$$ENDKEY&limit=$$DOCS_PER_REQUEST")
+                
+                ROWS=$$(echo "$$RESPONSE" | jq -c '.rows[]?')
+                [ -z "$$ROWS" ] && break  # no document found
+            
+                DOCS_JSON=$$(echo "$RESPONSE" | jq -c '[.rows[] | { _id: .value[0], _rev: .value[1], _deleted: true }]')
+                
+                curl -s -X POST -H "Content-Type: application/json" -u "$$COUCHDB_USER:$$COUCHDB_PASSWORD" "http://$$COUCHDB_HOST/$$DB_NAME/_bulk_docs" \
+                  -H "Content-Type: application/json" \
+                  -d "{\"docs\": $$DOCS_JSON}" > /dev/null
+              done
+            }
+            delete_old_activations
+            curl -s -X POST -H "Content-Type: application/json" -u "$$COUCHDB_USER:$$COUCHDB_PASSWORD" "http://$$COUCHDB_HOST/$$DB_NAME/_compact" -d '{}';
+            echo "CouchDB compat script finished.";
+        env:
+        - name: COUCHDB_HOST
+          value: "${COUCHDB_HOST:-couchdb}:${COUCHDB_PORT:-5984}"
+        - name: DB_NAME
+          value: "${DB_NAME}"
+        - name: COUCHDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: ${COUCHDB_SECRET_NAME}
+              key: db_username
+        - name: COUCHDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ${COUCHDB_SECRET_NAME}
+              key: db_password
+      restartPolicy: OnFailure
