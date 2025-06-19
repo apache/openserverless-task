@@ -18,7 +18,7 @@ under the License.
 -->
 # Tasks  `ops admin`
 
-Administer OpenServerless users. 
+Administer OpenServerless users.
 
 ## Synopsis
 
@@ -30,7 +30,7 @@ Usage:
   admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio] [--postgres] [--milvus] [--storagequota=<quota>|auto]
   admin deleteuser <username>
   admin compact [--ttl=<ttl>|10]
-  admin usage
+  admin usage [--debug]
 ```
 
 ## Commands
@@ -50,5 +50,6 @@ Usage:
   --postgres              enable postgres
   --milvus                enable milvus vector db
   --storagequota=<quota>
-  --ttl=<seconds>             modify the job ttl after finished (defaults to 10 seconds)
+  --ttl=<seconds>         modify the job ttl after finished (defaults to 10 seconds)
+  --debug         enable debug logging
 ```
