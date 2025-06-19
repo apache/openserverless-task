@@ -6908,19 +6908,24 @@ var require_public_api = __commonJS((exports) => {
 class LogFormatterImpl {
   pretty(pvcList, rawDfLogs) {
     const tabularData = [];
-    const lines = rawDfLogs.split(`
-`).filter((v) => !/^\//.test(v));
-    for (let i = 0;i < lines.length; i++) {
-      const values = lines[i].trim().split(/\s+/);
+    let logLines = rawDfLogs.split(`
+`);
+    let startIndex = 1;
+    if (logLines.length === pvcList.length * 2) {
+      logLines = logLines.filter((v) => !/^\//.test(v));
+      startIndex = 0;
+    }
+    for (let i = 0;i < logLines.length; i++) {
+      const values = logLines[i].trim().split(/\s+/);
       if (values.length < 4) {
         continue;
       }
       tabularData.push({
         "Pvc Name": pvcList[i],
-        Size: values[0],
-        Used: values[1],
-        Available: values[2],
-        "Use%": values[3]
+        Size: values[startIndex],
+        Used: values[1 + startIndex],
+        Available: values[2 + startIndex],
+        "Use%": values[3 + startIndex]
       });
     }
     return tabularData;
@@ -7075,6 +7080,7 @@ var volumeManager = (dir, jobPath, debug) => {
 
 // job-operator.ts
 var {$ } = globalThis.Bun;
+var kubectl = ["kubectl", "-n", "nuvolaris"];
 
 class JobOperatorImpl {
   volumeManager;
@@ -7084,6 +7090,7 @@ class JobOperatorImpl {
     this.logProcessor = logProcessor;
   }
   async runJob(jobName) {
+    await this.ensureJobNotExists(jobName);
     await this.volumeManager.load();
     const pvcList = await this.getPvcList();
     pvcList.forEach((pvcName, i) => {
@@ -7097,26 +7104,34 @@ class JobOperatorImpl {
     const rawLogs = await this.volumeManager.save().then((tpl) => this.applyTemplate(tpl)).then(() => this.extractJobLogs(jobName));
     return this.logProcessor.pretty(pvcList, rawLogs);
   }
+  async cleanup(jobName) {
+    await $`${kubectl} delete job/${jobName}`.quiet();
+  }
   async getPvcList() {
-    const { stdout: pvcListRaw } = await $`kubectl get pvc -o jsonpath='{range .items[?(@.status.phase=="Bound")]}{.metadata.name}{","}{end}`.quiet();
+    const { stdout: pvcListRaw } = await $`${kubectl} get pvc -o jsonpath='{range .items[?(@.status.phase=="Bound")]}{.metadata.name}{","}{end}`.quiet();
     return pvcListRaw.toString().split(",").filter((v) => v.length > 0);
   }
   async applyTemplate(target) {
-    await $`kubectl apply -f ${target}`.quiet();
+    await $`${kubectl} apply -f ${target}`.quiet();
   }
   async extractJobLogs(jobName) {
     try {
-      await $`kubectl wait --for=condition=complete job/${jobName} --timeout=1m`.quiet();
+      await $`${kubectl} wait --for=condition=complete job/${jobName} --timeout=1m`.quiet();
     } catch (error) {
       console.error(`Job ${jobName} timeout or error.`, error);
-      await $`kubectl get job ${jobName}`;
+      await $`${kubectl} get job ${jobName}`;
       process.exit(1);
     }
-    const { stdout: logs } = await $`kubectl logs job/${jobName}`.quiet();
+    const { stdout: logs } = await $`${kubectl} logs job/${jobName}`.quiet();
     return logs.toString().trim();
   }
-  async cleanup(jobName) {
-    await $`kubectl delete job/${jobName}`.quiet();
+  async ensureJobNotExists(jobName) {
+    try {
+      const { exitCode } = await $`${kubectl} get job/${jobName}`.quiet();
+      if (exitCode === 0) {
+        await $`${kubectl} delete job/${jobName}`.quiet();
+      }
+    } catch (error) {}
   }
 }
 
