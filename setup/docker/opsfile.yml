@@ -89,6 +89,15 @@ tasks:
     silent: true
     desc: destroy the Apache OpenServerless cluster in Docker
     cmds:
+    - |
+      if ! test -e "$OPS_TMP/kind.kubeconfig"; then
+        echo "ops kind kubeconfig not found"
+        exit 1
+      fi
+      if [ "$KUBECONFIG" = "$HOME/.kube/config" ]; then
+        echo "backup kube config"
+        cp ~/.kube/config ~/.kube/config.bak
+      fi
     - kind delete clusters nuvolaris
     - rm "$KUBECONFIG" "$OPS_TMP/kind.kubeconfig"
 
