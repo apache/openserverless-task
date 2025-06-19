@@ -14,18 +14,26 @@ export interface LogFormatter {
 class LogFormatterImpl implements LogFormatter {
     pretty(pvcList: string[], rawDfLogs: string): DfRow[] {
         const tabularData: DfRow[] = [];
-        const lines = rawDfLogs.split('\n').filter(v => !(/^\//.test(v)));
-        for (let i = 0; i < lines.length; i++) {
-            const values = lines[i].trim().split(/\s+/);
+        let logLines = rawDfLogs.split('\n');
+        let startIndex = 1;
+        if (logLines.length === pvcList.length * 2) {
+            // The filesystem output is likely too long, causing df logs to double in size
+            // This happens when the filesystem path exceeds the terminal width
+            logLines = logLines.filter(v => !(/^\//.test(v)));
+            // in this case the Size is at the first slot
+            startIndex = 0;
+        }
+        for (let i = 0; i < logLines.length; i++) {
+            const values = logLines[i].trim().split(/\s+/);
             if (values.length < 4) {
                 continue;
             }
             tabularData.push({
                 'Pvc Name': pvcList[i],
-                'Size': values[0],
-                'Used': values[1],
-                'Available': values[2],
-                'Use%': values[3]
+                'Size': values[startIndex],
+                'Used': values[1+startIndex],
+                'Available': values[2+startIndex],
+                'Use%': values[3+startIndex]
             });
         }
         return tabularData;
