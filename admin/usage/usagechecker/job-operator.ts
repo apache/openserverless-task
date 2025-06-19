@@ -31,11 +31,14 @@ interface JobOperator {
     cleanup(jobName: string): Promise<void>
 }
 
+const kubectl = ['kubectl', '-n', 'nuvolaris'];
+
 class JobOperatorImpl implements JobOperator {
     constructor(private volumeManager: VolumeManager, private logProcessor: LogFormatter) {
     }
 
     async runJob(jobName: string): Promise<DfRow[]> {
+        await this.ensureJobNotExists(jobName);
         await this.volumeManager.load();
         const pvcList = await this.getPvcList();
         pvcList.forEach((pvcName, i) => {
@@ -55,29 +58,40 @@ class JobOperatorImpl implements JobOperator {
         return this.logProcessor.pretty(pvcList, rawLogs);
     }
 
-    async getPvcList() {
-        const {stdout: pvcListRaw} = await $`kubectl get pvc -o jsonpath='{range .items[?(@.status.phase=="Bound")]}{.metadata.name}{","}{end}`.quiet();
+    async cleanup(jobName: string) {
+        await $`${kubectl} delete job/${jobName}`.quiet();
+    }
+
+    private async getPvcList() {
+        const {stdout: pvcListRaw} = await $`${kubectl} get pvc -o jsonpath='{range .items[?(@.status.phase=="Bound")]}{.metadata.name}{","}{end}`.quiet();
         return pvcListRaw.toString().split(",").filter(v => v.length > 0);
     }
 
-    async applyTemplate(target: string) {
-        await $`kubectl apply -f ${target}`.quiet();
+    private async applyTemplate(target: string) {
+        await $`${kubectl} apply -f ${target}`.quiet();
     }
 
-    async extractJobLogs(jobName: string) {
+    private async extractJobLogs(jobName: string) {
         try {
-            await $`kubectl wait --for=condition=complete job/${jobName} --timeout=1m`.quiet();
+            await $`${kubectl} wait --for=condition=complete job/${jobName} --timeout=1m`.quiet();
         } catch (error) {
             console.error(`Job ${jobName} timeout or error.`, error);
-            await $`kubectl get job ${jobName}`;
+            await $`${kubectl} get job ${jobName}`;
             process.exit(1);
         }
-        const {stdout: logs} = await $`kubectl logs job/${jobName}`.quiet();
+        const {stdout: logs} = await $`${kubectl} logs job/${jobName}`.quiet();
         return logs.toString().trim();
     }
-
-    async cleanup(jobName: string) {
-        await $`kubectl delete job/${jobName}`.quiet();
+    
+    private async ensureJobNotExists(jobName: string) {
+        try {
+            const {exitCode} = await $`${kubectl} get job/${jobName}`.quiet();
+            if (exitCode === 0) {
+                await $`${kubectl} delete job/${jobName}`.quiet();
+            }
+        } catch (error) {
+            // Job does not exist, nothing to do
+        }
     }
 }
 
