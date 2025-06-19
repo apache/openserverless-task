@@ -1141,5 +1141,5 @@ tasks:
       config POSTGRES_CONFIG_REPLICAS=1 
       config OPERATOR_CONFIG_SLIM=true
     - |
-      config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6
+      config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6g
     - task: status
