@@ -18,7 +18,7 @@ under the License.
 -->
 # Tasks  `ops admin`
 
-Administer OpenServerless users. 
+Administer OpenServerless users.
 
 ## Synopsis
 
@@ -30,6 +30,7 @@ Usage:
   admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio] [--postgres] [--milvus] [--storagequota=<quota>|auto]
   admin deleteuser <username>
   admin compact [--ttl=<ttl>|10]
+  admin usage [--debug]
 ```
 
 ## Commands
@@ -37,6 +38,7 @@ Usage:
   admin adduser       create a new user in OpenServerless with the username, email and password provided
   admin deleteuser    delete a user from the OpenServerless installation via the username provided
   admin compact       create a one shot job which executes couchdb compact against all available dbs
+  admin usage         calculates and displays PVC disk usage statistics for bound volumes. Shows Total, Size and Available storage per PVC
 ```
 
 ## Options
@@ -48,5 +50,6 @@ Usage:
   --postgres              enable postgres
   --milvus                enable milvus vector db
   --storagequota=<quota>
-  --ttl=<seconds>             modify the job ttl after finished (defaults to 10 seconds)
+  --ttl=<seconds>         modify the job ttl after finished (defaults to 10 seconds)
+  --debug         enable debug logging
 ```
