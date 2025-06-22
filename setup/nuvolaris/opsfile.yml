@@ -136,7 +136,7 @@ tasks:
     cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - "{{.RUN}} wsk {{.ETC}} action update hello/hello hello.js"
-    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name Nuvolaris -r | rg hello"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name 'Apache OpenServerless' -r | rg hello"
 
   mongodb:
     silent: true
