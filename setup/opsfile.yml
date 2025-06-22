@@ -87,6 +87,10 @@ tasks:
     silent: true
     cmds:
     - |
+      if test -z "$CONFIGURED"
+      then $OPS config slim
+      fi
+    - |
       if {{.__status}}
       then  {{.RUN}} $OPS setup docker status
       elif  {{.__uninstall}}

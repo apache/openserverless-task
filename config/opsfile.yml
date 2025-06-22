@@ -119,6 +119,7 @@ tasks:
             config OPERATOR_COMPONENT_MINIO=true
           fi
         fi        
+      - config CONFIGURED=true
       - task: status
 
   disable:
@@ -734,7 +735,7 @@ tasks:
         HINT: | 
               Specific an email address sending alert
         VAL: "{{.__mailfrom}}"
-        DEF: "francesco.timperi@gmail.com"    
+        DEF: "msciabarra@apache.org"    
     - task: read
       vars:
         MSG: "Slack channel to be used"
@@ -1119,6 +1120,8 @@ tasks:
     - |
       config OPERATOR_COMPONENT_POSTGRES=true
     - task: status
+    - config CONFIGURED=true
+
 
   slim:
     silent: true
@@ -1141,3 +1144,4 @@ tasks:
     - |
       config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6g
     - task: status
+    - config CONFIGURED=true
