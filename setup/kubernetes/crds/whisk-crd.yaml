@@ -86,6 +86,15 @@ spec:
                     slim:
                       description: boolean flag to enable/disable nuvolaris slim mode. Defaulted to false
                       type: boolean
+                    preload:
+                      description: used to preload some default actions in the nuvolaris namespace. Defaulted to false
+                      type: object
+                      properties:
+                        only-apache:
+                          description: boolean flag to preload only the apache openserverless actions
+                          type: boolean
+                      required:
+                      - only-apache
                   required:
                   - password    
                 components:
