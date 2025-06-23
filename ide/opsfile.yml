@@ -140,8 +140,6 @@ tasks:
           false
         fi
   
-  
-
   poll:
     silent: true
     desc: poll activation logs
@@ -187,7 +185,6 @@ tasks:
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            
         fi
 
-
   undeploy:
     desc: undeploy all the actions
     prompt: "are you sure you want to remove all actions and packages?"
@@ -214,11 +211,10 @@ tasks:
         done
       - >
         if {{.__dry_run}}
-            then echo '$' $OPS util clean
-            else $OPS util clean
-          fi
+          then echo '$' $OPS util clean
+          else $OPS util clean
+        fi
         
-
 
   clean:
     silent: true

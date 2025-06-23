@@ -28,6 +28,18 @@ env:
       fi
 
 tasks:
+
+  listuser:
+    silent: true
+    cmds:
+      - |
+        if test -n "{{._username_}}"
+        then 
+          kubectl -n nuvolaris get wsku/{{._username_}} -ojsonpath='{.spec}' | jq .
+        else
+          kubectl -n nuvolaris get wsku 
+        fi
+
   deleteuser:
     silent: true
     cmds:

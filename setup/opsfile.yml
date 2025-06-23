@@ -94,6 +94,7 @@ tasks:
       else
         if test -z "$CONFIGURED"
         then $OPS config slim
+             $OPS config apihost miniops.me --protocol=http
         fi
         if test -z {{.__skip_check_ports}}
         then 
@@ -102,6 +103,7 @@ tasks:
         {{.RUN}} $OPS setup docker create         
         {{.RUN}} $OPS setup kubernetes create
         {{.RUN}} $OPS setup nuvolaris login
+        {{.RUN}} $OPS setup nuvolaris add-user
         config STATUS_LAST=devcluster
       fi   
 
@@ -157,28 +159,29 @@ tasks:
       - |
         case "$STATUS_LAST" in 
         (devcluster) 
-                    {{.RUN}} $OPS setup devcluster --uninstall
-                    config -r STATUS_LAST
+          {{.RUN}} $OPS setup devcluster --uninstall
+          config -r STATUS_LAST
         ;;
         (cluster)   
-                    if test -n "$STATUS_CONTEXT" 
-                    then 
-                        {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --uninstall
-                        config -r STATUS_CONTEXT
-                    else
-                        {{.RUN}} $OPS setup cluster --uninstall
-                    fi
-                    config -r STATUS_LAST
+          if test -n "$STATUS_CONTEXT" 
+          then 
+              {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --uninstall
+              config -r STATUS_CONTEXT
+          else
+              {{.RUN}} $OPS setup cluster --uninstall
+          fi
+          config -r STATUS_LAST
         ;;
         (server)    
-                    if test -z "$STATUS_USERNAME"
-                    then 
-                          {{.RUN}} $OPS setup server "$STATUS_SERVER" --uninstall
-                    else
-                          {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
-                          config -r STATUS_USERNAME
-                    fi
-                    config -r STATUS_LAST STATUS_SERVER 
+          if test -z "$STATUS_USERNAME"
+          then 
+                {{.RUN}} $OPS setup server "$STATUS_SERVER" --uninstall
+          else
+                {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
+                config -r STATUS_USERNAME
+          fi
+          config -r STATUS_LAST STATUS_SERVER 
         ;; 
         (*) echo nothing installed yet
         esac
+
