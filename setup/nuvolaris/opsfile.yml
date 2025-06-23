@@ -247,7 +247,11 @@ tasks:
       HOST: 
         sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
     cmds:
-    - test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
+    #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
+    - |
+      if kubectl -n nuvolaris get wsku/devel >/dev/null
+      then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"
+      fi
     - echo "Creating user {{.USR}} in $APIHOST"
     - |
       ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
