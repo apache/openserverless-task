@@ -249,7 +249,7 @@ tasks:
     cmds:
     #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
     - |
-      if kubectl -n nuvolaris get wsku/devel >/dev/null
+      if kubectl -n nuvolaris get wsku/{{.USR}} >/dev/null
       then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"
       fi
     - echo "Creating user {{.USR}} in $APIHOST"
