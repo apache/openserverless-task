@@ -94,7 +94,7 @@ tasks:
       else
         if test -z "$CONFIGURED"
         then $OPS config slim
-             $OPS config apihost 127.0.0.1.nip.io
+             $OPS config apihost miniops.me --protocol=http
         fi
         if test -z {{.__skip_check_ports}}
         then 
@@ -103,6 +103,7 @@ tasks:
         {{.RUN}} $OPS setup docker create         
         {{.RUN}} $OPS setup kubernetes create
         {{.RUN}} $OPS setup nuvolaris login
+        {{.RUN}} $OPS setup nuvolaris add-user
         config STATUS_LAST=devcluster
       fi   
 

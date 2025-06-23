@@ -108,7 +108,6 @@ tasks:
     silent: false
     cmds:
     - |
-      export KUBECONFIG="$KUBECONFIG"
       export OPSDEV_APIHOST=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')
       export OPSDEV_USERNAME=nuvolaris
       export AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
@@ -231,8 +230,9 @@ tasks:
   delete:
     desc: no-op delete command
 
-  adduser:
-    desc: create a new development user with a  password (specify with U,P, default U=devel, P=a random password)
+  add-user:
+    silent: true
+    desc: create a new U=user (default 'devel') with P=password, (default a random pw)
     vars:
       USR: '{{or .U "devel" }}'
       PSW:
@@ -241,15 +241,22 @@ tasks:
             then ops -random --str 8
             else echo "{{.P}}"
             fi
-      APIHOST:
-        sh: >
-           kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}'
+    env:
+      APIHOST: 
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
+      HOST: 
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
     cmds:
-    - echo "Creating user {{.USR}} with password {{.PSW}}"
-    - test ! -e ~/.ops/{{.USR}}.password || die "The user {{.USR}} already exists - check the file .ops/{{.USR}}.password in your home directory to see the password"
+    - test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
+    - echo "Creating user {{.USR}} in $APIHOST"
     - |
       ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
-      sleep 5
+      sleep 5      
+    - |
       export OPS_PASSWORD="{{.PSW}}"
-      retry ops ide login {{.USR}} {{.APIHOST}}
+      retry ops ide login {{.USR}} "$APIHOST"
     - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
+    - echo "========================================="
+    - echo "Login with:" ops ide login {{.USR}} $APIHOST
+    - echo "Password is saved in:" ~/.ops/{{.USR}}.password
+    - echo "Web URL is:" "$HOST"
