@@ -24,7 +24,7 @@ nodes:
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: "ingress-ready=true,nuvolaris.io/apihost=localhost,nuvolaris.io/apiport=80,nuvolaris.io/protocol=http,nuvolaris.io/kube=kind"
+        node-labels: "ingress-ready=true,nuvolaris.io/apihost=127.0.0.1.nip.io,nuvolaris.io/apiport=80,nuvolaris.io/protocol=http,nuvolaris.io/kube=kind"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80

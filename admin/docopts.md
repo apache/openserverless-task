@@ -29,6 +29,7 @@ You can create namespaces and choose which services to enable.
 Usage:
   admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio] [--postgres] [--milvus] [--storagequota=<quota>|auto]
   admin deleteuser <username>
+  admin listuser [<username>]
   admin compact [--ttl=<ttl>|10]
 ```
 
@@ -36,6 +37,7 @@ Usage:
 ```
   admin adduser       create a new user in OpenServerless with the username, email and password provided
   admin deleteuser    delete a user from the OpenServerless installation via the username provided
+  admin listuser      list all the secrets of an user (default list all the users)
   admin compact       create a one shot job which executes couchdb compact against all available dbs
 ```
 
