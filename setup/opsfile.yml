@@ -87,6 +87,7 @@ tasks:
     desc: install miniops
     cmds:
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
+      - docker info 2>&1 >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
         if curl -s http://miniops.me >/dev/null
         then
