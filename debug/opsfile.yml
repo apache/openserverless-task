@@ -94,6 +94,7 @@ tasks:
       - |
         while true
         do
+          echo "===" $(date +%T) "==="
           kubectl -n nuvolaris get po,deploy,sts
           sleep 5
         done  
