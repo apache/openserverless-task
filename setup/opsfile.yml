@@ -101,18 +101,6 @@ tasks:
       - $OPS config apihost miniops.me --protocol=http
       - $OPS setup devcluster
       - $OPS setup nuvolaris add-user
-      - |
-        export OPS_PASSWORD="$(cat ~/.ops/devel.password)"
-        ops ide login devel http://miniops.me
-        ops util upload $(realpath web)
-      - |
-        $OPS setup nuvolaris add-user
-        export OPS_PASSWORD="$(cat ~/.ops/devel.password)"
-        $OPS ide login devel http://miniops.me
-        $OPS util upload "$(realpath web)"
-      - echo "Login with:" ops ide login devel https://miniops.me
-      - echo "Password is saved in:" ~/.ops/devel.password
-      - echo "Web URL is:" "http://devel.miniops.me"
 
   devcluster:
     vars:

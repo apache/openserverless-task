@@ -230,6 +230,11 @@ tasks:
   delete:
     desc: no-op delete command
 
+
+  boh:
+    cmds:
+    - realpath web
+
   add-user:
     silent: true
     desc: create a new U=user (default 'devel') with P=password, (default a random pw)
@@ -255,8 +260,12 @@ tasks:
     - echo "Creating user {{.USR}} in $APIHOST"
     - |
       ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
-      sleep 5      
+      sleep 15
     - |
       export OPS_PASSWORD="{{.PSW}}"
       retry ops ide login {{.USR}} "$APIHOST"
     - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
+    - ops util upload "$(realpath web)"
+    - echo "Login with:" ops ide login {{.USR}} https://miniops.me
+    - echo "Password is saved in:" ~/.ops/{{.USR}}.password
+    - echo "Web URL is:" "$HOST"
