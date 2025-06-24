@@ -17,7 +17,7 @@
 
 version: "3"
 vars:
-  DRY: false
+  DRY: true
 
 env:
   KUBECONFIG:
@@ -191,3 +191,13 @@ tasks:
         else
           kubectl apply -f kubernetes/_compact-job.yaml
         fi
+
+  usage:
+    silent: true
+    cmds:
+      - |
+        if {{.__debug}}; then
+          echo 'flag is {{.__debug}}'
+          FLAG=--debug
+        fi
+        bun usage/usage.js $FLAG
