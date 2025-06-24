@@ -249,7 +249,7 @@ tasks:
     cmds:
     #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
     - |
-      if kubectl -n nuvolaris get wsku/{{.USR}} >/dev/null
+      if kubectl -n nuvolaris get wsku/{{.USR}} 2>/dev/null
       then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"
       fi
     - echo "Creating user {{.USR}} in $APIHOST"
@@ -260,7 +260,3 @@ tasks:
       export OPS_PASSWORD="{{.PSW}}"
       retry ops ide login {{.USR}} "$APIHOST"
     - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
-    - echo "========================================="
-    - echo "Login with:" ops ide login {{.USR}} $APIHOST
-    - echo "Password is saved in:" ~/.ops/{{.USR}}.password
-    - echo "Web URL is:" "$HOST"

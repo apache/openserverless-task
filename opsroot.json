@@ -5,7 +5,7 @@
 	     "coreutils": "arch b2sum b3sum base32 basename basenc cat chgrp chmod chown chroot cksum comm cp csplit cut date dd df dir dircolors dirname du env expand expr factor fmt fold groups hashsum head hostid hostname id install join kill link ln logname ls md5sum mkdir mkfifo mknod mktemp more mv nice nl nohup nproc numfmt od paste pathchk pinky pr printenv printf ptx pwd readlink realpath rm rmdir seq sha1sum sha224sum sha256sum sha3-224sum sha3-256sum sha3-384sum sha3-512sum sha384sum sha3sum sha512sum shake128sum shake256sum shred shuf sleep sort split stat stdbuf stty sum sync tac tail tee timeout touch tr truncate tsort tty uname unexpand uniq unlink uptime users vdir wc who whoami yes"
        },
        "images": {
-         "operator": "apache/openserverless-operator:0.1.0-incubating.2506232348",
+         "operator": "apache/openserverless-operator:0.1.0-incubating.2506240723",
          "controller": "ghcr.io/nuvolaris/openwhisk-controller:3.1.0-mastrogpt.2402101445",
          "invoker": "ghcr.io/nuvolaris/openwhisk-invoker:3.1.0-mastrogpt.2402101445"
         }
