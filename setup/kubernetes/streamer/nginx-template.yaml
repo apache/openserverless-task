@@ -27,7 +27,7 @@ spec:
   ingressClassName: nginx
   rules:
   - #
-    host: stream.${STREAMER_API_HOSTNAME:-localhost}
+    host: stream.${STREAMER_API_HOSTNAME:-localhost}    
     http:
       paths:
       - backend:
@@ -35,6 +35,6 @@ spec:
             name: ${USERNAME:-nuvolaris}-streamer-api
             port:
               number: 8080
-        path: /system
+        path: /
         pathType: Prefix
 
