@@ -56,8 +56,7 @@ tasks:
     desc: deploy the streamer 
     cmds:
     - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
-    - env | grep IMAGES_STREAMER > /dev/null 2>&1 || 
-      (echo "IMAGES_STREAMER is not set. Please set it to the desired image version." && exit 1)
+    - test -n "$IMAGES_STREAMER" || die "IMAGES_STREAMER is not set. Please set it to the desired image version."
     - envsubst -i streamer-template.yaml -o _streamer.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
     - kubectl -n nuvolaris apply -f _streamer.yaml > /dev/null 2>&1
