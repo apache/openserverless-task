@@ -28,8 +28,8 @@ env:
 
   KUBECONFIG:
     sh: |
-      if test -e $(realpath "$OPS_TMP/kubeconfig")
-      then echo $(realpath "$OPS_TMP/kubeconfig")
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
       else echo ~/.kube/config
       fi
 
@@ -46,19 +46,16 @@ env:
       fi
 
   INGRESS_TYPE:
-    sh: |
-      case "$(kubectl get ingressclass -ojsonpath='{.items[0].spec.controller}')" in
-        k8s.io/ingress-nginx)  echo "nginx" ;;
-        traefik.io/ingress-controller) echo "k3s" ;;
-      esac
+    sh: ops util ingress-type
 
 tasks:
-
+  
   deploy:
     silent: true
     ignore_error: false
     desc: deploy the streamer 
     cmds:
+    - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
     - env | grep IMAGES_STREAMER > /dev/null 2>&1 || 
       (echo "IMAGES_STREAMER is not set. Please set it to the desired image version." && exit 1)
     - envsubst -i streamer-template.yaml -o _streamer.yaml > /dev/null 2>&1
@@ -66,7 +63,7 @@ tasks:
     - kubectl -n nuvolaris apply -f _streamer.yaml > /dev/null 2>&1
     - kubectl -n nuvolaris apply -f _ingress.yaml > /dev/null 2>&1
     - |
-      echo "Streamer API deployed with HOSTNAME: ${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
+      echo "Streamer API deployed with HOSTNAME: stream.${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
 
   undeploy:
     silent: true

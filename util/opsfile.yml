@@ -212,5 +212,13 @@ tasks:
         sh: |
           echo "$OPS_ROOT/util/upload/assets"
 
-    
-
+  ingress-type:
+    desc: get ingress type
+    silent: true
+    cmds:
+      - |
+        case "$(ops util kubectl -- -o jsonpath='{.items[0].spec.controller}' get ingressclass)" in
+          k8s.io/ingress-nginx)  echo "nginx" ;;
+          traefik.io/ingress-controller) echo "traefik" ;;
+          *) echo "unknown" ;;
+        esac
