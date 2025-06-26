@@ -87,21 +87,27 @@ tasks:
     desc: install miniops
     cmds:
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
-      - docker info 2>&1 >/dev/null || die "Docker is not running. Please start Docker Desktop first."
+      - docker info 2>/dev/null >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
-        if curl -s http://miniops.me >/dev/null
+        if curl -sL http://miniops.me >/dev/null 2>/dev/null
         then
-          echo "Apache OpenServerless mini is already installed."
-          echo "Login with: ops ide login devel http://miniops.me"
-          echo "You can find the password in .ops/devel.password in your home directory"
-          echo "Uninstall it with ops setup devcluster --uninstall"
+          if 
+          curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | grep OpenWhisk >/dev/null
+          then
+            echo "Apache OpenServerless mini is already installed."
+            echo "Login with: ops ide login devel http://miniops.me"
+            echo "You can find the password in .ops/devel.password in your home directory"
+            echo "If it is unwanted, you can uninstall it with: ops setup docker delete"
+          else
+            echo "Something is already running as a local webserver, please remove it before installing miniops."
+          fi
           false
         fi
       - $OPS config slim
       - $OPS config apihost miniops.me --protocol=http
       - $OPS setup devcluster
-      - $OPS setup nuvolaris add-user
       - $OPS setup kubernetes streamer deploy
+      - $OPS setup nuvolaris add-user
 
   devcluster:
     vars:
