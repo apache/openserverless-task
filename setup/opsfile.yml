@@ -92,7 +92,7 @@ tasks:
         if curl -sL http://miniops.me >/dev/null 2>/dev/null
         then
           if 
-          curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | grep OpenWhisk >/dev/null
+          curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | rg OpenWhisk >/dev/null
           then
             echo "Apache OpenServerless mini is already installed."
             echo "Login with: ops ide login devel http://miniops.me"
