@@ -89,6 +89,10 @@ env:
       fi
 
 tasks:
+  
+  streamer:
+    desc: deploy streamer
+  
   status:
     desc: show nuvolaris cluster status
     silent: true

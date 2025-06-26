@@ -1,0 +1,94 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+version: '3'
+
+vars:
+  VAR: ""
+  MSG: ""
+  VAL: ""
+  RETRY: 100
+  TIMEOUT: 15s
+  CONTEXT: ""
+
+env:
+
+  KUBECONFIG:
+    sh: |
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
+      else echo ~/.kube/config
+      fi
+
+  STREAMER_API_HOSTNAME: 
+      sh: |
+        ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'       
+  
+  OW_APIHOST:
+    sh: |
+      HOST=$(ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}')
+      if [ $OPERATOR_COMPONENT_INVOKER = true ]; 
+        then echo "$HOST"
+        else  echo "http://controller:3233"
+      fi
+
+  INGRESS_TYPE:
+    sh: ops util ingress-type
+
+tasks:
+  
+  deploy:
+    silent: true
+    ignore_error: false
+    desc: deploy the streamer 
+    cmds:
+    - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
+    - env | grep IMAGES_STREAMER > /dev/null 2>&1 || 
+      (echo "IMAGES_STREAMER is not set. Please set it to the desired image version." && exit 1)
+    - envsubst -i streamer-template.yaml -o _streamer.yaml > /dev/null 2>&1
+    - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
+    - kubectl -n nuvolaris apply -f _streamer.yaml > /dev/null 2>&1
+    - kubectl -n nuvolaris apply -f _ingress.yaml > /dev/null 2>&1
+    - |
+      echo "Streamer API deployed with HOSTNAME: stream.${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
+
+  undeploy:
+    silent: true
+    desc: undeploy the streamer 
+    ignore_error: false
+    cmds:
+    - envsubst -i streamer-template.yaml -o _streamer.yaml > /dev/null 2>&1
+    - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
+    - kubectl -n nuvolaris delete -f _streamer.yaml > /dev/null 2>&1
+    - kubectl -n nuvolaris delete -f _ingress.yaml > /dev/null 2>&1
+    - |
+      echo "Streamer API undeployed"
+
+  update:
+    silent: true
+    desc: update the streamer 
+    cmds:
+      - task: deploy
+      - kubectl -n nuvolaris rollout restart statefulset nuvolaris-streamer-api
+    preconditions:      
+      - sh: '[ $IMAGES_STREAMER != $CURRENT_STREAMER_VERSION ]'
+        msg: "Current nuvolaris streamer API stateful set it is already updated to newest version. Request ignored."
+    env:
+      CURRENT_STREAMER_VERSION:
+        sh: |
+          echo $(kubectl -n nuvolaris get pod/nuvolaris-streamer-api-0 -ojsonpath='{.spec.containers[0].image}')
+                      
+  

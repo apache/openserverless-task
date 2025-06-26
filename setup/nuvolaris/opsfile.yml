@@ -230,10 +230,8 @@ tasks:
   delete:
     desc: no-op delete command
 
-
-  boh:
-    cmds:
-    - realpath web
+  streamer:
+    desc: manage the streamer deployment
 
   add-user:
     silent: true
