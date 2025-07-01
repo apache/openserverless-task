@@ -87,7 +87,7 @@ export function deployAction(artifact) {
   activeDeployments.set(artifact, true);
   const indexInQueue = queue.indexOf(artifact);
   if (indexInQueue>-1) {
-    console.log(`> Deploying ${artifact} (from queue: ${indexInQueue})`);
+    console.log(`⚙️ Deploying ${artifact} (from queue: ${indexInQueue})`);
   }
 
   try {
@@ -97,7 +97,7 @@ export function deployAction(artifact) {
     typ = spData[1];
     pkg = sp[1];
   } catch {
-    console.log("! cannot deploy", artifact);
+    console.log("❌ cannot deploy", artifact);
     return;
   }
   
@@ -119,7 +119,7 @@ export function deployAction(artifact) {
 
   if (queue.length > 0) {
     const nextArtifact = queue.shift();
-    console.debug(`deploying from queue artifact ${nextArtifact}`);
+    console.debug(`📦 deploying from queue artifact ${nextArtifact}`);
     deploy(nextArtifact);
   }
 }
@@ -163,7 +163,7 @@ export function deployProject(artifact) {
     if (manifestContent.indexOf('packages:')!==-1) {
       exec(`$OPS -wsk project deploy --manifest ${artifact}`);
     } else {
-      console.log(`Wanring: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
+      console.log(`⚠️ Warning: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
     }
   }
 }

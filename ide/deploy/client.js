@@ -100,6 +100,8 @@ export function build() {
     stdio: ['pipe', 'pipe', 'pipe']
   });
 
+  console.log(`✈️ Deploy Child process: ${deploy} has PID: ${proc.pid}`);
+
   proc.stdout.on('data', (data) => {
     console.log(data.toString());
   });
@@ -110,5 +112,18 @@ export function build() {
 
   proc.on('close', (code) => {
     console.log(`build process exited with code ${code}`);
+  });
+
+
+  process.on('SIGINT', () => {
+    console.log(`🔥Killing process pid ${proc.pid}`);
+    proc.kill(); // sends SIGTERM to Vite
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log(`🔥Killing process pid ${proc.pid}`);
+    proc.kill();
+    process.exit(0);
   });
 }
