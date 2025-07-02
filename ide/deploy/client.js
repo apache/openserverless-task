@@ -20,6 +20,9 @@ import { spawn } from 'child_process';
 import { resolve } from 'path';
 import process from 'process';
 import { createInterface } from 'readline';
+import {globalWatcher} from "./watch";
+
+export let globalProc = undefined;
 
 /**
  * Read a key from OpenServerless configuration added to a `package.json` file in the
@@ -87,43 +90,48 @@ export function logs() {
   launch('logs', 'ops activation poll');
 }
 
+async function signalHandler() {
+  console.log(`🔥Killing process pid ${globalProc.pid}`);
+  if (globalWatcher) {
+    console.log("☠️ Stopping watcher");
+    await globalWatcher.close();
+  }
+  globalProc.kill();
+  process.exit(0);
+}
+
 /**
  * start a custom deploy function if required from the user
  * through `getOpenServerlessConfig` mechanism
  */
 export function build() {
   const deploy = getOpenServerlessConfig('deploy', 'true');
-  const proc = spawn(deploy, {
+
+  if (globalProc!==undefined) {
+    globalProc.kill();
+  }
+
+  globalProc = spawn(deploy, {
     shell: true,
     env: process.env,
     cwd: process.env.OPS_PWD,
     stdio: ['pipe', 'pipe', 'pipe']
   });
 
-  console.log(`✈️ Deploy Child process: ${deploy} has PID: ${proc.pid}`);
+  console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
 
-  proc.stdout.on('data', (data) => {
+  globalProc.stdout.on('data', (data) => {
     console.log(data.toString());
   });
 
-  proc.stderr.on('data', (data) => {
+  globalProc.stderr.on('data', (data) => {
     console.error(data.toString());
   });
 
-  proc.on('close', (code) => {
+  globalProc.on('close', (code) => {
     console.log(`build process exited with code ${code}`);
   });
 
-
-  process.on('SIGINT', () => {
-    console.log(`🔥Killing process pid ${proc.pid}`);
-    proc.kill(); // sends SIGTERM to Vite
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log(`🔥Killing process pid ${proc.pid}`);
-    proc.kill();
-    process.exit(0);
-  });
+  process.on('SIGINT', signalHandler);
+  process.on('SIGTERM', signalHandler);
 }
