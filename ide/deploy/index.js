@@ -89,7 +89,7 @@ async function main() {
             action = `packages/${action}`;
         }
         if (!existsSync(action)) {
-            console.log(`action ${action} not found: must be either a file or a directory under packages`);
+            console.log(`❌ action ${action} not found: must be either a file or a directory under packages`);
             return;
         }
         console.log(`Deploying ${action}`);
