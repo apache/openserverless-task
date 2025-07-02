@@ -175,6 +175,7 @@ tasks:
           echo exported current kubeconfig to ~/.kube/config
           echo $BKP
           kubectl cluster-info
+          kubectl config set-context --current --namespace nuvolaris
         else echo "No kubeconfig to export"
         fi
 
