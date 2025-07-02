@@ -20,12 +20,20 @@ import {createServer} from 'net';
 import process from 'process';
 import {program} from 'commander';
 import {scan} from './scan.js';
-import {watchAndDeploy} from './watch.js';
+import {watchAndDeploy, globalWatcher} from './watch.js';
 import {setDryRun, deploy} from './deploy.js';
 import {build} from './client.js';
 
-function signalHandler() {
+
+
+async function signalHandler() {
     console.log('Termination requested.');
+
+    if (globalWatcher) {
+        console.log("☠️ SIGKILL - Stopping watcher");
+        await globalWatcher.close();
+    }
+
     unlinkSync(expanduser('~/.ops/tmp/deploy.pid'));
     process.kill(process.getpgrp(), 'SIGKILL');
     process.exit(0); // should not be reached but just in case...
@@ -51,6 +59,7 @@ async function main() {
 
 
     process.on('SIGTERM', signalHandler);
+    process.on('SIGKILL', signalHandler);
     const pidfile = expanduser('~/.ops/tmp/deploy.pid');
     console.log('PID', pid);
 
@@ -103,3 +112,5 @@ main().catch(err => {
     console.error(err);
     process.exit(1);
 });
+
+setInterval(() => {}, 1000);
