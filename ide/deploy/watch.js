@@ -21,7 +21,11 @@ import {watch} from 'chokidar';
 import {resolve} from 'path';
 import {deploy} from './deploy.js';
 import {logs, serve} from './client.js';
+
 import process from 'process';
+
+export let globalWatcher;
+
 
 /**
  * This function will return true when the file should
@@ -65,7 +69,7 @@ export function checkAndDeploy(changeType, path) {
  */
 async function redeploy() {
   console.log("> Watching:");
-  const watcher = watch('packages', {
+  globalWatcher = watch('packages', {
     persistent: true,
     ignoreInitial: true,
     recursive: true,
@@ -74,7 +78,8 @@ async function redeploy() {
     ignored: (file) => shouldIgnoreFile(file),
   });
 
-  watcher.on('all', (event, path) => {
+
+  globalWatcher.on('all', (event, path) => {
     try {
       checkAndDeploy(event, path);
     } catch (error) {
@@ -83,12 +88,7 @@ async function redeploy() {
   });
 
   return new Promise((resolve, reject) => {
-    watcher.on('error', reject);
-    process.on('SIGTERM', () => {
-      console.log("Ending task.");
-      watcher.close();
-      resolve();
-    });
+    globalWatcher.on('error', reject);
   });
 }
 

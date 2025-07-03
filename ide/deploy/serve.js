@@ -44,7 +44,7 @@ async function findAvailablePort(host, startPort = 8080) {
             // Port is taken, try the next one
         }
     }
-    throw new Error("No available port found.");
+    throw new Error("❌ No available port found.");
 }
 
 /**
@@ -211,9 +211,9 @@ async function main() {
         },
     });
 
-    console.log(`Server running at http://${flags.host}:${serverPort}`);
+    console.log(`🌍 Server running at http://${flags.host}:${serverPort}`);
     if (flags.proxyHost) {
-        console.log(`Server proxying at ${flags.proxyHost}`);
+        console.log(`🌍 Server proxying at ${flags.proxyHost}`);
     }
 }
 
