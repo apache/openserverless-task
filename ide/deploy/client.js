@@ -15,11 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { readFileSync } from 'fs';
-import { spawn } from 'child_process';
-import { resolve } from 'path';
+import {readFileSync} from 'fs';
+import {spawn} from 'child_process';
+import {resolve} from 'path';
 import process from 'process';
-import { createInterface } from 'readline';
+import {createInterface} from 'readline';
 import {globalWatcher} from "./watch";
 
 export let globalProc = undefined;
@@ -32,14 +32,14 @@ export let globalProc = undefined;
  * @returns {*}
  */
 export function getOpenServerlessConfig(key, defaultValue) {
-  try {
-    const dir = process.env.OPS_PWD || '/do_not_exists';
-    const file = resolve(dir, 'package.json');
-    const info = JSON.parse(readFileSync(file, 'utf8'));
-    return info.openserverless?.[key] || defaultValue;
-  } catch {
-    return defaultValue;
-  }
+    try {
+        const dir = process.env.OPS_PWD || '/do_not_exists';
+        const file = resolve(dir, 'package.json');
+        const info = JSON.parse(readFileSync(file, 'utf8'));
+        return info.openserverless?.[key] || defaultValue;
+    } catch {
+        return defaultValue;
+    }
 }
 
 /**
@@ -49,10 +49,10 @@ export function getOpenServerlessConfig(key, defaultValue) {
  * @returns {void}
  */
 function readlines(inp) {
-  const rl = createInterface({ input: inp, terminal: false });
-  rl.on('line', (line) => {
-    console.log(line);
-  });
+    const rl = createInterface({input: inp, terminal: false});
+    rl.on('line', (line) => {
+        console.log(line);
+    });
 }
 
 /**
@@ -62,16 +62,16 @@ function readlines(inp) {
  * @param defaultValue
  */
 export function launch(key, defaultValue) {
-  const cmd = getOpenServerlessConfig(key, defaultValue);
-  const proc = spawn(cmd, {
-    shell: true,
-    cwd: process.env.OPS_PWD,
-    env: process.env,
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
+    const cmd = getOpenServerlessConfig(key, defaultValue);
+    const proc = spawn(cmd, {
+        shell: true,
+        cwd: process.env.OPS_PWD,
+        env: process.env,
+        stdio: ['pipe', 'pipe', 'pipe']
+    });
 
-  readlines(proc.stdout);
-  readlines(proc.stderr);
+    readlines(proc.stdout);
+    readlines(proc.stderr);
 }
 
 /**
@@ -79,7 +79,7 @@ export function launch(key, defaultValue) {
  * through `getOpenServerlessConfig` mechanism
  */
 export function serve() {
-  launch('devel', 'ops ide serve');
+    launch('devel', 'ops ide serve');
 }
 
 /**
@@ -87,51 +87,55 @@ export function serve() {
  * through `getOpenServerlessConfig` mechanism
  */
 export function logs() {
-  launch('logs', 'ops activation poll');
+    launch('logs', 'ops activation poll');
 }
 
 async function signalHandler() {
-  console.log(`🔥Killing process pid ${globalProc.pid}`);
-  if (globalWatcher) {
-    console.log("☠️ Stopping watcher");
-    await globalWatcher.close();
-  }
-  globalProc.kill();
-  process.exit(0);
+    console.log(`🔥Killing process pid ${globalProc.pid}`);
+    if (globalWatcher) {
+        console.log("☠️ Stopping watcher");
+        await globalWatcher.close();
+    }
+    globalProc.kill();
+    process.exit(0);
 }
 
 /**
  * start a custom deploy function if required from the user
  * through `getOpenServerlessConfig` mechanism
  */
-export function build() {
-  const deploy = getOpenServerlessConfig('deploy', 'true');
+export async function build() {
+    const deploy = getOpenServerlessConfig('deploy', 'true');
 
-  if (globalProc!==undefined) {
-    globalProc.kill();
-  }
+    if (globalProc !== undefined) {
+        globalProc.kill();
+    }
 
-  globalProc = spawn(deploy, {
-    shell: true,
-    env: process.env,
-    cwd: process.env.OPS_PWD,
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
+    globalProc = spawn(deploy, {
+        shell: true,
+        env: process.env,
+        cwd: process.env.OPS_PWD,
+        stdio: ['pipe', 'pipe', 'pipe']
+    });
 
-  console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
+    console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
 
-  globalProc.stdout.on('data', (data) => {
-    console.log(data.toString());
-  });
+    globalProc.stdout.on('data', (data) => {
+        console.log(data.toString());
+    });
 
-  globalProc.stderr.on('data', (data) => {
-    console.error(data.toString());
-  });
+    globalProc.stderr.on('data', (data) => {
+        console.error(data.toString());
+    });
 
-  globalProc.on('close', (code) => {
-    console.log(`build process exited with code ${code}`);
-  });
+    globalProc.on('close', (code) => {
+        console.log(`build process exited with code ${code}`);
+    });
 
-  process.on('SIGINT', signalHandler);
-  process.on('SIGTERM', signalHandler);
+    process.on('SIGINT', signalHandler);
+    process.on('SIGTERM', signalHandler);
+
+    await globalProc.exited;
+
+
 }
