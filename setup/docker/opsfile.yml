@@ -80,14 +80,13 @@ tasks:
     desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
     ignore_errors: true
     cmds:
-    - docker pull "$IMAGES_OPERATOR"
-    - kind load docker-image $IMAGES_OPERATOR --name nuvolaris
-    - docker pull "$IMAGES_CONTROLLER"
-    - kind load docker-image "$IMAGES_CONTROLLER" --name nuvolaris
-    - docker pull "$IMAGES_INVOKER"
-    - kind load docker-image "$IMAGES_INVOKER" --name nuvolaris
-    - docker pull "$IMAGES_STREAMER"
-    - kind load docker-image "$IMAGES_STREAMER" --name nuvolaris
+    - |
+      for image in "$IMAGES_OPERATOR" "$IMAGES_CONTROLLER"  "$IMAGES_STREAMER"
+      do
+        docker pull "$image" 
+        kind load docker-image "$image" --name nuvolaris
+        docker rmi "$image"
+      done
     - |
       jq -r '.runtimes[][]
       | select(.default == true)
@@ -97,6 +96,7 @@ tasks:
       | while read -r image; do
           docker pull "$image"
           kind load docker-image "$image" --name nuvolaris
+          docker rmi "$image"
         done
 
 
@@ -108,7 +108,8 @@ tasks:
     - echo "Cleaning all docker images and containers"
     - docker ps -qa | while read a ; do docker rm -f "$a" ; done
     - docker images -qa | while read a ; do docker rmi -f "$a" ; done
-    - docker system prune -af --volumes
+    - docker system prune -af 
+    - docker volume prune -af
     - docker system df
     
 
