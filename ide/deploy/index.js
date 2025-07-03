@@ -89,9 +89,11 @@ async function main() {
             await build();
         }
         watchAndDeploy();
+
     } else if (options.deploy) {
         await scan();
-        await build();
+        await build()
+        process.exit(0);
     } else if (options.single !== '') {
         let action = options.single;
         if (!action.startsWith('packages/')) {
@@ -103,6 +105,7 @@ async function main() {
         }
         console.log(`Deploying ${action}`);
         await deploy(action);
+        process.exit(0);
     } else {
         program.help();
     }
