@@ -75,12 +75,51 @@ tasks:
       kubectl --kubeconfig="$OPS_TMP/kubeconfig" 
       apply -f ingress-deploy.yaml
 
+  preload:
+    silent: true
+    desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
+    ignore_errors: true
+    cmds:
+    - |
+      for image in "$IMAGES_OPERATOR" "$IMAGES_CONTROLLER"  "$IMAGES_STREAMER"
+      do
+        docker pull "$image" 
+        kind load docker-image "$image" --name nuvolaris
+        docker rmi "$image"
+      done
+    - |
+      jq -r '.runtimes[][]
+      | select(.default == true)
+      | .image
+      | "\(.prefix)/\(.name):\(.tag)"' <$OPS_ROOT/runtimes.json \
+      | rg apache/openserverless-runtime \
+      | while read -r image; do
+          docker pull "$image"
+          kind load docker-image "$image" --name nuvolaris
+          docker rmi "$image"
+        done
+
+
+  clean-all:
+    silent: true
+    desc: remove all images and containers from docker
+    prompt: Are you sure? This will remove all images, containers and volumes from docker
+    cmds:
+    - echo "Cleaning all docker images and containers"
+    - docker ps -qa | while read a ; do docker rm -f "$a" ; done
+    - docker images -qa | while read a ; do docker rmi -f "$a" ; done
+    - docker system prune -af 
+    - docker volume prune -af
+    - docker system df
+    
+
   create:
     silent: true
     desc: create the Apache OpenServerless cluster in Docker
     cmds:
     - task: cluster
     - task: ingress
+    - task: preload
     - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
     status:
     - kind get clusters | rg nuvolaris
