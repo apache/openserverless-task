@@ -252,6 +252,7 @@ tasks:
 
 
   zip:
+    desc: ensure zip is available
     vars:
        VERSION: 3.0-1
        ZIP_EXE: "https://github.com/nuvolaris/zip/raw/refs/heads/master/zip.exe"
@@ -274,6 +275,31 @@ tasks:
          executable zip.exe
       ;;
       esac
+
+  kubefwd:
+    desc: download kubefwd
+    vars:
+      VERSION: "1.22.5"
+      SUFFIX:
+        sh: |
+            case "{{.OS}}-{{.ARCH}}" in
+            linux-amd64) echo "_Linux_x86_64" ;;
+            linux-arm64) echo "_Linux_arm64" ;;
+            darwin-amd64) echo "_Darwin_x86_64" ;;
+            darwin-arm64) echo "_Darwin_arm64" ;; 
+            windows-*) echo "_Windows_x86_64" ;;
+            *) echo "unknown" ;;
+            esac
+            #https://github.com/txn2/kubefwd/releases/download/1.22.5/kubefwd_Darwin_x86_64.tar.gz
+      URL: "https://github.com/txn2/kubefwd/releases/download/{{.VERSION}}/kubefwd{{.SUFFIX}}{{.ARC}}" 
+      FILE: "{{base .URL}}"
+      OUT: kubefwd
+    cmds:
+    - task: download-and-extract
+      vars:
+        URL: "{{.URL}}"
+        FILE: "{{.FILE}}"
+        OUT: kubefwd
 
   all:
     - task: 7zz
