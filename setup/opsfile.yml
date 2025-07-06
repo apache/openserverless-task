@@ -103,6 +103,7 @@ tasks:
           fi
           false
         fi
+      - $OPS setup docker check-space
       - $OPS config slim
       - $OPS config apihost miniops.me --protocol=http
       - $OPS setup devcluster
