@@ -162,7 +162,7 @@ tasks:
   uv:
     desc: install uv
     vars:
-      VERSION: "0.6.7"
+      VERSION: "0.7.19"
       FILE:
          sh: |
              case "{{.OS}}-{{.ARCH}}" in
@@ -170,7 +170,7 @@ tasks:
               linux-arm64) echo uv-aarch64-unknown-linux-gnu.tar.gz ;;
               darwin-arm64) echo uv-aarch64-apple-darwin.tar.gz ;;
               darwin-amd64) echo uv-x86_64-apple-darwin.tar.gz ;;
-              windows-*) echo uv-aarch64-pc-windows-msvc.zip ;;
+              windows-*) echo uv-x86_64-pc-windows-msvc.zip ;;
               *) echo "unknown" ;;
              esac
       URL: "https://github.com/astral-sh/uv/releases/download/{{.VERSION}}/{{.FILE}}"
@@ -180,29 +180,29 @@ tasks:
     - extract "{{.FILE}}" "{{.OUT}}{{.EXE}}"
     - remove "{{.FILE}}"
 
-  hugo:
-    desc: download hugo
-    vars:
-      VERSION: 0.145.0
-      SUFFIX:
-         sh: |
-             case "{{.OS}}-{{.ARCH}}" in
-              linux-amd64) echo Linux-64bit.tar.gz ;;
-              linux-arm64) echo "linux-arm64.tar.gz" ;;
-              darwin-arm64) echo darwin-universal.tar.gz ;;
-              darwin-amd64) echo darwin-universal.tar.gz ;;
-              windows-*) echo windows-amd64.zip ;;
-              *) echo "unknown" ;;
-             esac
-      URL: "https://github.com/gohugoio/hugo/releases/download/v{{.VERSION}}/hugo_extended_{{.VERSION}}_{{.SUFFIX}}"
-      FILE: "{{base .URL}}"
-      OUT: hugo
-    cmds:
-    - task: download-and-extract
-      vars:
-        URL: "{{.URL}}"
-        FILE: "{{.FILE}}"
-        OUT: "{{.OUT}}"
+  #hugo:
+  #  desc: download hugo
+  #  vars:
+  #    VERSION: 0.145.0
+  #    SUFFIX:
+  #       sh: |
+  #           case "{{.OS}}-{{.ARCH}}" in
+  #            linux-amd64) echo Linux-64bit.tar.gz ;;
+  #            linux-arm64) echo "linux-arm64.tar.gz" ;;
+  #            darwin-arm64) echo darwin-universal.tar.gz ;;
+  #            darwin-amd64) echo darwin-universal.tar.gz ;;
+  #            windows-*) echo windows-amd64.zip ;;
+  #            *) echo "unknown" ;;
+  #           esac
+  #    URL: "https://github.com/gohugoio/hugo/releases/download/v{{.VERSION}}/hugo_extended_{{.VERSION}}_{{.SUFFIX}}"
+  #    FILE: "{{base .URL}}"
+  #    OUT: hugo
+  #  cmds:
+  #  - task: download-and-extract
+  #    vars:
+  #      URL: "{{.URL}}"
+  #      FILE: "{{.FILE}}"
+  #      OUT: "{{.OUT}}"
 
   helm:
     desc: download helm
@@ -228,27 +228,27 @@ tasks:
           FILE: "{{.FILE}}"
           OUT: "{{.OUT}}"
 
-  k3d:
-    desc: download k3d
-    vars:
-      VERSION: "5.6.3"
-      SUFFIX:
-        sh: |
-          case "{{.OS}}-{{.ARCH}}" in
-            linux-amd64) echo "k3d-linux-amd64" ;;
-            linux-arm64) echo "k3d-linux-arm64" ;;
-            darwin-amd64) echo "k3d-darwin-amd64" ;;
-            darwin-arm64) echo "k3d-darwin-arm64" ;;
-            windows-amd64) echo "k3d-windows-amd64.exe" ;;
-            *) echo "unknown" ;;
-          esac
-      URL: "https://github.com/k3d-io/k3d/releases/download/v{{.VERSION}}/{{.SUFFIX}}"
-      OUT: k3d
-    cmds:
-      - task: download
-        vars:
-          URL: "{{.URL}}"
-          OUT: "{{.OUT}}{{.EXE}}"
+  #k3d:
+  #  desc: download k3d
+  #  vars:
+  #    VERSION: "5.6.3"
+  #    SUFFIX:
+  #      sh: |
+  #        case "{{.OS}}-{{.ARCH}}" in
+  #          linux-amd64) echo "k3d-linux-amd64" ;;
+  #          linux-arm64) echo "k3d-linux-arm64" ;;
+  #          darwin-amd64) echo "k3d-darwin-amd64" ;;
+  #          darwin-arm64) echo "k3d-darwin-arm64" ;;
+  #         windows-amd64) echo "k3d-windows-amd64.exe" ;;
+  #          *) echo "unknown" ;;
+  #        esac
+  #    URL: "https://github.com/k3d-io/k3d/releases/download/v{{.VERSION}}/{{.SUFFIX}}"
+  #    OUT: k3d
+  #  cmds:
+  #    - task: download
+  #      vars:
+  #        URL: "{{.URL}}"
+  #        OUT: "{{.OUT}}{{.EXE}}"
 
   all:
     - task: 7zz
@@ -259,9 +259,9 @@ tasks:
     - task: kubectl
     - task: rg
     - task: uv
-    - task: hugo
+    #- task: hugo
     - task: helm
-    - task: k3d
+    #- task: k3d
     
   test:
     vars:
