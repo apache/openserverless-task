@@ -67,11 +67,6 @@ tasks:
       --kubeconfig="$OPS_TMP/kubeconfig" 
       --wait=1m --name=nuvolaris 
       --config=_kind.yaml
-    - |
-      if test -z "$SKIP_PRELOAD_IMAGES"
-      then docker pull "$IMAGES_OPERATOR"
-        
-      fi
  
   ingress:
     silent: true
@@ -87,7 +82,7 @@ tasks:
       - python space.py
 
   preload:
-    silent: false
+    silent: true
     desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
     ignore_errors: true
     status:
