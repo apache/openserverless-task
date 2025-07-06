@@ -75,6 +75,12 @@ tasks:
       kubectl --kubeconfig="$OPS_TMP/kubeconfig" 
       apply -f ingress-deploy.yaml
 
+  check-space:
+    silent: true
+    desc: check if the user has the minimum required disk space
+    cmds:
+      - python space.py
+
   preload:
     silent: true
     desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
