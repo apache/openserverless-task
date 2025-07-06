@@ -250,6 +250,31 @@ tasks:
   #        URL: "{{.URL}}"
   #        OUT: "{{.OUT}}{{.EXE}}"
 
+
+  zip:
+    vars:
+       VERSION: 3.0-1
+       ZIP_EXE: "https://github.com/nuvolaris/zip/raw/refs/heads/master/zip.exe"
+    cmds:
+    - |
+      case "{{.OS}}-{{.ARCH}}" in
+      darwin-*) touch zip ;;
+      linux-*)
+        cat <<EOF >zip
+      #!/bin/bash
+      if test -x /bin/zip -o -x /usr/bin/zip -o -x /usr/local/bin/zip
+      then rm "$0" ; exec zip "$@"
+      else echo "Please install zip in your system" ; exit 1
+      fi
+      EOF
+        executable zip
+      ;; 
+      windows-*)
+         curl -sL "{{.ZIP_EXE}}" -o zip.exe
+         executable zip.exe
+      ;;
+      esac
+
   all:
     - task: 7zz
     - task: coreutils    
