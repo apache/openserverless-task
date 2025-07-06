@@ -261,11 +261,11 @@ tasks:
       case "{{.OS}}-{{.ARCH}}" in
       darwin-*) touch zip ;;
       linux-*)
-        cat <<EOF >zip
+        cat >zip <<EOF
       #!/bin/bash
       if test -x /bin/zip -o -x /usr/bin/zip -o -x /usr/local/bin/zip
-      then rm "$0" ; exec zip "$@"
-      else echo "Please install zip in your system" ; exit 1
+      then rm "\$0" ; exec zip "\$@"
+      else echo "Please install zip in your system." ; exit 1
       fi
       EOF
         executable zip
