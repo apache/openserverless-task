@@ -93,15 +93,15 @@ tasks:
           if curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | rg OpenWhisk >/dev/null 2>/dev/null
           then
             echo "*** Apache OpenServerless mini is already installed."
-            echo "*** Login with: ops ide login devel http://miniops.me"
-            echo "*** You can find the password in .ops/devel.password in your home directory"
-            echo "*** You can can uninstall and restart with: ops setup docker delete"
+            echo "*** Login with: 'ops ide login devel http://miniops.me'."
+            echo "*** You can find the password in .ops/devel.password in your home directory."
+            echo "*** You can can remove the exiting one with: 'ops setup docker delete'."
           else
             if ! kind get clusters | rg nuvolaris
             then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
-                 exit 1
             fi
           fi
+          exit 1
         fi
       - $OPS setup docker check-space
       - $OPS config slim
