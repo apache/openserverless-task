@@ -1,3 +1,8 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+
 import shutil
 import platform
 import os
@@ -14,6 +19,7 @@ def get_disk_space_gb(path=None):
 REQUIRED_SPACE = int(os.getenv("OPS_REQUIRED_SPACE", "34"))
 
 if __name__ == "__main__":
+    print(f"Checking disk space, required: {REQUIRED_SPACE}GB")
     free = get_disk_space_gb()
     if free < REQUIRED_SPACE:
         print(f"Not enough free disk space ({free}/{REQUIRED_SPACE}GB.)")
