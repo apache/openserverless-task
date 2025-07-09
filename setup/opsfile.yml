@@ -96,6 +96,7 @@ tasks:
             echo "*** Login with: ops ide login devel http://miniops.me"
             echo "*** You can find the password in .ops/devel.password in your home directory"
             echo "*** You can can uninstall and restart with: ops setup docker delete"
+            exit 1
           else
             if ! kind get clusters | rg nuvolaris
             then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
