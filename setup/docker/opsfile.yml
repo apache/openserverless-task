@@ -67,13 +67,63 @@ tasks:
       --kubeconfig="$OPS_TMP/kubeconfig" 
       --wait=1m --name=nuvolaris 
       --config=_kind.yaml
-
+ 
   ingress:
     silent: true
     cmds:
     - > 
       kubectl --kubeconfig="$OPS_TMP/kubeconfig" 
       apply -f ingress-deploy.yaml
+
+  check-space:
+    silent: true
+    desc: check if the user has the minimum required disk space
+    cmds:
+      - uv run space.py
+
+  preload:
+    silent: true
+    desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
+    ignore_errors: true
+    status:
+      - config SKIP_PRELOAD_IMAGES
+    cmds:
+    - |
+      for image in "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"   
+      do
+        docker pull "$image" --platform "linux/{{ARCH}}"
+        if ! kind load docker-image "$image" --name nuvolaris 
+        then 
+          echo "*** Cannot preload images. You can disable preload with ops -config SKIP_PRELOAD_IMAGES=1"
+          echo "*** Workaround on Docker Desktop: disable 'Use containerd for pulling and storing images' on General"
+          echo "*** WARNING! If you skip preload, it can take a lot of time before the system starts. Be patient."
+          exit 1
+        fi
+        docker rmi "$image"
+      done
+    - |
+      jq -r '.runtimes[][]
+      | select(.default == true)
+      | .image
+      | "\(.prefix)/\(.name):\(.tag)"' <$OPS_ROOT/runtimes.json \
+      | rg apache/openserverless-runtime \
+      | while read -r image; do
+          docker pull "$image" --platform "linux/{{ARCH}}"
+          kind load docker-image "$image" --name nuvolaris
+          docker rmi "$image"
+        done
+
+  clean-all:
+    silent: true
+    desc: remove all images and containers from docker
+    prompt: Are you sure? This will remove all images, containers and volumes from docker
+    cmds:
+    - echo "Cleaning all docker images and containers"
+    - docker ps -qa | while read a ; do docker rm -f "$a" ; done
+    - docker images -qa | while read a ; do docker rmi -f "$a" ; done
+    - docker system prune -af 
+    - docker volume prune -af
+    - docker system df
 
   create:
     silent: true
@@ -90,7 +140,7 @@ tasks:
     desc: destroy the Apache OpenServerless cluster in Docker
     cmds:
     - kind delete clusters nuvolaris
-    - rm "$KUBECONFIG" "$OPS_TMP/kind.kubeconfig"
+    - rm -f "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
 
   kubeconfig:
     desc: export kubeconfig

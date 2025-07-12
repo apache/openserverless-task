@@ -39,6 +39,7 @@ Usage:
   util add-secret <args>...
   util remove-secret <args>...
   util list-secrets
+  util ingress-type
 ```
 
 ## Commands
@@ -59,6 +60,7 @@ Usage:
 -  add-secret              add one or multiple secrets to user metadata
 -  remove-secret           remove one or multiple secrets to user metadata
 -  list-secrets            list secrets from user metadata
+-  ingress-type            return the ingress type
 ```
 
 ## Options

@@ -175,6 +175,7 @@ tasks:
           echo exported current kubeconfig to ~/.kube/config
           echo $BKP
           kubectl cluster-info
+          kubectl config set-context --current --namespace nuvolaris
         else echo "No kubeconfig to export"
         fi
 
@@ -193,25 +194,32 @@ tasks:
         then ARGS="--batchsize={{.__batchsize}}"
         else ARGS="$ARGS --batchsize=5"
         fi
-        bun upload.js $FOLDER_PATH $ARGS
+        bun upload.js "$FOLDER_PATH" $ARGS
     env:
       FOLDER_PATH:
         sh: |
-          P="$($OPS -opspath ./)"
           if test -n "{{._folder_}}" 
-          then P="$($OPS -opspath {{._folder_}})"
+          then opspath "{{._folder_}}"
+          else opspath .
           fi
-          echo $P
 
   clean:
     silent: true
     cmds:
       - |
-        bun upload.js $FOLDER_PATH --clean
+        bun upload.js "$FOLDER_PATH" --clean
     env:
       FOLDER_PATH:
         sh: |
           echo "$OPS_ROOT/util/upload/assets"
 
-    
-
+  ingress-type:
+    desc: get ingress type
+    silent: true
+    cmds:
+      - |
+        case "$(ops util kubectl -- -o jsonpath='{.items[0].spec.controller}' get ingressclass)" in
+          k8s.io/ingress-nginx)  echo "nginx" ;;
+          traefik.io/ingress-controller) echo "traefik" ;;
+          *) echo "unknown" ;;
+        esac

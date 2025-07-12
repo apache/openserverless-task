@@ -46,7 +46,8 @@ Usage:
   config aks [--project=<project>] [--name=<name>] [--region=<region>] [--count=<count>]  [--vm=<vm>] [--disk=<disk>] [--key=<key>]
   config (status|export|reset)
   config use [<n>] [--delete] [--rename=<rename>]
-  config minimal  
+  config minimal
+  config slim  
 ```
 
 ## Commands
@@ -78,6 +79,7 @@ Usage:
   config export           export all the variables
   config use              use a different kubernetes cluster among those you created
   config minimal          shortcut for ops config enabling only redis,mongodb,minio,cron,static,postgres
+  config slim             shortcut for ops config slim, but adding lightweight milvus and other sizing improvements
 ```
 
 ## Options

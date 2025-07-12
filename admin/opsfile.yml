@@ -17,7 +17,7 @@
 
 version: "3"
 vars:
-  DRY: false
+  DRY: ""
 
 env:
   KUBECONFIG:
@@ -28,16 +28,24 @@ env:
       fi
 
 tasks:
+
+  listuser:
+    silent: true
+    cmds:
+      - |
+        if test -n "{{._username_}}"
+        then 
+          kubectl -n nuvolaris get wsku/{{._username_}} -ojsonpath='{.spec}' | jq .
+        else
+          kubectl -n nuvolaris get wsku 
+        fi
+
   deleteuser:
     silent: true
     cmds:
       - |
-        if {{.DRY}}
-        then echo "User {{._username_}} deleted"
-        else 
-          kubectl -n nuvolaris delete wsku/{{._username_}}
-          $OPS -config -r {{._username_}}
-        fi
+        {{.DRY}} kubectl -n nuvolaris delete wsku/{{._username_}}
+        {{.DRY}}  $OPS -config -r {{._username_}}
 
   adduser:
     silent: true
@@ -67,8 +75,7 @@ tasks:
 
         # check that password is not empty
         if [ -z "$PASSWORD" ]
-        then 
-          $OPS -die "Password cannot be empty"
+        then die "Password cannot be empty"
         fi
 
         # uppercase user to create the secrets in the right format (USERNAME_SECRET_XXX)
@@ -98,7 +105,7 @@ tasks:
           then 
             REDIS_ENABLED=true
           else 
-            $OPS -die "Error! Redis is not enabled in OpenServerless"
+            die "Error! Redis is not enabled in OpenServerless"
           fi
         fi
 
@@ -108,7 +115,7 @@ tasks:
           then 
             MONGODB_ENABLED=true
           else 
-            $OPS -die "Error! MongoDB is not enabled in OpenServerless"
+            die "Error! MongoDB is not enabled in OpenServerless"
           fi
         fi
 
@@ -119,7 +126,7 @@ tasks:
             MINIO_DATA_ENABLED=true
             MINIO_STATIC_ENABLED=true
           else 
-            $OPS -die "Error! Minio is not enabled in OpenServerless"
+            die "Error! Minio is not enabled in OpenServerless"
           fi
         fi
 
@@ -133,7 +140,7 @@ tasks:
           then 
             POSTGRES_ENABLED=true
           else
-            $OPS -die "Error! Postgres is not enabled in OpenServerless"
+            die "Error! Postgres is not enabled in OpenServerless"
           fi
         fi
 
@@ -143,14 +150,41 @@ tasks:
           then 
             MILVUS_ENABLED=true
           else
-            $OPS -die "Error! Milvus is not enabled in OpenServerless"
+            die "Error! Milvus is not enabled in OpenServerless"
           fi
         fi        
 
         envsubst -i user-crd.yaml -o _user-crd.yaml
       - |
-        if {{.DRY}}
-        then cat _user-crd.yaml
-        else 
-          kubectl apply -f _user-crd.yaml          
+        {{.DRY}} kubectl apply -f _user-crd.yaml  
+
+  compact:
+    silent: true
+    vars:
+      COUCHDB_HOST: couchdb
+      COUCHDB_PORT: "5984"
+      JOB_TTL: "10" # cleanup job after 10 seconds
+      DB_NAME: "nuvolaris_activations"
+    cmds:
+      - |
+        JOB_TTL={{.__ttl}}
+        if test -z $JOB_TTL; then
+          JOB_TTL=10
         fi
+        export COUCHDB_HOST={{.COUCHDB_HOST}}
+        export COUCHDB_PORT="{{.COUCHDB_PORT}}"
+        export JOB_TTL=$JOB_TTL
+        export DB_NAME={{.DB_NAME}}
+        export COUCHDB_SECRET_NAME=$(kubectl -n nuvolaris get secrets -o name | awk -F'/' '{print $2}' | rg couchdb-auth-)
+        envsubst -i kubernetes/compact-job.yaml -o kubernetes/_compact-job.yaml
+        {{.DRY}} kubectl apply -f kubernetes/_compact-job.yaml
+
+  usage:
+    silent: true
+    cmds:
+      - |
+        if {{.__debug}}; then
+          echo 'flag is {{.__debug}}'
+          FLAG=--debug
+        fi
+        bun usage/usage.js $FLAG

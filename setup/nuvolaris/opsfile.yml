@@ -105,18 +105,25 @@ tasks:
 
   config:
     #desc: configuring nuvolaris
-    silent: true
+    silent: false
     cmds:
     - |
-      echo export KUBECONFIG=$KUBECONFIG
-      APIHOST=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')
-      AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
-      echo export $APIHOST
-      echo export $AUTH
-      retry -t 100 -m 600 $OPS -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
+      export OPSDEV_APIHOST=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')
+      export OPSDEV_USERNAME=nuvolaris
+      export AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
+      echo Checking connection...
+      retry -t 100 -m 600 $OPS -wsk {{.ETC}} --apihost "$OPSDEV_APIHOST" --auth "$AUTH" namespace list
       export OPS_PASSWORD=$(kubectl -n nuvolaris get wsk/controller -ojsonpath -ojsonpath='{.spec.nuvolaris.password}')
-      retry -t 10 -m 300 $OPS -login "$APIHOST" nuvolaris
-      
+      ops -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
+      OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
+      OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
+      config OPSDEV_APIHOST="$OPSDEV_APIHOST"
+      config OPSDEV_USERNAME="$OPSDEV_USERNAME"
+      config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
+      source ~/.wskprops
+      echo "$OPS_PASSWORD" >~/.ops/nuvolaris.password
+      echo "Saved password for 'nuvolaris' user in ~/.ops/nuvolaris.password"
+
   login:
     silent: true
     desc: configuring nuvolaris
@@ -136,7 +143,7 @@ tasks:
     cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - "{{.RUN}} wsk {{.ETC}} action update hello/hello hello.js"
-    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name Nuvolaris -r | rg hello"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name 'Apache OpenServerless' -r | rg hello"
 
   mongodb:
     silent: true
@@ -222,3 +229,41 @@ tasks:
 
   delete:
     desc: no-op delete command
+
+  streamer:
+    desc: manage the streamer deployment
+
+  add-user:
+    silent: true
+    desc: create a new U=user (default 'devel') with P=password, (default a random pw)
+    vars:
+      USR: '{{or .U "devel" }}'
+      PSW:
+        sh: |
+            if test -z "{{.P}}"
+            then ops -random --str 8
+            else echo "{{.P}}"
+            fi
+    env:
+      APIHOST: 
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
+      HOST: 
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
+    cmds:
+    #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
+    - |
+      if kubectl -n nuvolaris get wsku/{{.USR}} 2>/dev/null
+      then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"
+      fi
+    - echo "Creating user {{.USR}} in $APIHOST"
+    - |
+      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
+      sleep 15
+    - |
+      export OPS_PASSWORD="{{.PSW}}"
+      retry ops ide login {{.USR}} "$APIHOST"
+    - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
+    - ops util upload "$(realpath web)"
+    - echo "Login with:" ops ide login {{.USR}} https://miniops.me
+    - echo "Password is saved in:" ~/.ops/{{.USR}}.password
+    - echo "Web URL is:" "$HOST"
