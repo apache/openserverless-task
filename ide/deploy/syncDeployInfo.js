@@ -1,3 +1,20 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import {existsSync, mkdirSync, writeFileSync, readFileSync} from "fs";
 
 /**
@@ -68,13 +85,13 @@ export function removeActionFromDeployInfo(actionName) {
         const [pkg, action] = actionName.split('/');
 
         if (!deploymentInfo.packageActions || !deploymentInfo.packageActions[pkg]) {
-            console.error(`Error: Package ${pkg} not found in deployment information.`);
+            console.error(`❌ Error: Package ${pkg} not found in deployment information.`);
             return false;
         }
 
         const actionIndex = deploymentInfo.packageActions[pkg].indexOf(action);
         if (actionIndex === -1) {
-            console.error(`Error: Action ${action} not found in package ${pkg}.`);
+            console.error(`❌ Error: Action ${action} not found in package ${pkg}.`);
             return false;
         }
 
@@ -94,7 +111,7 @@ export function removeActionFromDeployInfo(actionName) {
         console.log(`> Removed ${actionName} from deployment information.`);
         return true;
     } catch (error) {
-        console.error("Error updating deployment information:", error);
+        console.error("❌ Error updating deployment information:", error);
         return false;
     }
 }

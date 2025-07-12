@@ -114,6 +114,7 @@ async function main() {
         if (!success) {
             process.exit(1);
         }
+        process.exit(0);
     } else if (options.watch) {
         checkPort();
         if (!options.fast) {

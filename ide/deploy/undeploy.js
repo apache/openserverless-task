@@ -73,8 +73,8 @@ export function undeploy(specificAction) {
 
   // Otherwise, undeploy all actions and packages from the current project
   if (!existsSync('.ops/deployment.json')) {
-    console.error('Error: No OpenServerless project found in the current directory.');
-    console.error('Please run this command in a directory with an OpenServerless project.');
+    console.error('❌ Error: No OpenServerless project found in the current directory.');
+    console.error('❌ Please run this command in a directory with an OpenServerless project.');
     return false;
   }
 
@@ -83,7 +83,7 @@ export function undeploy(specificAction) {
     const { packages, packageActions } = deploymentInfo;
 
     if (!packages || !packageActions || packages.length === 0) {
-      console.error('Error: No deployment information found.');
+      console.error('❌ Error: No deployment information found.');
       return false;
     }
 
@@ -109,7 +109,7 @@ export function undeploy(specificAction) {
     console.log("> Undeployment completed successfully.");
     return true;
   } catch (error) {
-    console.error("Error undeploy:", error);
+    console.error("❌ Error undeploy:", error);
     return false;
   }
 }
