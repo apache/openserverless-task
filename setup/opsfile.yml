@@ -88,18 +88,21 @@ tasks:
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
       - docker info 2>/dev/null >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
-        if curl -sL http://miniops.me >/dev/null 2>/dev/null
+        if test -z {{.__skip_check_cluster}}
         then
-          if curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | rg OpenWhisk >/dev/null 2>/dev/null
+          if curl -sL http://miniops.me >/dev/null 2>/dev/null
           then
-            echo "*** Apache OpenServerless mini is already installed."
-            echo "*** Login with: ops ide login devel http://miniops.me"
-            echo "*** You can find the password in .ops/devel.password in your home directory"
-            echo "*** You can can uninstall and restart with: ops setup docker delete"
-          else
-            if ! kind get clusters | rg nuvolaris
-            then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
-                 exit 1
+            if curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | rg OpenWhisk >/dev/null 2>/dev/null
+            then
+              echo "*** Apache OpenServerless mini is already installed."
+              echo "*** Login with: ops ide login devel http://miniops.me"
+              echo "*** You can find the password in .ops/devel.password in your home directory"
+              echo "*** You can can uninstall and restart with: ops setup docker delete"
+            else
+              if ! kind get clusters | rg nuvolaris
+              then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
+                  exit 1
+              fi
             fi
           fi
         fi
@@ -125,8 +128,11 @@ tasks:
         then 
           task check-ports PORTS="{{ .PORTS }}"
         fi
-        {{.RUN}} $OPS setup docker create 
-        {{.RUN}} $OPS setup docker preload        
+        {{.RUN}} $OPS setup docker create
+        if test -z {{.__skip_preload_images}}
+        then
+          {{.RUN}} $OPS setup docker preload
+        fi
         {{.RUN}} $OPS setup kubernetes create
         {{.RUN}} $OPS setup nuvolaris login
         config STATUS_LAST=devcluster

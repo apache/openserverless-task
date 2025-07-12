@@ -80,8 +80,9 @@ async function main() {
     const cmds = []
 
     if ('describe' === command) {
+        let userSchema = process.env.OPSDEV_USERNAME + '_schema';
         let tableInfo = param.split('.');
-        const schema = tableInfo.length > 1 ? tableInfo[0] : process.env.OPSDEV_USERNAME;
+        const schema = tableInfo.length > 1 ? tableInfo[0] : userSchema;
         const table = tableInfo.length > 1 ? tableInfo[1] : tableInfo[0];
         let cmd = {}
         cmd['command'] = `SELECT table_catalog, table_schema, column_name, data_type, is_nullable 
