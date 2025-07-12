@@ -88,9 +88,9 @@ tasks:
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
       - docker info 2>/dev/null >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
-        if curl -sL http://miniops.me >/dev/null 2>/dev/null
+        if test -z {{.__skip_check_cluster}}
         then
-          if curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description | rg OpenWhisk >/dev/null 2>/dev/null
+          if curl -sL http://miniops.me >/dev/null 2>/dev/null
           then
             echo "*** Apache OpenServerless mini is already installed."
             echo "*** Login with: ops ide login devel http://miniops.me"
@@ -126,8 +126,11 @@ tasks:
         then 
           task check-ports PORTS="{{ .PORTS }}"
         fi
-        {{.RUN}} $OPS setup docker create 
-        {{.RUN}} $OPS setup docker preload        
+        {{.RUN}} $OPS setup docker create
+        if test -z {{.__skip_preload_images}}
+        then
+          {{.RUN}} $OPS setup docker preload
+        fi
         {{.RUN}} $OPS setup kubernetes create
         {{.RUN}} $OPS setup nuvolaris login
         config STATUS_LAST=devcluster
