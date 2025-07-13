@@ -44,7 +44,7 @@ Usage:
     ide login               login in openserverless
     ide devel               activate development mode
     ide deploy              deploy everything or just one action
-    ide undeploy            undeploy everything or just one action
+    ide undeploy            undeploy actions and packages from the current project or just one action
     ide clean               clean the temporay files
     ide setup               setup the ide
     ide serve               serve web area
