@@ -25,7 +25,7 @@ Manage installation
 ```text
 Usage:
   setup mini
-  setup devcluster [--uninstall|--status|--skip-check-ports] 
+  setup devcluster [--uninstall|--status|[--skip-check-ports] [--skip-preload-images]]
   setup cluster [<context>] [--uninstall|--status]
   setup server <server> [<user>] [--uninstall|--status]
   setup status
@@ -50,9 +50,10 @@ Usage:
 ## Options
 
 ```
-  --uninstall         execute an uninstall instead of an installation 
-  --status            show the status instead of an installation 
-  --skip-check-ports  ignore the check of already used ports
+  --uninstall           execute an uninstall instead of an installation 
+  --status              show the status instead of an installation 
+  --skip-check-ports    skip the check of already used ports
+  --skip-preload-images skip the preload images step
 ```
 
 ## Subtasks
