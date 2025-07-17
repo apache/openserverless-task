@@ -51,7 +51,7 @@ env:
 tasks:
   
   deploy:
-    silent: true
+    silent: false
     ignore_error: false
     desc: deploy the streamer 
     cmds:
@@ -65,7 +65,7 @@ tasks:
       echo "Streamer API deployed with HOSTNAME: stream.${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
 
   undeploy:
-    silent: true
+    silent: false
     desc: undeploy the streamer 
     ignore_error: false
     cmds:
@@ -77,7 +77,7 @@ tasks:
       echo "Streamer API undeployed"
 
   update:
-    silent: true
+    silent: false
     desc: update the streamer 
     cmds:
       - task: deploy
