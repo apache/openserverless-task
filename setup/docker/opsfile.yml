@@ -76,7 +76,7 @@ tasks:
       apply -f ingress-deploy.yaml
 
   check-space:
-    silent: true
+    silent: false
     desc: check if the user has the minimum required disk space
     cmds:
       - uv run space.py

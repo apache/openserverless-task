@@ -82,7 +82,7 @@ tasks:
     - exit 0
 
   mini:
-    silent: true
+    silent: false
     desc: install miniops
     cmds:
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
