@@ -26,8 +26,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - #
-    host: stream.${STREAMER_API_HOSTNAME:-localhost}    
+  - host: stream.${STREAMER_API_HOSTNAME:-localhost}    
     http:
       paths:
       - backend:
