@@ -125,10 +125,10 @@ tasks:
       elif  {{.__uninstall}}
       then  {{.RUN}} $OPS setup docker delete
       else
-        if test -z {{.__skip_check_ports}}
-        then 
-          $OPS setup docker check-ports PORTS="{{ .PORTS }}"
-        fi
+        # to be verified
+        #if test -z {{.__skip_check_ports}}
+        #then $OPS setup check-ports PORTS="{{ .PORTS }}"
+        #fi
         {{.RUN}} $OPS setup docker create
         if test -z {{.__skip_preload_images}}
         then
