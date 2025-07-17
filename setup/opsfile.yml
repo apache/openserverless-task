@@ -117,7 +117,7 @@ tasks:
   devcluster:
     vars:
       PORTS: '9010/tcp 9080/tcp 30379/tcp 32817/tcp 3232/tcp 3233/tcp 9644/tcp 7896/tcp 5984/tcp 9092/tcp 9000/tcp 9090/tcp 19530/tcp 9091/tcp, 27017/tcp 80/tcp 443/tcp 57817/tcp'
-    silent: true
+    silent: false
     cmds:
     - |
       if {{.__status}}
@@ -127,7 +127,7 @@ tasks:
       else
         if test -z {{.__skip_check_ports}}
         then 
-          task check-ports PORTS="{{ .PORTS }}"
+          $OPS setup docker check-ports PORTS="{{ .PORTS }}"
         fi
         {{.RUN}} $OPS setup docker create
         if test -z {{.__skip_preload_images}}
