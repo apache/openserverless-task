@@ -21,7 +21,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-  name: ${USERNAME:-nuvolaris}-streamer-api-ingress
+  name: nuvolaris-streamer-api-ingress
   namespace: nuvolaris
 spec:
   ingressClassName: nginx
@@ -32,7 +32,7 @@ spec:
       paths:
       - backend:
           service:
-            name: ${USERNAME:-nuvolaris}-streamer-api
+            name: nuvolaris-streamer-api
             port:
               number: 8080
         path: /

@@ -17,24 +17,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: ${USERNAME:-nuvolaris}-streamer-api
+  name: nuvolaris-streamer-api
   namespace: nuvolaris
   labels:
-    app: ${USERNAME:-nuvolaris}-streamer-api
+    app: nuvolaris-streamer-api
 spec:  
   replicas: 1
   selector:
     matchLabels:
-      app: ${USERNAME:-nuvolaris}-streamer-api
+      app: nuvolaris-streamer-api
   template:
     metadata:
       labels:
-        name: ${USERNAME:-nuvolaris}-streamer-api
-        app: ${USERNAME:-nuvolaris}-streamer-api
+        name: nuvolaris-streamer-api
+        app: nuvolaris-streamer-api
     spec:
       serviceAccount: default
       containers:
-        - name: ${USERNAME:-nuvolaris}-streamer-api
+        - name: nuvolaris-streamer-api
           image: ${IMAGES_STREAMER}
           imagePullPolicy: Always
           command: ["/streamer"]
@@ -56,11 +56,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${USERNAME:-nuvolaris}-streamer-api
+  name: nuvolaris-streamer-api
   namespace: nuvolaris
 spec:
   ports:
     - name: streamer
       port: 8080
   selector:
-    app: ${USERNAME:-nuvolaris}-streamer-api
+    app: nuvolaris-streamer-api
