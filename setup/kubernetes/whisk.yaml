@@ -125,7 +125,7 @@ spec:
         limit-std: "${OPENWHISK_ACTION_MEMORY_LIMIT_STD:-256m}"
         limit-max: "${OPENWHISK_ACTION_MEMORY_LIMIT_MAX:-2048m}"
       loadbalancer:
-        blackbox-fraction : "10%"
+        blackbox-fraction : "${OPENWHISK_LB_BLACKBOX_FRACTION:100%}"
         timeout-factor: 2                
     controller:
       javaOpts: "$OPENWHISK_CONTROLLER_JAVA_OPTS"
