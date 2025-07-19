@@ -1000,6 +1000,14 @@ tasks:
               Specifies nuvolaris controller activation options (Defaults to 1Mb)
         VAL: "{{.__activation_max_payload}}"
         DEF: "1048576"
+    - task: read
+      vars:
+        MSG: "Openwhisk Load Balancer BlackBox fraction"
+        VAR: "OPENWHISK_LB_BLACKBOX_FRACTION"
+        HINT: | 
+              Specifies OpenWhisk Load Balancer Blackbox fraction (Defaults to 100%)
+        VAL: "{{.__blackbox_fraction}}"
+        DEF: "100%"        
 
   storage:
     silent: true
