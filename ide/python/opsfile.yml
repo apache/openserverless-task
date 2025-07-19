@@ -27,20 +27,45 @@ tasks:
     - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
     - rm -Rvf {{.DIR}}/virtualenv {{.DIR}}.zip
 
-  zip:
+  img:
     silent: true
-    desc: environment
+    desc: build image
     requires: {var: [DIR]}
     cmds:
     - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+    - test -n "$DOCKER_BUILDER" || die "create a docker builder in docker cloud and add to .env DOCKER_BUILDER"
+    - test -n "$DOCKER_CUSTOM_RUNTIMES" || die "set DOCKER_CUSTOM_RUNTIMES to the custom runtime prefix"
     - |
       if test -f "{{.DIR}}/requirements.txt"
-      then bash build-venv.sh "{{.DIR}}" "{{.DIR}}.zip"
+      then 
+          #sha256sum "{{.DIR}}/requirements.txt"
+          SHA="$(sha256sum "{{.DIR}}/requirements.txt" | awk '{print substr($1, 0, 12)}')"
+          KIND="$(awk '/--kind/ {print $2}' "{{.DIR}}/__main__.py")"
+          FROM="$(bun findimg.js "$KIND" "$OPS_ROOT/runtimes.json")"
+          cat <<EOF >"{{.DIR}}/Dockerfile"
+      #--docker "$DOCKER_CUSTOM_RUNTIMES:$SHA"
+      FROM $FROM
+      USER root
+      ADD requirements.txt /tmp/requirements.txt
+      RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+      USER nobody
+      EOF
+      cat "{{.DIR}}/Dockerfile"
+      docker buildx build --builder "$DOCKER_BUILDER" -t "$DOCKER_CUSTOM_RUNTIMES:$SHA" "{{.DIR}}" --push
       fi
     sources:
     - "{{.DIR}}/requirements.txt"
     generates:
-    - "{{.DIR}}/virtualenv/date"
+    - "{{.DIR}}/Dockerfile"
+
+  zip:
+    silent: true
+    desc: zip
+    requires: {var: [DIR]}
+    dir: "{{.DIR}}"
+    cmds:
+    - echo TODO remove this entirely
+    - task: img
 
   action:
     silent: true
@@ -49,7 +74,7 @@ tasks:
     dir: "{{.DIR}}"
     cmds:
     - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
-    - 7zz a {{.DIR}}.zip * -tzip -x!virtualenv/* -x!requirements.txt >/dev/null
+    - zip -qr {{.DIR}}.zip -xrequrements.txt -xDockerfile * 
 
   cli:
     silent: true

@@ -104,14 +104,21 @@ export function deployAction(artifact) {
   deployPackage(pkg);
 
   let toInspect;
+  let dflags = [];
   if (typ === "zip") {
     const base = artifact.slice(0, -4);
     toInspect = MAINS.map((m) => `${base}/${m}`);
+    dflags =  extractArgs([`${base}/Dockerfile`])
   } else {
     toInspect = [artifact];
   }
 
-  const args = extractArgs(toInspect).join(" ");
+  let flags = extractArgs(toInspect);
+  if(dflags.length > 0) {
+    flags = flags.filter(f => !f.startsWith("--kind")).concat(dflags);
+  }
+
+  const args = flags.join(" ");
   const actionName = `${pkg}/${name}`;
   exec(`$OPS action update ${actionName} ${artifact} ${args}`);
 
