@@ -43,32 +43,18 @@ tasks:
     - "{{.DIR}}/virtualenv/date"
 
   action:
-    silent: false
-    desc: compile
-    requires: {var: [DIR]}
+    silent: true
+    desc: build action
+    requires: {vars: [DIR]}
+    dir: "{{.DIR}}"
     cmds:
-      - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+      - test -d "{{.DIR}}" || die "dir '{{.DIR}}' not found or not a directory"
+      - zip  -q -x "virtualenv" -x "requirements.txt" -x Dockerfile -r "{{.DIR}}.zip" .
       - |
-        ZIP_PATH="{{.DIR}}.zip"
-        DIR_ABS=$(realpath "{{.DIR}}")
-        ROOT_DIR=$(dirname "$(dirname "$DIR_ABS")")
-        LIB_DIR=$(dirname "$ROOT_DIR")/lib/python
-
-        echo "DIR_ABS=$DIR_ABS"
-        echo "LIB_DIR=$LIB_DIR"
-
-        cd "$DIR_ABS"
-        zip -r "$ZIP_PATH" . -x "virtualenv/*" -x "requirements.txt" -x "$(basename "$ZIP_PATH")"
-
-        if [ -d "$LIB_DIR" ]; then
-          cd "$LIB_DIR"
-          zip -ur "$ZIP_PATH" .
-        else
-          echo "$LIB_DIR not found, skip add"
-        fi
-
-        if [ ! -f "$ZIP_PATH" ]; then
-          die "$ZIP_PATH non created"
+        if test -d "$OPS_PWD/lib/python"
+        then 
+          cd "$OPS_PWD/lib/python"
+          zip -q -u -r "{{.DIR}}.zip" . || true
         fi
 
   cli:

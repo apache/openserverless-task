@@ -43,27 +43,18 @@ tasks:
     - "{{.DIR}}/node_modules/.package-lock.json"
   
   action:
-    silent: false
-    desc: build the action updating the zip
-    requires: {var: [DIR]}
+    silent: true
+    desc: build action
+    requires: {vars: [DIR]}
+    dir: "{{.DIR}}"
     cmds:
-      - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+      - test -d "{{.DIR}}" || die "dir '{{.DIR}}' not found or not a directory"
+      - zip  -q -x "node_modules" -x Dockerfile  -r "{{.DIR}}.zip" .
       - |
-        ZIP_PATH="{{.DIR}}.zip"
-        DIR_ABS=$(realpath "{{.DIR}}")
-        ROOT_DIR=$(dirname "$(dirname "$DIR_ABS")")
-        LIB_DIR=$(dirname "$ROOT_DIR")/lib/nodejs
-
-        cd "$DIR_ABS"
-        zip -r "$ZIP_PATH" . -x "node_modules/*" -x "$(basename "$ZIP_PATH")"
-
-        if [ -d "$LIB_DIR" ]; then
-          cd "$LIB_DIR"
-          zip -ur "$ZIP_PATH" .
-        else
-          echo "$LIB_DIR not found, skip add"
+        if test -d "$OPS_PWD/lib/nodejs"
+        then
+          cd "$OPS_PWD/lib/nodejs"
+          zip -q -u -r "{{.DIR}}.zip" . || true
         fi
 
-        if [ ! -f "$ZIP_PATH" ]; then
-          die "$ZIP_PATH not created"
-        fi
+
