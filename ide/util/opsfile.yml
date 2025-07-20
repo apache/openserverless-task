@@ -40,10 +40,11 @@ tasks:
     cmds:
     - |
       cd $OPS_PWD
+      DIR="$(ops -opspath "packages/{{.A}}")"
       if test -e "packages/{{.A}}/__main__.py"
-      then echo $OPS ide python action DIR="$(opspath "packages/{{.A}}")"
+      then $OPS ide python action DIR="$DIR"
       elif test -e "packages/{{.A}}/index.js"
-      then echo $OPS ide nodejs action DIR="$(opspath "packages/{{.A}}")"
+      then $OPS ide nodejs action DIR="$DIR"
       else die "*** unknown action type"
       fi
 

@@ -61,8 +61,7 @@ tasks:
         echo $PIDFILE
         if test -e $PIDFILE
         then          
-          PID=$(cat $PIDFILE)
-          
+          PID=$(cat $PIDFILE)    
           if [ ! -z "$PID" ]; then
             if ps -p "$PID" > /dev/null;
             then

@@ -46,15 +46,17 @@ tasks:
     silent: true
     desc: build action
     requires: {vars: [DIR]}
-    dir: "{{.DIR}}"
     cmds:
       - test -d "{{.DIR}}" || die "dir '{{.DIR}}' not found or not a directory"
-      - zip  -q -x "node_modules" -x Dockerfile  -r "{{.DIR}}.zip" .
       - |
-        if test -d "$OPS_PWD/lib/nodejs"
-        then
-          cd "$OPS_PWD/lib/nodejs"
-          zip -q -u -r "{{.DIR}}.zip" . || true
-        fi
+        cd "{{.DIR}}"
+        zip -q -u -x "node_modules/*" -x Dockerfile  -r "{{.DIR}}.zip" . || true
+      # - |
+      #   if test -d "$OPS_PWD/lib/nodejs"
+      #   then
+      #     cd "$OPS_PWD/lib/nodejs"
+      #     zip -q -u -r "{{.DIR}}.zip" . || true
+      #     cd
+      #   fi
 
 

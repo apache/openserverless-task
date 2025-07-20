@@ -24,8 +24,6 @@ import {watchAndDeploy, globalWatcher} from './watch.js';
 import {setDryRun, deploy} from './deploy.js';
 import {build} from './client.js';
 
-
-
 async function signalHandler() {
     console.log('Termination requested.');
 
