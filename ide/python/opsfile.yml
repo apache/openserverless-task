@@ -41,17 +41,30 @@ tasks:
           #sha256sum "{{.DIR}}/requirements.txt"
           SHA="$(sha256sum "{{.DIR}}/requirements.txt" | awk '{print substr($1, 0, 12)}')"
           KIND="$(awk '/--kind/ {print $2}' "{{.DIR}}/__main__.py")"
-          FROM="$(bun findimg.js "$KIND" "$OPS_ROOT/runtimes.json")"
-          cat <<EOF >"{{.DIR}}/Dockerfile"
-      #--docker "$DOCKER_CUSTOM_RUNTIMES:$SHA"
+          FROM_TAG="$(bun findimg.js "$KIND" "$OPS_ROOT/runtimes.json")"
+          FROM="${FROM_TAG%|*}"
+          TAG="${FROM_TAG#*|}.${SHA}"
+          #echo FROM=$FROM
+          #echo TAG=$TAG
+          if rg "$TAG" "{{.DIR}}/Dockerfile"
+          then echo Image already built
+          else 
+            cat <<EOF >"{{.DIR}}/Dockerfile"
+      #--docker "$DOCKER_CUSTOM_RUNTIMES:$TAG"
       FROM $FROM
       USER root
       ADD requirements.txt /tmp/requirements.txt
       RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
       USER nobody
       EOF
-      cat "{{.DIR}}/Dockerfile"
-      docker buildx build --builder "$DOCKER_BUILDER" -t "$DOCKER_CUSTOM_RUNTIMES:$SHA" "{{.DIR}}" --push
+      #cat "{{.DIR}}/Dockerfile"
+            if docker buildx build --builder "$DOCKER_BUILDER" -t "$DOCKER_CUSTOM_RUNTIMES:$SHA" "{{.DIR}}" --push
+            then echo Built "$DOCKER_CUSTOM_RUNTIMES:$SHA"
+            else rm "{{.DIR}}/Dockerfile"
+            fi
+          fi
+      else
+        echo "no requirements.txt found, skipping image build"
       fi
     sources:
     - "{{.DIR}}/requirements.txt"

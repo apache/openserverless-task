@@ -34,7 +34,7 @@ async function main() {
   }
 
   const { prefix, name, tag } = runtime.image;
-  console.log(`${prefix}/${name}:${tag}`);
+  console.log(`${prefix}/${name}:${tag}|${language}_${tag}`);
 }
 
 main();

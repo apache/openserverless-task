@@ -40,7 +40,8 @@ tasks:
     cmds:
     - |
       cd $OPS_PWD
-      DIR="$(ops -opspath "packages/{{.A}}")"
+      DIR="$(opspath "packages/{{.A}}")"
+      echo $DIR
       if test -e "packages/{{.A}}/__main__.py"
       then $OPS ide python action DIR="$DIR"
       elif test -e "packages/{{.A}}/index.js"
