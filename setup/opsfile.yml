@@ -108,8 +108,7 @@ tasks:
           fi
         fi
       - $OPS setup docker check-space
-      - $OPS config slim
-      - $OPS config apihost miniops.me --protocol=http
+      - $OPS config slim     
       - $OPS setup devcluster
       - $OPS setup nuvolaris streamer deploy
       - $OPS setup nuvolaris add-user
@@ -119,6 +118,7 @@ tasks:
       PORTS: '9010/tcp 9080/tcp 30379/tcp 32817/tcp 3232/tcp 3233/tcp 9644/tcp 7896/tcp 5984/tcp 9092/tcp 9000/tcp 9090/tcp 19530/tcp 9091/tcp, 27017/tcp 80/tcp 443/tcp 57817/tcp'
     silent: true
     cmds:
+    - $OPS config apihost miniops.me --protocol=http
     - |
       if {{.__status}}
       then  {{.RUN}} $OPS setup docker status
