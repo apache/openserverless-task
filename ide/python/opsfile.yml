@@ -44,20 +44,12 @@ tasks:
 
   action:
     silent: true
-    desc: build action
-    requires: {vars: [DIR]}
+    desc: compile
+    requires: {var: [DIR]}
+    dir: "{{.DIR}}"
     cmds:
-      - test -d "{{.DIR}}" || die "dir '{{.DIR}}' not found or not a directory"
-      - |
-        cd "{{.DIR}}"
-        zip -q  -u -x "__pycache__/*" -x "virtualenv/*" -x "requirements.txt" -x Dockerfile -r "{{.DIR}}.zip" . || true
-      # - |
-      #   if test -d "$OPS_PWD/lib/python"
-      #   then 
-      #     cd "$OPS_PWD/lib/python"
-      #     zip -q -u -r "{{.DIR}}.zip" . || true
-      #     cd "{{.DIR}}"
-      #   fi
+    - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+    - 7zz a {{.DIR}}.zip * -tzip -x!virtualenv/* -x!requirements.txt >/dev/null
 
   cli:
     silent: true

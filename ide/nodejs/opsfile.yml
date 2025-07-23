@@ -41,22 +41,13 @@ tasks:
     - "{{.DIR}}/package.json"
     generates:
     - "{{.DIR}}/node_modules/.package-lock.json"
-  
+
   action:
-    silent: true
-    desc: build action
-    requires: {vars: [DIR]}
+    silent: false
+    desc: build the action updating the zip
+    requires: {var: [DIR]}
+    dir: "{{.DIR}}"
     cmds:
-      - test -d "{{.DIR}}" || die "dir '{{.DIR}}' not found or not a directory"
-      - |
-        cd "{{.DIR}}"
-        zip -q -u -x "node_modules/*" -x Dockerfile  -r "{{.DIR}}.zip" . || true
-      # - |
-      #   if test -d "$OPS_PWD/lib/nodejs"
-      #   then
-      #     cd "$OPS_PWD/lib/nodejs"
-      #     zip -q -u -r "{{.DIR}}.zip" . || true
-      #     cd
-      #   fi
-
-
+    - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+    - 7zz a {{.DIR}}.zip * -tzip -x!node_modules/* >/dev/null
+    - test -f "{{.DIR}}".zip || die "{{.DIR}}.zip not generated"

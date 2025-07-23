@@ -27,9 +27,9 @@ tasks:
     - |
       cd $OPS_PWD
       if test -e "packages/{{.A}}/requirements.txt"
-      then $OPS ide python zip DIR="$(opspath "packages/{{.A}}")"
+      then $OPS ide python zip DIR="$($OPS -opspath "packages/{{.A}}")"
       elif test -e "packages/{{.A}}/package.json"
-      then $OPS ide nodejs zip DIR="$(opspath "packages/{{.A}}")"
+      then $OPS ide nodejs zip DIR="$($OPS -opspath "packages/{{.A}}")"
       else echo "no zip environment"
       fi
 
@@ -40,11 +40,10 @@ tasks:
     cmds:
     - |
       cd $OPS_PWD
-      DIR="$(ops -opspath "packages/{{.A}}")"
       if test -e "packages/{{.A}}/__main__.py"
-      then $OPS ide python action DIR="$DIR"
+      then $OPS ide python action DIR="$($OPS -opspath "packages/{{.A}}")"
       elif test -e "packages/{{.A}}/index.js"
-      then $OPS ide nodejs action DIR="$DIR"
+      then $OPS ide nodejs action DIR="$($OPS -opspath "packages/{{.A}}")"
       else die "*** unknown action type"
       fi
 
