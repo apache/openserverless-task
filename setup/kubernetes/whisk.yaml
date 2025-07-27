@@ -66,6 +66,8 @@ spec:
     etcd: ${OPERATOR_COMPONENT_ETCD:-false}
     # MILVUS enabled or not
     milvus: ${OPERATOR_COMPONENT_MILVUS:-false}
+    # REGISTRY enabled or not
+    registry: ${OPERATOR_COMPONENT_REGISTRY:-false}
   tls:
     acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL:-no-reply@email.com}
     acme-server-url: https://acme-v02.api.letsencrypt.org/directory
@@ -239,4 +241,13 @@ spec:
       s3: $SECRET_MILVUS_S3
       etcd: $SECRET_ETCD_ROOT
     nuvolaris:
-      password: $SECRET_MILVUS_NUVOLARIS  
+      password: $SECRET_MILVUS_NUVOLARIS
+  registry:
+    mode: ${REGISTRY_CONFIG_MODE:-internal}
+    volume-size: ${REGISTRY_CONFIG_VOLUME_SIZE:-50}
+    auth:
+      username: ${REGISTRY_CONFIG_USERNAME:-opsuser}
+      password: $REGISTRY_CONFIG_SECRET_PUSH_PULL
+    hostname: ${REGISTRY_CONFIG_HOSTNAME:-auto}
+    ingress:
+      enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}       
