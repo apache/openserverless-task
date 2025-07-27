@@ -94,7 +94,7 @@ spec:
                           description: boolean flag to preload only the apache openserverless actions
                           type: boolean
                       required:
-                      - only-apache
+                      - only-apache                                                                                                                                       
                   required:
                   - password    
                 components:
@@ -146,7 +146,10 @@ spec:
                       type: boolean
                     milvus:
                       description: deploys Milvus Operator to support deployment of MILVUS Vector DB
-                      type: boolean                                            
+                      type: boolean
+                    registry:
+                      description: deploys a private registry to load on the fly generated action runtimes (false by default)
+                      type: boolean                                              
                   required:
                     - openwhisk
                     - couchdb
@@ -704,7 +707,7 @@ spec:
                           - mem-lim                           
                       required:
                       - containerPool
-                etcd:
+                ectd:
                   description: used to configure a nuvolaris shared ETCD instance
                   type: object
                   properties:
@@ -794,7 +797,45 @@ spec:
                           type: string
                         collection:
                           description: nuvolaris MILVUS collection (default to nuvolaris)
-                          type: string                        
+                          type: string
+                registry:
+                  description: used to configure the internal docker compliant registry
+                  type: object
+                  properties:
+                    mode: 
+                      description: deployment mode can be internal/external (default to internal)
+                      type: string  
+                    volume-size:
+                      description: volume size in GB, default to 50GB
+                      type: integer                      
+                    auth:
+                      description: used to configure the REGISTRY user to push and pull images from
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - username
+                      - password
+                    hostname:
+                      description: used to configure the repo hostname (if set to auto and mode=internal it will be img.<apihost>)
+                      type: string
+                    ingress:
+                      description: configuration option for global REGISTRY ingresses exposure, will be taken into account only if deployment=interna
+                      type: object
+                      properties:
+                        enabled:
+                          description: boolean flag to activate a REGISTRY ingress. Default to false
+                          type: boolean
+                      required:
+                      - enabled
+                  required:
+                  - mode
+                  - volume-size
+                  - auth
+                  - hostname                                         
             status:
               x-kubernetes-preserve-unknown-fields: true
               # type: object
@@ -902,4 +943,9 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_create.milvus
-          description: Milvus                                                                                                    
+          description: Milvus
+        - name: Registry
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.registry
+          description: Registry                                                                                                              
