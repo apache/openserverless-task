@@ -111,6 +111,7 @@ tasks:
       - $OPS config slim     
       - $OPS setup devcluster
       - $OPS setup nuvolaris streamer deploy
+      - $OPS setup nuvolaris system-api deploy
       - $OPS setup nuvolaris add-user
 
   devcluster:

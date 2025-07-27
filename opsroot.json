@@ -8,7 +8,8 @@
          "operator": "apache/openserverless-operator:0.1.0-incubating.2507122132",
          "controller": "ghcr.io/nuvolaris/openwhisk-controller:3.1.0-mastrogpt.2402101445",
          "invoker": "ghcr.io/nuvolaris/openwhisk-invoker:3.1.0-mastrogpt.2402101445",
-         "streamer": "registry.hub.docker.com/apache/openserverless-streamer:0.1.0-incubating.2505031325"
+         "streamer": "registry.hub.docker.com/apache/openserverless-streamer:0.1.0-incubating.2505031325",
+         "systemapi": "ghcr.io/nuvolaris/openserverless-admin-api:0.1.0-incubating.2507271455"
         }
     }
 }

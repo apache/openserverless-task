@@ -1,0 +1,71 @@
+---
+# Source: openwhisk/templates/couchdb-init-cm.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Kind deployment example
+#
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nuvolaris-system-api
+  namespace: nuvolaris
+  labels:
+    app: nuvolaris-system-api
+spec:  
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nuvolaris-system-api
+  template:
+    metadata:
+      labels:
+        name: nuvolaris-system-api
+        app: nuvolaris-system-api
+    spec:
+      serviceAccount: nuvolaris-wsku
+      containers:
+        - name: nuvolaris-system-api
+          image: ${IMAGES_SYSTEMAPI}
+          imagePullPolicy: Always
+          command: ["./run.sh"]
+          ports:
+            - containerPort: 5000
+              name: api
+          env:
+          - name: "APIHOST"
+            value: "${SYS_API_HOSTNAME:-localhost}"
+          - name: "COUCHDB_SERVICE_PORT"
+            value: "5984" 
+          - name: "COUCHDB_SERVICE_HOST"
+            value: "couchdb" 
+          - name: "COUCHDB_ADMIN_USER"
+            value: "${SYS_API_CDB_USER}"  
+          - name: "COUCHDB_ADMIN_PASSWORD"
+            value: "${SYS_API_CDB_PASSWORD}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nuvolaris-system-api
+  namespace: nuvolaris
+spec:
+  ports:
+    - name: api
+      port: 5000
+  selector:
+    app: nuvolaris-system-api

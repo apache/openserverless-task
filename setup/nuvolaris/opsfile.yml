@@ -233,6 +233,9 @@ tasks:
   streamer:
     desc: manage the streamer deployment
 
+  system-api:
+    desc: manage the system api deployment
+
   add-user:
     silent: true
     desc: create a new U=user (default 'devel') with P=password, (default a random pw)

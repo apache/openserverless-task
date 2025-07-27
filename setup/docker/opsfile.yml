@@ -89,7 +89,7 @@ tasks:
       - config SKIP_PRELOAD_IMAGES
     cmds:
     - |
-      for image in "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"   
+      for image in "$IMAGES_SYSTEMAPI" "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"
       do
         docker pull "$image" --platform "linux/{{ARCH}}"
         if ! kind load docker-image "$image" --name nuvolaris 
