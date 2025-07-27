@@ -69,7 +69,7 @@ tasks:
     desc: undeploy the admin api
     ignore_error: true
     cmds:
-    - kubectl -n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress
+    - kubectl -n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api
     - |
       echo "System API undeployed"
   
