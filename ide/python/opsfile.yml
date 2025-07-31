@@ -27,20 +27,63 @@ tasks:
     - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
     - rm -Rvf {{.DIR}}/virtualenv {{.DIR}}.zip
 
-  zip:
+  img:
     silent: true
-    desc: environment
+    desc: build image
     requires: {var: [DIR]}
     cmds:
     - test -d "{{.DIR}}" || die "{{.DIR}} not found or not a directory"
+    - test -n "$DOCKER_BUILDER" || die "create a docker builder in docker cloud and add to .env DOCKER_BUILDER"
+    - test -n "$DOCKER_CUSTOM_RUNTIMES" || die "set DOCKER_CUSTOM_RUNTIMES to the custom runtime prefix"
     - |
       if test -f "{{.DIR}}/requirements.txt"
-      then bash build-venv.sh "{{.DIR}}" "{{.DIR}}.zip"
+      then 
+          DIR="{{.DIR}}"
+          SHA="$(sha256sum "$DIR/requirements.txt" | awk '{print substr($1, 0, 12)}')"
+          KIND="$(awk '/--kind/ {print $2}' "$DIR/__main__.py")"
+          FROM_TAG="$(bun findimg.js "$KIND" "$OPS_ROOT/runtimes.json")"
+          FROM="${FROM_TAG%|*}"
+          TAG="${FROM_TAG#*|}.${SHA}"
+          echo FROM=$FROM
+          echo TAG=$TAG
+          if rg "$TAG" "{{.DIR}}/Dockerfile"
+          then echo Image already built
+          else 
+            cat <<EOF >"$DIR/Dockerfile"
+      #--docker "$DOCKER_CUSTOM_RUNTIMES:$TAG"
+      FROM $FROM
+      USER root
+      ADD requirements.txt /tmp/requirements.txt
+      RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+      EOF
+            export NO_COLOR=1
+            cat "$DIR/requirements.txt" | rg '^#Dockerfile:\s*(.*)' -or '$1' >>"$DIR/Dockerfile"
+            echo "USER nobody" >>"$DIR/Dockerfile"
+            cat "$DIR/Dockerfile"
+            docker buildx build --platform linux/arm64,linux/amd64 --builder "$DOCKER_BUILDER" -t "$DOCKER_CUSTOM_RUNTIMES:$TAG" "$DIR" --push
+            if test $? -eq 0
+            then echo Built "$DOCKER_CUSTOM_RUNTIMES:$TAG"
+            else rm "$DIR/Dockerfile"
+                 die "docker build failed, check the Dockerfile"
+            fi
+          fi
+      else
+        echo "no requirements.txt found, skipping image build"
       fi
     sources:
     - "{{.DIR}}/requirements.txt"
     generates:
-    - "{{.DIR}}/virtualenv/date"
+    - "{{.DIR}}/Dockerfile"
+
+  zip:
+    silent: true
+    desc: zip
+    requires: {var: [DIR]}
+    dir: "{{.DIR}}"
+    cmds:
+    - echo TODO remove this entirely
+    - mkdir -p _empty && zip -q -r "{{.DIR}}".zip _empty
+    - task: img
 
   action:
     silent: true
