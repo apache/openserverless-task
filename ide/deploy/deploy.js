@@ -104,14 +104,21 @@ export function deployAction(artifact) {
   deployPackage(pkg);
 
   let toInspect;
+  let dflags = [];
   if (typ === "zip") {
     const base = artifact.slice(0, -4);
     toInspect = MAINS.map((m) => `${base}/${m}`);
+    dflags =  extractArgs([`${base}/Dockerfile`])
   } else {
     toInspect = [artifact];
   }
 
-  const args = extractArgs(toInspect).join(" ");
+  let flags = extractArgs(toInspect);
+  if(dflags.length > 0) {
+    flags = flags.filter(f => !f.startsWith("--kind")).concat(dflags);
+  }
+
+  const args = flags.join(" ");
   const actionName = `${pkg}/${name}`;
   exec(`$OPS action update ${actionName} ${artifact} ${args}`);
 
@@ -135,7 +142,7 @@ export function deploy(file) {
   // const file = "packages/deploy/multi.zip";
   // const file = "packages/deploy/multi/__main__.py";
   // const file = "packages/deploy/multi/requirements.txt";
-  if (fs.lstatSync(file).isDirectory()) {
+  if (fs.existsSync(`${file}`) && fs.lstatSync(file).isDirectory()) {
     for (const start of MAINS) {
       const sub = `${file}/${start}`;
       if (fs.existsSync(sub)) {
