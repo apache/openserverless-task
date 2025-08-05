@@ -37,6 +37,10 @@ tasks:
       - test -n "$OPSDEV_HOST" || die "please run 'ops ide login' first"
       - test "$(ops -wsk property get --namespace | awk '{ print $3 }')" = "$OPSDEV_USERNAME" || die "Repeat the login"
       - |
+        if test -n "$AUTH_CHECK"
+        then test "$AUTH_CHECK" == "$AUTH" || die "You are logged in a different user than your configured AUTH_CHECK"
+        fi
+      - |
         if ! test -d "$OPS_ROOT/ide/deploy/node_modules"
           then cd $OPS_ROOT/ide/deploy && bun install
         fi
