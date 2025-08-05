@@ -37,10 +37,6 @@ tasks:
       - test -n "$OPSDEV_HOST" || die "please run 'ops ide login' first"
       - test "$(ops -wsk property get --namespace | awk '{ print $3 }')" = "$OPSDEV_USERNAME" || die "Repeat the login"
       - |
-        if test -n "$AUTH_CHECK"
-        then test "$AUTH_CHECK" == "$AUTH" || die "You are logged in a different user than your configured AUTH_CHECK"
-        fi
-      - |
         if ! test -d "$OPS_ROOT/ide/deploy/node_modules"
           then cd $OPS_ROOT/ide/deploy && bun install
         fi
@@ -175,6 +171,11 @@ tasks:
         if test -e $OPS_PWD/packages/.env
         then source $OPS_PWD/packages/.env
         fi
+        if test -n "$AUTH_CHECK"
+        then if test "$AUTH_CHECK" != "$AUTH" 
+             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             fi
+        fi
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
@@ -251,6 +252,11 @@ tasks:
         fi
         if test -e $OPS_PWD/packages/.env
         then source $OPS_PWD/packages/.env
+        fi
+        if test -n "$AUTH_CHECK"
+        then if test "$AUTH_CHECK" != "$AUTH" 
+             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             fi
         fi
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
