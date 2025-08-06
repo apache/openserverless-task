@@ -1200,6 +1200,7 @@ tasks:
       config OPERATOR_CONFIG_SLIM=true
       config OPERATOR_COMPONENT_REGISTRY=true
       config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
+      config OPENWHISK_TIME_LIMIT_MAX="10min"
     - |
       config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6g
     - task: status
