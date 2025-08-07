@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { $ } from 'bun';
 import {readFileSync} from 'fs';
 import {spawn} from 'child_process';
 import {resolve} from 'path';
@@ -105,37 +106,16 @@ async function signalHandler() {
  * through `getOpenServerlessConfig` mechanism
  */
 export async function build() {
+
     const deploy = getOpenServerlessConfig('deploy', 'true');
+    console.log(`✈️ Deploy Child process: ${deploy}`);
 
-    if (globalProc !== undefined) {
-        globalProc.kill();
+    try {
+         await $`cd ${process.env.OPS_PWD} && sh  -c ${deploy}`
+    } catch (err) {
+        console.log(`Failed with code ${err.exitCode}`);
+        console.log(err.stdout.toString());
+        console.log(err.stderr.toString());
     }
-
-    globalProc = spawn(deploy, {
-        shell: true,
-        env: process.env,
-        cwd: process.env.OPS_PWD,
-        stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
-
-    globalProc.stdout.on('data', (data) => {
-        console.log(data.toString());
-    });
-
-    globalProc.stderr.on('data', (data) => {
-        console.error(data.toString());
-    });
-
-    globalProc.on('close', (code) => {
-        console.log(`build process exited with code ${code}`);
-    });
-
-    process.on('SIGINT', signalHandler);
-    process.on('SIGTERM', signalHandler);
-
-    await globalProc.exited;
-
-
 }
+
