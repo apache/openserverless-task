@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-const { spawnSync } = require("child_process");
-const fs = require("fs");
+import fs from 'fs/promises';
+const { parse } = await import('shell-quote');
 
 const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
 
@@ -29,18 +29,25 @@ export function setDryRun(b) {
   dryRun = b;
 }
 
-function exec(cmd) {
+async function exec(cmd) {
   console.log("$", cmd);
-  if (!dryRun) {
-    spawnSync(cmd, { shell: true, env: process.env, stdio: "inherit" });
-  }
+  const cmdArgs = parse(cmd).filter(arg => typeof arg === "string");
+  
+  const proc = Bun.spawn(cmdArgs, {
+    shell: true,
+    env: process.env,
+    cwd: process.env.OPS_PWD,
+    stdio: ['inherit', 'inherit', 'inherit']
+  });
+  await proc.exited;
 }
 
-function extractArgs(files) {
+async function extractArgs(files) {
   const res = [];
   for (const file of files) {
-    if (fs.existsSync(file)) {
-      const lines = fs.readFileSync(file, "utf-8").split("\n");
+    if (await fs.exists(file)) {
+      const fileContent = await fs.readFile(file, "utf-8");
+      const lines = fileContent.split("\n");
       for (const line of lines) {
         if (line.startsWith("#-")) {
           res.push(line.trim().substring(1));
@@ -56,27 +63,28 @@ function extractArgs(files) {
 
 const packageDone = new Set();
 
-export function deployPackage(pkg) {
+export async function deployPackage(pkg) {
   const ppath = `packages/${pkg}.args`;
-  const pargs = extractArgs([ppath]).join(" ");
-  const cmd = `$OPS package update ${pkg} ${pargs}`;
+  const pargs = await extractArgs([ppath]);
+  const args = pargs.join(" ");
+  const cmd = `ops package update ${pkg} ${args}`;
   if (!packageDone.has(cmd)) {
-    exec(cmd);
+    await exec(cmd);
     packageDone.add(cmd);
   }
 }
 
-export function buildZip(pkg, action) {
-  exec(`$OPS ide util zip A=${pkg}/${action}`);
+export async function buildZip(pkg, action) {
+  await exec(`ops ide util zip A=${pkg}/${action}`);
   return `packages/${pkg}/${action}.zip`;
 }
 
-export function buildAction(pkg, action) {
-  exec(`$OPS ide util action A=${pkg}/${action}`);
+export async function buildAction(pkg, action) {
+  await exec(`ops ide util action A=${pkg}/${action}`);
   return `packages/${pkg}/${action}.zip`;
 }
 
-export function deployAction(artifact) {
+export async function deployAction(artifact) {
   let pkg = '', name='', typ = '';
 
   if (activeDeployments.has(artifact)) {
@@ -101,7 +109,7 @@ export function deployAction(artifact) {
     return;
   }
   
-  deployPackage(pkg);
+  await deployPackage(pkg);
 
   let toInspect;
   if (typ === "zip") {
@@ -111,16 +119,16 @@ export function deployAction(artifact) {
     toInspect = [artifact];
   }
 
-  const args = extractArgs(toInspect).join(" ");
+  const args = (await extractArgs(toInspect)).join(" ");
   const actionName = `${pkg}/${name}`;
-  exec(`$OPS action update ${actionName} ${artifact} ${args}`);
+  await exec(`ops action update ${actionName} ${artifact} ${args}`);
 
   activeDeployments.delete(artifact);
 
   if (queue.length > 0) {
     const nextArtifact = queue.shift();
     console.debug(`📦 deploying from queue artifact ${nextArtifact}`);
-    deploy(nextArtifact);
+    await deploy(nextArtifact);
   }
 }
 
@@ -129,16 +137,19 @@ export function deployAction(artifact) {
  * Deploy a `file`
  * @param file
  */
-export function deploy(file) {
+export async function deploy(file) {
   // Uncomment the lines below to test specific files
   // const file = "packages/deploy/hello.py";
   // const file = "packages/deploy/multi.zip";
   // const file = "packages/deploy/multi/__main__.py";
   // const file = "packages/deploy/multi/requirements.txt";
-  if (fs.lstatSync(file).isDirectory()) {
+
+  const stat = await fs.stat(file)
+
+  if (stat.isDirectory()) {
     for (const start of MAINS) {
       const sub = `${file}/${start}`;
-      if (fs.existsSync(sub)) {
+      if (await fs.exists(sub)) {
         file = sub;
         break;
       }
@@ -148,20 +159,21 @@ export function deploy(file) {
   const sp = file.split("/");
   if (sp.length > 3) {
     buildZip(sp[1], sp[2]);
-    file = buildAction(sp[1], sp[2]);
+    file = await buildAction(sp[1], sp[2]);
   }
-  deployAction(file);
+  console.log(`Deploying ${file}`);
+  await deployAction(file);
 }
 
 /**
  * Deploy a `manifest.yaml` file using `ops -wsk project`
  * @param artifact
  */
-export function deployProject(artifact) {
-  if (fs.existsSync(artifact)) {
-    const manifestContent = fs.readFileSync(artifact);
+export async function deployProject(artifact) {
+  if (await fs.exists(artifact)) {
+    const manifestContent = await Bun.file(artifact).text();
     if (manifestContent.indexOf('packages:')!==-1) {
-      exec(`$OPS -wsk project deploy --manifest ${artifact}`);
+      await exec(`ops -wsk project deploy --manifest ${artifact}`);
     } else {
       console.log(`⚠️ Warning: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
     }
