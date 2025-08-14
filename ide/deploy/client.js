@@ -19,7 +19,8 @@ import {readFile} from 'fs/promises';
 import {resolve} from 'path';
 import process from 'process';
 import {createInterface} from 'readline';
-import {globalWatcher} from "./watch";
+import {globalWatcher} from './watch';
+import {expandEnv} from './env_utils';
 const { parse } = await import('shell-quote');
 export let globalProc = undefined;
 
@@ -103,7 +104,8 @@ async function signalHandler() {
  * through `getOpenServerlessConfig` mechanism
  */
 export async function build() {
-    const deploy = await getOpenServerlessConfig('deploy', 'true');
+    let deploy = await getOpenServerlessConfig('deploy', 'true');
+    deploy = expandEnv(deploy);
 
     const deployArgs = parse(deploy).filter(arg => typeof arg === "string");
 

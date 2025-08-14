@@ -16,6 +16,7 @@
 // under the License.
 
 import fs from 'fs/promises';
+import { expandEnv } from './env_utils';
 const { parse } = await import('shell-quote');
 
 const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
@@ -31,6 +32,7 @@ export function setDryRun(b) {
 
 async function exec(cmd) {
   console.log("$", cmd);
+  cmd = expandEnv(cmd);
   const cmdArgs = parse(cmd).filter(arg => typeof arg === "string");
   
   const proc = Bun.spawn(cmdArgs, {
