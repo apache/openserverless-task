@@ -107,36 +107,35 @@ tasks:
             fi
           fi
         fi
-      - $OPS setup docker check-space
-      - $OPS config slim     
-      - $OPS setup devcluster
-      - $OPS setup nuvolaris streamer deploy
-      - $OPS setup nuvolaris system-api deploy
-      - $OPS setup nuvolaris add-user
+      - ops setup docker check-space
+      - ops config slim
+      - ops config apihost miniops.me --protocol=http
+      - ops setup devcluster
+      - ops setup nuvolaris streamer deploy
+      - ops setup nuvolaris add-user
 
   devcluster:
     vars:
       PORTS: '9010/tcp 9080/tcp 30379/tcp 32817/tcp 3232/tcp 3233/tcp 9644/tcp 7896/tcp 5984/tcp 9092/tcp 9000/tcp 9090/tcp 19530/tcp 9091/tcp, 27017/tcp 80/tcp 443/tcp 57817/tcp'
     silent: true
     cmds:
-    - $OPS config apihost miniops.me --protocol=http
     - |
       if {{.__status}}
-      then  {{.RUN}} $OPS setup docker status
+      then  {{.RUN}} ops setup docker status
       elif  {{.__uninstall}}
-      then  {{.RUN}} $OPS setup docker delete
+      then  {{.RUN}} ops setup docker delete
       else
         if test -z {{.__skip_check_ports}}
         then 
           task check-ports PORTS="{{ .PORTS }}"
         fi
-        {{.RUN}} $OPS setup docker create
+        {{.RUN}} ops setup docker create
         if test -z {{.__skip_preload_images}}
         then
-          {{.RUN}} $OPS setup docker preload
+          {{.RUN}} ops setup docker preload
         fi
-        {{.RUN}} $OPS setup kubernetes create
-        {{.RUN}} $OPS setup nuvolaris login
+        {{.RUN}} ops setup kubernetes create
+        {{.RUN}} ops setup nuvolaris login
         config STATUS_LAST=devcluster
       fi   
 
@@ -145,12 +144,12 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then  {{.RUN}} $OPS setup kubernetes status CONTEXT="{{._context_}}"
+      then  {{.RUN}} ops setup kubernetes status CONTEXT="{{._context_}}"
       elif  {{.__uninstall}}
-      then  {{.RUN}} $OPS setup kubernetes delete CONTEXT="{{._context_}}"
+      then  {{.RUN}} ops setup kubernetes delete CONTEXT="{{._context_}}"
       else
-            {{.RUN}} $OPS setup kubernetes create CONTEXT="{{._context_}}"
-            {{.RUN}} $OPS setup nuvolaris login
+            {{.RUN}} ops setup kubernetes create CONTEXT="{{._context_}}"
+            {{.RUN}} ops setup nuvolaris login
             config STATUS_LAST=cluster 
             if test -n "{{._context_}}" 
             then config STATUS_CONTEXT="{{._context_}}"
@@ -162,13 +161,13 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then {{.RUN}} $OPS cloud k3s status {{._server_}} {{._user_}}
+      then {{.RUN}} ops cloud k3s status {{._server_}} {{._user_}}
       elif {{.__uninstall}}
-      then  {{.RUN}} $OPS cloud k3s delete {{._server_}} {{._user_}}
+      then  {{.RUN}} ops cloud k3s delete {{._server_}} {{._user_}}
       else
-          {{.RUN}} $OPS cloud k3s create {{._server_}} {{._user_}}
-          {{.RUN}} $OPS setup kubernetes create
-          {{.RUN}} $OPS setup nuvolaris login
+          {{.RUN}} ops cloud k3s create {{._server_}} {{._user_}}
+          {{.RUN}} ops setup kubernetes create
+          {{.RUN}} ops setup nuvolaris login
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"
@@ -180,9 +179,9 @@ tasks:
     cmds: 
       - |
         case "$STATUS_LAST" in 
-        (devcluster) {{.RUN}} $OPS setup devcluster --status ;;
-        (cluster)    {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --status ;;
-        (server)     {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
+        (devcluster) {{.RUN}} ops setup devcluster --status ;;
+        (cluster)    {{.RUN}} ops setup cluster "$STATUS_CONTEXT" --status ;;
+        (server)     {{.RUN}} ops setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
         (*) echo nothing installed yet
         esac
 
@@ -192,25 +191,25 @@ tasks:
       - |
         case "$STATUS_LAST" in 
         (devcluster) 
-          {{.RUN}} $OPS setup devcluster --uninstall
+          {{.RUN}} ops setup devcluster --uninstall
           config -r STATUS_LAST
         ;;
         (cluster)   
           if test -n "$STATUS_CONTEXT" 
           then 
-              {{.RUN}} $OPS setup cluster "$STATUS_CONTEXT" --uninstall
+              {{.RUN}} ops setup cluster "$STATUS_CONTEXT" --uninstall
               config -r STATUS_CONTEXT
           else
-              {{.RUN}} $OPS setup cluster --uninstall
+              {{.RUN}} ops setup cluster --uninstall
           fi
           config -r STATUS_LAST
         ;;
         (server)    
           if test -z "$STATUS_USERNAME"
           then 
-                {{.RUN}} $OPS setup server "$STATUS_SERVER" --uninstall
+                {{.RUN}} ops setup server "$STATUS_SERVER" --uninstall
           else
-                {{.RUN}} $OPS setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
+                {{.RUN}} ops setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
                 config -r STATUS_USERNAME
           fi
           config -r STATUS_LAST STATUS_SERVER 
