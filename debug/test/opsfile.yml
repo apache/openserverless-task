@@ -1,0 +1,35 @@
+version: "3"
+
+vars:
+  RETRY: 100
+  TIMEOUT: 10s
+  CONTEXT: ""
+
+env:
+  KUBECONFIG:
+    sh: |-
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
+      else echo ~/.kube/config
+      fi
+
+tasks:
+  
+  main:
+    desc: test me
+    cmds:
+    - echo kube= {{.KUBECONFIG}}
+    - echo $KUBECONFIG
+    - kubectl get nodes
+    - kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}'
+    - echo "object={{.OBJECT}}"
+  
+
+  sub:
+    desc: sub
+    cmds:
+    - kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}' >_pod
+    - task: main
+      vars:
+        OBJECT:
+          sh: echo "pod/$(cat _pod)"

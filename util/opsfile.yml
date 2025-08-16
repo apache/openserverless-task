@@ -150,12 +150,12 @@ tasks:
         # removing the '--' at the beginning required to pass extra flags
         test "$1" = "--" && shift
         # execute the command line as passed and expanded
-        kubectl "$@"
+        kubectl -n nuvolaris "$@"
     env:
       KUBECONFIG:
         sh: |-
-          if test -e $OPS_TMP/kubeconfig
-          then echo $OPS_TMP/kubeconfig
+          if test -e "$OPS_TMP/kubeconfig"
+          then echo "$OPS_TMP/kubeconfig"
           else echo ~/.kube/config
           fi
 

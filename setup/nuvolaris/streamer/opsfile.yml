@@ -28,12 +28,8 @@ env:
 
   KUBECONFIG:
     sh: |-
-      #if test -e "${OPS_TMP//\\//}/kubeconfig"
-      #then echo "${OPS_TMP//\\//}/kubeconfig"
-      #else echo ~/.kube/config
-      #fi
-      if test -e ~/.ops/tmp/kubeconfig
-      then echo ~/.ops/tmp/kubeconfig
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo "$OPS_TMP/kubeconfig"
       else echo ~/.kube/config
       fi
 
@@ -61,7 +57,7 @@ tasks:
       - echo "$host.Name"
   
   deploy:
-    silent: false
+    silent: true
     ignore_error: false
     desc: deploy the streamer 
     cmds:
