@@ -96,7 +96,7 @@ tasks:
   kubectl:
     desc: download kubectl
     vars:
-      VERSION: 1.30.3
+      VERSION: 1.33.1
     cmds:
       - task: download
         vars:

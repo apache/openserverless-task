@@ -32,7 +32,7 @@ env:
   KUBECONFIG: 
     sh: | 
         if test -e $OPS_TMP/kubeconfig
-        then echo  $OPS_TMP/kubeconfig
+        then echo $OPS_TMP/kubeconfig
         else echo ~/.kube/config
         fi
 
@@ -41,6 +41,9 @@ tasks:
   wait:
     #desc: wait for apihost available
     silent: true
+    env:
+      BAR: 
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
     - |
       N=0
@@ -51,14 +54,18 @@ tasks:
         if [[ "$APIHOST" != "" ]] && [[ "$HOST" != "//pending" ]]
         then break
         fi
-        echo "$((N++))... waiting for APIHOST ready"
+        printf "\rwaiting for APIHOST ready: [${BAR:0:$((N++))}]"
         sleep 5
       done
+      printf "\n"
       echo $APIHOST
 
   wait-cm:
     desc: wait for an annotation in nuvolaris cm/config 
     silent: true
+    env:
+      BAR: 
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
       - |
@@ -69,17 +76,21 @@ tasks:
           ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{{.JSONPATH}}')"
           if [[ -z "$ANNOT_VALUE" ]]
           then 
-            echo "$((N++)) Waiting for annotations {{.JSONPATH}} to be set"
+            printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
             sleep 5
           else  
             RES=true; break
           fi
         done
+        printf "\n"
         $RES
 
   wait-cm-value:
     desc: wait for an annotation in nuvolaris cm/config to be set and have a specific value
     silent: true
+    env:
+      BAR: 
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
       - test -n "{{.EXPECTED_VALUE}}" || die "use EXPECTED_VALUE=<value>"
@@ -94,12 +105,13 @@ tasks:
           ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.system_action_status}')"
           if [[ -z "$ANNOT_VALUE" ]]
           then 
-            echo "$((N++)) Waiting for annotations {{.JSONPATH}} to be set"
+            printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
             sleep 5
           else
             test "$ANNOT_VALUE" = "{{.EXPECTED_VALUE}}" && RES=true || RES=false
             break
           fi
+          printf "\n"
         done
         $RES
 
