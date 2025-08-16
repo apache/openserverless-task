@@ -29,6 +29,14 @@ rules:
 - apiGroups: ["nuvolaris.org"]
   resources: ["whisksusers","whisksusers/status","*/finalizers"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# assign the possibility to operate on configmaps (admin api)
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]  
+# assign the possibility to operate on jobs (admin api)
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ---
 kind: RoleBinding

@@ -24,15 +24,15 @@ Manage installation of the OpenServerless system admin api
 
 ```text
 Usage:
-  admin-api deploy
-  admin-api undeploy  
-  admin-api update  
+  system-api deploy
+  system-api undeploy  
+  system-api update  
 ```
 
 ## Commands
 
 ```
-  admin-api deploy              enable setup options for the OpenServerless System Api
-  admin-api undeploy            disable setup options for the OpenServerless System Api
-  admin-api update              Update the api deployment if a newer version is available
+  system-api deploy              enable setup options for the OpenServerless System Api
+  system-api undeploy            disable setup options for the OpenServerless System Api
+  system-api update              Update the api deployment if a newer version is available
 ```

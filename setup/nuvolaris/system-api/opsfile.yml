@@ -58,9 +58,9 @@ tasks:
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
     - envsubst -i api-template.yaml -o _api.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
-    - kubectl -n nuvolaris apply -f _api.yaml
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_api.yaml"
     #- cat _ingress.yaml
-    - kubectl -n nuvolaris apply -f _ingress.yaml
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_ingress.yaml"
     - |
       echo "Admin API deployed with HOSTNAME: ${SYS_API_HOSTNAME}/system"
   
@@ -69,21 +69,21 @@ tasks:
     desc: undeploy the admin api
     ignore_error: true
     cmds:
-    - kubectl -n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api
+    - $OPS debug kube ctl CMD="-n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api"
     - |
-      echo "System API undeployed"
+      echo "System Admin API undeployed"
   
 
   update:
     silent: true
-    desc: update the OpenServerless Admin Api stateful set
+    desc: update the OpenServerless System Admin Api Stateful Set
     cmds:
       - task: deploy
-      - kubectl -n nuvolaris rollout restart statefulset nuvolaris-system-api
+      - $OPS debug kube ctl CMD="-n nuvolaris rollout restart statefulset nuvolaris-system-api"
     preconditions:      
       - sh: '[ $IMAGES_SYSTEMAPI != $CURRENT_API_VERSION ]'
-        msg: "Current OpenServerless system API stateful set it is already updated to newest version. Request ignored."
+        msg: "Current OpenServerless System API stateful set it is already updated to newest version. Request ignored."
     env:
       CURRENT_API_VERSION:
         sh: |
-          echo $(kubectl -n nuvolaris get pod/nuvolaris-system-api-0 -ojsonpath='{.spec.containers[0].image}')
+          echo $($OPS debug kube ctl CMD="-n nuvolaris get sts/nuvolaris-system-api -ojsonpath='{.spec.template.spec.containers[0].image}'")
