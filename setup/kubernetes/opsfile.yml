@@ -111,7 +111,7 @@ tasks:
         echo "=== Nodes"
         kubectl -n nuvolaris get no
         echo "=== kubectl version"
-        kubectl version --short 2>/dev/null
+        kubectl version
 
   crd:
     #desc get crd
@@ -119,34 +119,42 @@ tasks:
     cmds:
       - kubectl get wsk/controller -n nuvolaris -o yaml
 
+
   wait:
     #desc: wait for an object to reach a condition
     silent: true
+    status:
+      - test "{{.COND}}" != "true"
+    env:
+      BAR: 
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.OBJECT}}" || die "use OBJECT=<to-wait-for>"
       - |
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do echo "$((N++)) waiting for {{.OBJECT}}"
-           if kubectl -n nuvolaris get {{.OBJECT}} 2>/dev/null
+        do printf "\rwaiting for {{.OBJECT}} available: [${BAR:0:$((N++))}]"
+           if kubectl -n nuvolaris get "{{.OBJECT}}" >/dev/null 2>&1
            then RES=true ; break
            fi
            sleep {{.TIMEOUT}}
         done
+        printf "\n"
         $RES
       - |
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
         do 
-          echo "$((N++)) waiting for {{.OBJECT}} ready"
-          if kubectl -n nuvolaris wait --for=condition=Ready {{.OBJECT}} --timeout={{.TIMEOUT}} 2>/dev/null
+          printf "\rwaiting for {{.OBJECT}} ready: [${BAR:0:$((N++))}]"
+          if kubectl -n nuvolaris wait --for=condition=Ready "{{.OBJECT}}" --timeout={{.TIMEOUT}} >/dev/null 2>&1
           then RES=true ; break
           fi
         done
+        printf "\n"
         $RES
-
+  
   context:
     desc: select the context to use
     silent: true
@@ -197,7 +205,7 @@ tasks:
     vars:
       OP_VOL_STORAGE_CLASS:
         sh: |
-          echo $(kubectl get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
+          echo $(kubectl --kubeconfig="$KUBECONFIG" get storageclass -ojsonpath="{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io\/is-default-class=='true')].metadata.name}")
     cmds:
       - echo "export OPERATOR_VOLUME_STORAGE_CLASS={{.OP_VOL_STORAGE_CLASS}}"
 
@@ -215,6 +223,7 @@ tasks:
       - task: wait
         vars:
           OBJECT: pod/nuvolaris-operator-0
+          COND: trues
 
   whiskcrd:
     silent: true
@@ -239,38 +248,44 @@ tasks:
       - ops setup kubernetes whiskcrd
       #- cat _whisk.yaml
       - |
-        
         kubectl apply -f _whisk.yaml
       - task: wait
         vars:
           OBJECT: pod/couchdb-0
+          COND: true
       - task: wait
         vars:
           OBJECT: pod/controller-0
+          COND: true
+
 
   services:
     silent: true
-    #desc: wait for active services
+    desc: wait for active services
     cmds:
       - echo "Check for active services...."
-      - |
-        if test "$OPERATOR_COMPONENT_REDIS" == "true"
-        then $OPS setup kubernetes wait OBJECT=po/redis-0
-        fi
-      - |
-        if test "$OPERATOR_COMPONENT_MONGODB" == "true"
-        then $OPS setup kubernetes wait OBJECT=po/nuvolaris-mongodb-0
-        fi
-      - |
-        if test "$OPERATOR_COMPONENT_MINIO" == "true"
-        then  POD="$(kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}')"
-              $OPS setup kubernetes wait OBJECT=pod/$POD
-        fi
-      - |
-        if test "$OPERATOR_COMPONENT_POSTGRES" == "true"
-        then
-        $OPS setup kubernetes wait OBJECT=pod/nuvolaris-postgres-1-0
-        fi
+      - task: wait
+        vars:
+          OBJECT: po/redis-0
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_REDIS"
+      - task: wait
+        vars:
+          OBJECT: po/nuvolaris-mongodb-0
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_MONGODB"
+      - kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}' >_minio
+      - task: wait
+        vars:
+          OBJECT:
+            sh: echo "pod/$(cat _minio)"
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_MINIO"
+      - task: wait
+        vars:
+          OBJECT: pod/nuvolaris-postgres-1-0
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_POSTGRES"
 
   create:
     silent: true
