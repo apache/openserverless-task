@@ -84,7 +84,7 @@ tasks:
       - cat _vm-ip
 
   vm-kubeconfig:
-    silent: false
+    silent: true
     cmds:
       - task: prereq
       - echo "*** Getting kubeconfig (if available) for:"

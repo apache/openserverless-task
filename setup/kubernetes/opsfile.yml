@@ -155,6 +155,34 @@ tasks:
         printf "\n"
         $RES
   
+  wait-pod:
+    desc: wait for a pod to be available - leave the result in FILE
+    silent: true
+    status:
+      - test "{{.COND}}" != "true"
+    requires:
+      vars:
+        - SELECTOR
+        - COND
+        - FILE
+    env:
+      BAR: 
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+      - |
+        rm -f "{{.FILE}}"
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do printf "\rwaiting for pod {{.SELECTOR}}: [${BAR:0:$((N++))}]"
+           if kubectl -n nuvolaris get po {{.SELECTOR}} -o jsonpath='{.items[0].metadata.name}' >{{.FILE}} 2>/dev/null
+           then RES=true ; break
+           fi
+           sleep {{.TIMEOUT}}
+        done
+        printf "\n"
+        $RES
+
   context:
     desc: select the context to use
     silent: true
@@ -212,7 +240,8 @@ tasks:
   operator:
     #desc: deploy operator
     silent: true
-
+    status:
+      - config SKIP_OPERATOR_LAUNCH
     cmds:
       - |
         eval $(task storageclass-env)
@@ -225,13 +254,6 @@ tasks:
           OBJECT: pod/nuvolaris-operator-0
           COND: trues
 
-  whiskcrd:
-    silent: true
-    #desc: generate configuration
-    cmds:
-      - envsubst -i whisk.yaml -o _whisk.yaml
-    #- cat _whisk.yaml
-
   secrets:
     silent: true
     cmds:
@@ -242,13 +264,21 @@ tasks:
         fi
 
   instance:
-    #desc: deploy instance
+    desc: deploy operator instance
     silent: true
     cmds:
-      - ops setup kubernetes whiskcrd
+      - envsubst -i whisk.yaml -o _whisk.yaml
       #- cat _whisk.yaml
-      - |
-        kubectl apply -f _whisk.yaml
+      - kubectl apply -f _whisk.yaml
+      - task: wait-openwhisk
+
+  wait-openwhisk:
+    silent: true
+    desc: wait for openwhisk start
+    status:
+      - config SKIP_OPERATOR_LAUNCH
+    cmds:
+      - echo "Checking OpenWhisk is ready..."
       - task: wait
         vars:
           OBJECT: pod/couchdb-0
@@ -259,9 +289,11 @@ tasks:
           COND: true
 
 
-  services:
+  wait-services:
     silent: true
     desc: wait for active services
+    status:
+      - config SKIP_OPERATOR_LAUNCH
     cmds:
       - echo "Check for active services...."
       - task: wait
@@ -274,18 +306,36 @@ tasks:
           OBJECT: po/nuvolaris-mongodb-0
           COND: 
             sh: echo "$OPERATOR_COMPONENT_MONGODB"
-      - kubectl -n nuvolaris get po -l app=minio -o jsonpath='{.items[0].metadata.name}' >_minio
+      - task: wait
+        vars:
+          OBJECT: pod/nuvolaris-postgres-1-0
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_POSTGRES"
+      - task: wait-pod
+        vars:
+          SELECTOR: "-l app=minio"
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_MINIO"
+          FILE: _minio
       - task: wait
         vars:
           OBJECT:
             sh: echo "pod/$(cat _minio)"
           COND: 
             sh: echo "$OPERATOR_COMPONENT_MINIO"
+      - task: wait-pod
+        vars:
+          SELECTOR: "-l name=nuvolaris-milvus"
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_MILVUS"
+          FILE: _milvus
       - task: wait
         vars:
-          OBJECT: pod/nuvolaris-postgres-1-0
+          OBJECT:
+            sh: echo "pod/$(cat _milvus)"
           COND: 
-            sh: echo "$OPERATOR_COMPONENT_POSTGRES"
+            sh: echo "$OPERATOR_COMPONENT_MILVUS"
+
 
   create:
     silent: true
@@ -302,6 +352,7 @@ tasks:
       - task: prepare
 
   deploy:
+    silent: true
     desc: deploy in namespace (use namespace admin)
     cmds:
       - task: context
@@ -309,7 +360,12 @@ tasks:
       - task: runtimes
       - task: operator
       - task: instance
-      - task: services
+      - task: wait-openwhisk
+      - task: wait-services
+      - |
+        if config SKIP_OPERATOR_LAUNCH 2>/dev/null
+        then echo -e "***\n*** Warning: skipping operator launch\n*** re-enable it with ops -config -r SKIP_OPERATOR_LAUNCH\n***"
+        fi
 
   delete:
     silent: true

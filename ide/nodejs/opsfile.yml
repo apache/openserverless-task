@@ -20,7 +20,7 @@ version: '3'
 tasks:
 
   clean:
-    silent: false
+    silent: true
     desc: clean
     requires: {var: [DIR]}
     cmds:
@@ -43,7 +43,7 @@ tasks:
     - "{{.DIR}}/node_modules/.package-lock.json"
 
   action:
-    silent: false
+    silent: true
     desc: build the action updating the zip
     requires: {var: [DIR]}
     dir: "{{.DIR}}"
