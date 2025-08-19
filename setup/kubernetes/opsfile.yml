@@ -156,7 +156,7 @@ tasks:
         $RES
   
   wait-pod:
-    desc: wait for a pod to be available - leave the result in FILE
+    #desc: wait for a pod to be available - leave the result in FILE
     silent: true
     status:
       - test "{{.COND}}" != "true"
@@ -274,7 +274,7 @@ tasks:
 
   wait-openwhisk:
     silent: true
-    desc: wait for openwhisk start
+    #desc: wait for openwhisk start
     status:
       - config SKIP_OPERATOR_LAUNCH
     cmds:
@@ -291,7 +291,7 @@ tasks:
 
   wait-services:
     silent: true
-    desc: wait for active services
+    #desc: wait for active services
     status:
       - config SKIP_OPERATOR_LAUNCH
     cmds:
@@ -336,10 +336,9 @@ tasks:
           COND: 
             sh: echo "$OPERATOR_COMPONENT_MILVUS"
 
-
   create:
     silent: true
-    desc: create cluster
+    desc: create cluster (=permission+deploy)
     cmds:
       - task: permission
       - task: deploy
@@ -351,6 +350,14 @@ tasks:
       - task: context
       - task: prepare
 
+  configure:
+    silent: true
+    desc: configure the environment (=create without launching the operator)
+    cmds:
+    - config SKIP_OPERATOR_LAUNCH=1
+    - task: create
+    - config -r SKIP_OPERATOR_LAUNCH
+  
   deploy:
     silent: true
     desc: deploy in namespace (use namespace admin)
@@ -362,10 +369,6 @@ tasks:
       - task: instance
       - task: wait-openwhisk
       - task: wait-services
-      - |
-        if config SKIP_OPERATOR_LAUNCH 2>/dev/null
-        then echo -e "***\n*** Warning: skipping operator launch\n*** re-enable it with ops -config -r SKIP_OPERATOR_LAUNCH\n***"
-        fi
 
   delete:
     silent: true
