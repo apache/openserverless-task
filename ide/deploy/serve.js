@@ -15,10 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import {statSync, readFileSync} from "fs";
+import {stat} from "fs/promises";
 import {resolve, extname} from "path";
 import {parse} from "url";
 import process from 'process';
+import { file } from "bun";
 
 /**
  * Helper function to find the first available port starting from 8080
@@ -149,7 +150,7 @@ async function main() {
             // Check if file exists locally
             try {
                 // console.debug(`Asset dir: ${assetsDirectory} - Filepath is ${filePath}`);
-                const fileStats = statSync(filePath);
+                const fileStats = await stat(filePath);
 
                 if (fileStats.isFile()) {
                     const mimeType = flags.mimeType || getMimeType(filePath);
@@ -160,7 +161,8 @@ async function main() {
                         headers["Cache-Control"] = `max-age=${flags.cacheTime}`;
                     }
                     console.log(`[200] - Serving file ${pathname} from filesystem`);
-                    return new Response(readFileSync(filePath), {headers});
+                    const data = Bun.file(filePath).text();
+                    return new Response(data, {headers});
                 }
             } catch (err) {
                 let shouldExclude = (excludedAssets.indexOf(pathname) !== -1);

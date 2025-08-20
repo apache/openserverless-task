@@ -15,13 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import {readFileSync} from 'fs';
-import {spawn} from 'child_process';
+import {readFile} from 'fs/promises';
 import {resolve} from 'path';
 import process from 'process';
 import {createInterface} from 'readline';
-import {globalWatcher} from "./watch";
-
+import {globalWatcher} from './watch';
+import {expandEnv} from './env_utils';
+const { parse } = await import('shell-quote');
 export let globalProc = undefined;
 
 /**
@@ -31,11 +31,12 @@ export let globalProc = undefined;
  * @param defaultValue a default value to be returned when the key is not found
  * @returns {*}
  */
-export function getOpenServerlessConfig(key, defaultValue) {
+export async function getOpenServerlessConfig(key, defaultValue) {
     try {
         const dir = process.env.OPS_PWD || '/do_not_exists';
         const file = resolve(dir, 'package.json');
-        const info = JSON.parse(readFileSync(file, 'utf8'));
+        const json = await readFile(file, 'utf8');
+        const info = JSON.parse(json);
         return info.openserverless?.[key] || defaultValue;
     } catch {
         return defaultValue;
@@ -61,33 +62,31 @@ function readlines(inp) {
  * @param key
  * @param defaultValue
  */
-export function launch(key, defaultValue) {
-    const cmd = getOpenServerlessConfig(key, defaultValue);
-    const proc = spawn(cmd, {
+export async function launch(key, defaultValue) {
+    const cmd = await getOpenServerlessConfig(key, defaultValue);
+    const cmdArgs = parse(cmd).filter(arg => typeof arg === "string");
+    const proc = Bun.spawn(cmdArgs, {
         shell: true,
-        cwd: process.env.OPS_PWD,
         env: process.env,
-        stdio: ['pipe', 'pipe', 'pipe']
+        cwd: process.env.OPS_PWD,
+        stdio: ['inherit', 'inherit', 'inherit']
     });
-
-    readlines(proc.stdout);
-    readlines(proc.stderr);
 }
 
 /**
  * start `ops ide serve` or a custom devel function specified
  * through `getOpenServerlessConfig` mechanism
  */
-export function serve() {
-    launch('devel', 'ops ide serve');
+export async function serve() {
+    await launch('devel', 'ops ide serve');
 }
 
 /**
  * start `ops activation poll` or a custom logs function
  * through `getOpenServerlessConfig` mechanism
  */
-export function logs() {
-    launch('logs', 'ops activation poll');
+export async function logs() {
+    await launch('logs', 'ops activation poll');
 }
 
 async function signalHandler() {
@@ -105,37 +104,34 @@ async function signalHandler() {
  * through `getOpenServerlessConfig` mechanism
  */
 export async function build() {
-    const deploy = getOpenServerlessConfig('deploy', 'true');
+    let deploy = await getOpenServerlessConfig('deploy', 'true');
+    deploy = expandEnv(deploy);
+
+    const deployArgs = parse(deploy).filter(arg => typeof arg === "string");
 
     if (globalProc !== undefined) {
         globalProc.kill();
     }
 
-    globalProc = spawn(deploy, {
+    globalProc = Bun.spawn(deployArgs, {
         shell: true,
         env: process.env,
         cwd: process.env.OPS_PWD,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['inherit', 'inherit', 'inherit']
     });
 
     console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
 
-    globalProc.stdout.on('data', (data) => {
-        console.log(data.toString());
-    });
-
-    globalProc.stderr.on('data', (data) => {
-        console.error(data.toString());
-    });
-
-    globalProc.on('close', (code) => {
-        console.log(`build process exited with code ${code}`);
-    });
-
+    // Register signal handlers
     process.on('SIGINT', signalHandler);
     process.on('SIGTERM', signalHandler);
 
-    await globalProc.exited;
-
+    // Await its completion
+    try {
+        const code = await globalProc.exited;
+        console.log(`build process exited with code ${code}`);
+    } catch (err) {
+        console.error("Error awaiting process exit:", err);
+    }
 
 }

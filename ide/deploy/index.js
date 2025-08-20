@@ -88,7 +88,7 @@ async function main() {
             await scan();
             await build();
         }
-        watchAndDeploy();
+        await watchAndDeploy();
 
     } else if (options.deploy) {
         await scan();
