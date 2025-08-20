@@ -40,6 +40,7 @@ Usage:
   util remove-secret <args>...
   util list-secrets
   util ingress-type
+  util edit [<plugin>]
 ```
 
 ## Commands
@@ -61,6 +62,7 @@ Usage:
 -  remove-secret           remove one or multiple secrets to user metadata
 -  list-secrets            list secrets from user metadata
 -  ingress-type            return the ingress type
+-  edit                    edit (with vscode) the current tasks or a plugin
 ```
 
 ## Options

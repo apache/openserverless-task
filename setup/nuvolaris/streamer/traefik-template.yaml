@@ -22,7 +22,7 @@ metadata:
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
-  name: ${USERNAME:-nuvolaris}-streamer-api-ingress
+  name: nuvolaris-streamer-api-ingress
   namespace: nuvolaris
 spec:
   rules:
@@ -31,7 +31,7 @@ spec:
       paths:
       - backend:
           service:
-            name: ${USERNAME:-nuvolaris}-streamer-api
+            name: nuvolaris-streamer-api
             port:
               number: 8080
         path: /

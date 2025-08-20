@@ -1,3 +1,4 @@
+---
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,55 +13,54 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: nuvolaris-streamer-api
+  name: nuvolaris-system-api
   namespace: nuvolaris
   labels:
-    app: nuvolaris-streamer-api
+    app: nuvolaris-system-api
 spec:  
   replicas: 1
   selector:
     matchLabels:
-      app: nuvolaris-streamer-api
+      app: nuvolaris-system-api
   template:
     metadata:
       labels:
-        name: nuvolaris-streamer-api
-        app: nuvolaris-streamer-api
+        name: nuvolaris-system-api
+        app: nuvolaris-system-api
     spec:
-      serviceAccount: default
+      serviceAccount: nuvolaris-wsku
       containers:
-        - name: nuvolaris-streamer-api
-          image: ${IMAGES_STREAMER}
+        - name: nuvolaris-system-api
+          image: ${IMAGES_SYSTEMAPI}
           imagePullPolicy: Always
-          command: ["/streamer"]
+          command: ["./run.sh"]
           ports:
-            - containerPort: 8080
-              name: streamer
+            - containerPort: 5000
+              name: api
           env:
-          - name: "OW_APIHOST"
-            value: "${OW_APIHOST-http://controller:3233}"
-          - name: "HTTP_SERVER_PORT"
-            value: "8080"
-          - name: "STREAMER_ADDR"
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: "CORS_ENABLED"
-            value: "1"                                                                                                                                                                                      
+          - name: "APIHOST"
+            value: "${SYS_API_HOSTNAME:-localhost}"
+          - name: "COUCHDB_SERVICE_PORT"
+            value: "5984" 
+          - name: "COUCHDB_SERVICE_HOST"
+            value: "couchdb" 
+          - name: "COUCHDB_ADMIN_USER"
+            value: "${SYS_API_CDB_USER}"  
+          - name: "COUCHDB_ADMIN_PASSWORD"
+            value: "${SYS_API_CDB_PASSWORD}"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nuvolaris-streamer-api
+  name: nuvolaris-system-api
   namespace: nuvolaris
 spec:
   ports:
-    - name: streamer
-      port: 8080
+    - name: api
+      port: 5000
   selector:
-    app: nuvolaris-streamer-api
+    app: nuvolaris-system-api

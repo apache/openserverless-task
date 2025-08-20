@@ -17,23 +17,24 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-body-size: 48m
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-  name: nuvolaris-streamer-api-ingress
+  name: nuvolaris-system-api-ingress
   namespace: nuvolaris
 spec:
   ingressClassName: nginx
   rules:
-  - host: stream.${STREAMER_API_HOSTNAME:-localhost}    
+  - host: ${SYS_API_HOSTNAME:-localhost}
     http:
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: nuvolaris-system-api
             port:
-              number: 8080
-        path: /
+              number: 5000
+        path: /system
         pathType: Prefix
 

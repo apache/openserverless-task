@@ -171,6 +171,11 @@ tasks:
         if test -e $OPS_PWD/packages/.env
         then source $OPS_PWD/packages/.env
         fi
+        if test -n "$AUTH_CHECK"
+        then if test "$AUTH_CHECK" != "$AUTH" 
+             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             fi
+        fi
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
@@ -247,6 +252,11 @@ tasks:
         fi
         if test -e $OPS_PWD/packages/.env
         then source $OPS_PWD/packages/.env
+        fi
+        if test -n "$AUTH_CHECK"
+        then if test "$AUTH_CHECK" != "$AUTH" 
+             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             fi
         fi
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'

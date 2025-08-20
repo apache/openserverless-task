@@ -96,7 +96,7 @@ tasks:
   kubectl:
     desc: download kubectl
     vars:
-      VERSION: 1.30.3
+      VERSION: 1.33.1
     cmds:
       - task: download
         vars:
@@ -176,9 +176,20 @@ tasks:
       URL: "https://github.com/astral-sh/uv/releases/download/{{.VERSION}}/{{.FILE}}"
       OUT: uv
     cmds:
-    - curl -sL "{{.URL}}"  -o "{{.FILE}}"
+    - curl -sL "{{.URL}}" -o "{{.FILE}}"
     - extract "{{.FILE}}" "{{.OUT}}{{.EXE}}"
     - remove "{{.FILE}}"
+
+  yq:
+    desc: install yq
+    vars:
+      VERSION: "4.47.1"
+      FILE:  "yq_{{.OS}}_{{.ARCH}}{{.EXE}}"
+      URL: "https://github.com/mikefarah/yq/releases/download/v{{.VERSION}}/{{.FILE}}"
+      OUT: yq
+    cmds:
+    - curl -sL "{{.URL}}" -o "{{.OUT}}"
+    - executable "{{.OUT}}"
 
   #hugo:
   #  desc: download hugo
@@ -312,7 +323,10 @@ tasks:
     - task: uv
     - task: helm
     - task: kubefwd
-    - task: zip
+    - task: yq
+    # do not test zip as it is a special case
+    #- task: zip
+    # commented out for now
     #- task: hugo
     #- task: k3d
     
@@ -321,10 +335,10 @@ tasks:
       DIR: "{{.OPS_PWD}}/bin/{{.OS}}-{{.ARCH}}"
     cmds:
     - |
-      {{.DRY}} rm -Rvf {{.DIR}}
-      mkdir -p {{.DIR}}
-      cd {{.DIR}}
-      {{.DRY}} ops -task -t ../../prereq.yml -d {{.DIR}} all
+      {{.DRY}} rm -Rvf "{{.DIR}}"
+      mkdir -p "{{.DIR}}"
+      cd "{{.DIR}}"
+      {{.DRY}} ops -task -t ../../prereq.yml -d "{{.DIR}}" all
     - task: check
       
   check:
@@ -344,7 +358,7 @@ tasks:
       - false
     cmds:
     - for: sources
-      cmd: filetype -m {{.ITEM}} | rg {{.FILETYPE}}
+      cmd: filetype -m "{{.ITEM}}" | rg {{.FILETYPE}}
  
   tests:
    - __OS=linux   __ARCH=amd64 ops -task -t prereq.yml test

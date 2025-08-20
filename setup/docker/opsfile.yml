@@ -60,7 +60,7 @@ tasks:
   cluster:
     silent: true
     cmds:
-    - mkdir -p $DATADIR
+    - mkdir -p "$DATADIR"
     - envsubst -i kind.yaml -o _kind.yaml
     - > 
       kind create cluster 

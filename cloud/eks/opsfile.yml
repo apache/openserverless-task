@@ -32,7 +32,7 @@ env:
 tasks:
   prereq:
     desc: check prerequisites
-    silent: false
+    silent: true
     cmds:
     - test -n "$EKS_NAME" || die 'Please, configure EKS with "ops config eks"'
     - "aws --version || die 'You need to install aws cli from : https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html'"

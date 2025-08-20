@@ -22,7 +22,7 @@ tasks:
   init:
     desc: init a runtime running in localhost:8080 (with A=<dir-or-file>)
     requires: {vars: [A]}
-    silent: false
+    silent: true
     cmds:
       - |
         if test -d "$OPS_PWD/packages/{{.A}}"
@@ -37,7 +37,7 @@ tasks:
 
   run:
     desc: run a runtime running in localhost:8080 with A=<dir-or-file> J=<json-payload>
-    silent: false
+    silent: true
     cmds:
     - python3 invoke.py run '{{.J}}'
 
