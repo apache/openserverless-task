@@ -29,7 +29,7 @@ tasks:
     silent: true
     cmds:
       - test "$(python3 -V | awk -F. '{print $2}')" -ge 10 || die "python 3.10 or greater not available"
-      - test -x "$(which virtualenv)" || die "virtualenv does not exist"
+      - test -x "$(which virtualenv)" || die "you need python virtualenv"
       - test "$(node -v | awk -F. '{print substr($1,2) }')" -ge 18 || die "nodejs 18 or greater not available"
       - test "$(printf '%s\n' "$(bun -v)" "1.1.18" | sort -V | head -n 1)" = "1.1.18" || die "bun 1.1.18 or greater not available"
       - test -d "$OPS_PWD/packages" || die "no packages in current directory"
@@ -107,24 +107,41 @@ tasks:
     desc: login in you OpenServerless host
     cmds:
       - |
+        if test -e "$OPS_PWD/.env"
+        then source "$OPS_PWD/.env"
+        fi
         if test -n "{{._apihost_}}"
         then OPSDEV_APIHOST="{{._apihost_}}"
-        #else OPSDEV_APIHOST="http://localhost"
         fi
         echo "*** Configuring Access to OpenServerless ***"
         if test -z "{{._apihost_}}"
-        then echo -n "Enter Apihost: "
-              read OPSDEV_APIHOST
-              OPSDEV_APIHOST="$(echo $OPSDEV_APIHOST | tr -d '\r')"
+        then 
+            if test -z "$OPS_APIHOST"
+            then
+                echo -n "Enter Apihost: "
+                read OPSDEV_APIHOST
+                OPSDEV_APIHOST="$(echo $OPSDEV_APIHOST | tr -d '\r')"
+            else
+                OPSDEV_APIHOST="$OPS_APIHOST"
+            fi
         else OPSDEV_APIHOST="{{._apihost_}}"
         fi
         if test -z "{{._username_}}"
-        then  echo -n "Enter Username: "
+        then
+            if test -n "$OPS_USERNAME"
+            then
+                OPSDEV_USERNAME="$OPS_USERNAME"
+            else
+              echo -n "Enter Username: "
               read OPSDEV_USERNAME
               OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
+            fi
         else OPSDEV_USERNAME="{{._username_}}"
         fi
-        echo apihost=$OPSDEV_APIHOST username=$OPSDEV_USERNAME
+        echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
+        if test -n "$OPS_PASSWORD"
+        then export "OPS_PASSWORD"
+        fi
         if $OPS -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
         then
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
@@ -133,10 +150,6 @@ tasks:
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source ~/.wskprops
-          #config OPENAI_API_HOST=https://openai.nuvolaris.io
-          #config OPENAI_API_KEY="$(echo "$AUTH" | awk -F: '{print $1 }')"
-          #config OLLAMA_API_HOST=https://ollama.nuvolaris.io
-          #config OLLAMA_API_KEY="$(echo "$AUTH" | awk -F: '{print $1 }')"
         else 
           false
         fi
@@ -173,7 +186,7 @@ tasks:
         fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH" 
-             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
              fi
         fi
         if {{.__dry_run}}
@@ -255,7 +268,7 @@ tasks:
         fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH" 
-             then echo "You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
              fi
         fi
         if {{.__dry_run}}
