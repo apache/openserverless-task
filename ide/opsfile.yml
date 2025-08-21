@@ -22,7 +22,21 @@ vars:
   API_HOST:
     sh: |
       echo "http://localhost:80"
+  
+  DEPLOY_CURRENT_HASH:
+    sh: |
+      if test -e "$OPS_ROOT/ide/deploy/bun.lockb"
+      then cd $OPS_ROOT/ide/deploy && bun $OPS_ROOT/ide/deploy/bun.lockb --hash
+      else echo "0"
+      fi
 
+  DEPLOY_PREVIOUS_HASH:
+    sh: |
+      if test -e "$OPS_ROOT/ide/deploy/hash.lock"
+      then cat $OPS_ROOT/ide/deploy/hash.lock
+      else echo "0"
+      fi
+      
 tasks:
 
   prereq:
@@ -37,21 +51,18 @@ tasks:
       - test -n "$OPSDEV_HOST" || die "please run 'ops ide login' first"
       - test "$(ops -wsk property get --namespace | awk '{ print $3 }')" = "$OPSDEV_USERNAME" || die "Repeat the login"
       - |
-        if ! test -d "$OPS_ROOT/ide/deploy/node_modules"
-          then cd $OPS_ROOT/ide/deploy && bun install
+        if ! test -d "$OPS_ROOT/ide/deploy/node_modules" || [ "{{.DEPLOY_CURRENT_HASH}}" != "{{.DEPLOY_PREVIOUS_HASH}}" ]
+          then 
+            cd $OPS_ROOT/ide/deploy && bun install && rm -f $OPS_ROOT/ide/deploy/hash.lock && bun $OPS_ROOT/ide/deploy/bun.lockb --hash > $OPS_ROOT/ide/deploy/hash.lock
         fi
       - |
         if test -e "$OPS_PWD/package.json"
         then if ! test -d "$OPS_PWD/node_modules"
              then cd $OPS_PWD ; bun install
              fi
-        fi
-      #- |
-      #  if ! which http-server >/dev/null 2>/dev/null
-      #  then npm install -g http-server
-      #  fi
+        fi      
       - task: kill
-
+  
   kill:
     silent: true
     ignore_errors: true

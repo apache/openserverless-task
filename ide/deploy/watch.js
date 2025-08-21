@@ -44,7 +44,8 @@ export function shouldIgnoreFile(path) {
  * @param changeType
  * @param path
  */
-export function checkAndDeploy(changeType, path) {
+export async function checkAndDeploy(changeType, path) {
+  console.log(`(checkAndDeploy) > ${changeType} ${path}`);
   path = resolve(path);
   if (shouldIgnoreFile(path)) return;
   const curDirLen = process.cwd().length + 1;
@@ -58,7 +59,9 @@ export function checkAndDeploy(changeType, path) {
   }
   // this should not even happen
   if (shouldIgnoreFile(src)) return;
-  deploy(src);
+
+  console.log(`(checkAndDeploy -> deploy) > ${changeType} ${path}`);
+  await deploy(src);
 }
 
 /**
@@ -79,9 +82,9 @@ async function redeploy() {
   });
 
 
-  globalWatcher.on('all', (event, path) => {
+  globalWatcher.on('all', async (event, path) => {
     try {
-      checkAndDeploy(event, path);
+      await checkAndDeploy(event, path);
     } catch (error) {
       console.error(error);
     }
@@ -96,11 +99,14 @@ async function redeploy() {
  * This function is the entry point and is called when
  * the program is started with the watch flag on
  */
-export function watchAndDeploy() {
-  serve();
-  logs();
+export async function watchAndDeploy() {
+  await serve();
+  await logs();
 
-  redeploy().catch((error) => {
+  try {
+    await redeploy();
+  }
+  catch(error) {
     console.error("Watcher failed:", error);
-  });
+  };
 }

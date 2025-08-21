@@ -11,5 +11,6 @@ program
 const key = program.args[0];
 const def = program.args[1] || '';
 
-const paramValue = getOpenServerlessConfig(key,def);
-console.log(paramValue);
+getOpenServerlessConfig(key,def).then(paramValue => {
+    console.log(paramValue);
+});

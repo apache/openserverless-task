@@ -50,7 +50,7 @@ export async function scan() {
         "packages/*/*/go.mod"
     ];
     // load user defined requirements or use `defaultReqsGlobs`
-    const packageGlobs = getOpenServerlessConfig("requirements", defaultReqsGlobs);
+    const packageGlobs = await getOpenServerlessConfig("requirements", defaultReqsGlobs);
     // requirements
     const reqs = [];
 
@@ -69,7 +69,7 @@ export async function scan() {
     for (const req of reqs) {
         console.log(">> Requirements:", req);
         const sp = req.split("/");
-        const act = buildZip(sp[1], sp[2]);
+        const act = await buildZip(sp[1], sp[2]);
         deployments.add(act);
         packages.add(sp[1]);
     }
@@ -82,7 +82,7 @@ export async function scan() {
         "packages/*/*/main.go"
     ];
     // load user defined main functions or use `defaultMainsGlobs`
-    const mainsGlobs = getOpenServerlessConfig("mains", defaultMainsGlobs);
+    const mainsGlobs = await getOpenServerlessConfig("mains", defaultMainsGlobs);
     const mains = [];
 
     for (const mainGlob of mainsGlobs) {
@@ -97,7 +97,7 @@ export async function scan() {
     for (const main of mains) {
         console.log(">> Main:", main);
         const sp = main.split("/");
-        const act = buildAction(sp[1], sp[2]);
+        const act = await buildAction(sp[1], sp[2]);
         deployments.add(act);
         packages.add(sp[1]);
     }
@@ -109,7 +109,7 @@ export async function scan() {
         "packages/*/*.php",
         "packages/*/*.go"
     ];
-    const singlesGlobs = getOpenServerlessConfig("singles", defaultSinglesGlobs);
+    const singlesGlobs = await getOpenServerlessConfig("singles", defaultSinglesGlobs);
     const singles = [];
 
     for (const singleGlob of singlesGlobs) {
@@ -131,12 +131,12 @@ export async function scan() {
     console.log("> Deploying:");
     for (const pkg of packages) {
         console.log(">> Package:", pkg);
-        deployPackage(pkg);
+        await deployPackage(pkg);
     }
 
     for (const action of deployments) {
         console.log(">>> Action:", action);
-        deployAction(action);
+        await deployAction(action);
     }
 
 
@@ -145,7 +145,7 @@ export async function scan() {
         "packages/*.yaml",
         "packages/*/*.yaml",
     ];
-    const manifestsGlobs = getOpenServerlessConfig("manifests", defaultProjectGlobs);
+    const manifestsGlobs = await getOpenServerlessConfig("manifests", defaultProjectGlobs);
     const manifests = [];
 
     for (const manifestGlobs of manifestsGlobs) {
@@ -164,7 +164,7 @@ export async function scan() {
         }
         for (const manifest of manifests) {
             console.log(">>> Manifest:", manifest);
-            deployProject(manifest);
+            await deployProject(manifest);
         }
     }
 }

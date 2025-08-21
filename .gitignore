@@ -28,3 +28,4 @@ attic.txt
 **/venv/
 node_modules/
 .DS_Store
+ide/deploy/hash.lock
