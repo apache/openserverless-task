@@ -241,3 +241,18 @@ tasks:
              fi
         fi
         code "$DIR"
+
+  link-plugin:
+    desc: link a plugin
+    silent: true
+    cmds:
+      - |
+        PLUGIN="$OPS_PWD/olaris-{{._plugin_}}"
+        if test -d "$PLUGIN"
+        then
+          ln -s "$PLUGIN" "$OPS_HOME/olaris-{{._plugin_}}"
+          echo "Plugin {{._plugin_}} linked from $PLUGIN to $OPS_HOME/olaris-{{._plugin_}}"
+        else
+          echo "$PLUGIN not found"
+          exit 1
+        fi

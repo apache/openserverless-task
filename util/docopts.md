@@ -41,6 +41,7 @@ Usage:
   util list-secrets
   util ingress-type
   util edit [<plugin>]
+  util link-plugin <plugin>
 ```
 
 ## Commands
@@ -63,6 +64,7 @@ Usage:
 -  list-secrets            list secrets from user metadata
 -  ingress-type            return the ingress type
 -  edit                    edit (with vscode) the current tasks or a plugin
+-  link-plugin             link the <plugin> in current directory to the global list
 ```
 
 ## Options
