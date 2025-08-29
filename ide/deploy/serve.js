@@ -161,7 +161,7 @@ async function main() {
                         headers["Cache-Control"] = `max-age=${flags.cacheTime}`;
                     }
                     console.log(`[200] - Serving file ${pathname} from filesystem`);
-                    const data = Bun.file(filePath).text();
+                    const data = await Bun.file(filePath).text();
                     return new Response(data, {headers});
                 }
             } catch (err) {
