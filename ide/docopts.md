@@ -36,6 +36,7 @@ Usage:
     ide kill
     ide python
     ide nodejs
+    ide devcontainer
 ```
 
 ## Commands
@@ -51,6 +52,7 @@ Usage:
     ide kill                kill current devel or deploy job
     ide poll                poll for logs
     ide shell               start a shell with current env
+    ide devcontainer        add a devcontainer configuration
     ide python              python subcommands
     ide nodejs              nodejs subcommands
 ```
