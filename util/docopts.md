@@ -42,6 +42,7 @@ Usage:
   util ingress-type
   util edit [<plugin>]
   util link-plugin <plugin>
+  util docker-proxy [<port>] [<host>] [--remove]
 ```
 
 ## Commands
@@ -65,6 +66,7 @@ Usage:
 -  ingress-type            return the ingress type
 -  edit                    edit (with vscode) the current tasks or a plugin
 -  link-plugin             link the <plugin> in current directory to the global list
+-  docker-proxy            launch (or remove) in docker a proxy listening in public <port> (default 8080) to the <host> (default devel.miniops.me)
 ```
 
 ## Options
