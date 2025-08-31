@@ -256,3 +256,31 @@ tasks:
           echo "$PLUGIN not found"
           exit 1
         fi
+
+  docker-proxy:
+    desc: create in docker a proxy to expose miniops.me (or others)
+    silent: true
+    vars:
+      PORT: '{{or ._port_ "8080"}}'
+      HOST: '{{or ._host_ "devel.miniops.me"}}'
+      NGINX_CONF: >
+        server {
+           listen 80;
+           location / { 
+             proxy_pass http://nuvolaris-control-plane:80;
+             proxy_set_header Host {{.HOST}}; 
+           } 
+        }
+    cmds:
+    - |
+      if {{.__remove}}
+      then docker rm docker-proxy-{{.PORT}} -f
+      else
+        if docker run -d --name docker-proxy-{{.PORT}} -p {{.PORT}}:80 --network kind nginx:alpine sh -c \
+           "echo '{{.NGINX_CONF}}' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+        then echo "docker-proxy started on port {{.PORT}} to  http://{{.HOST}}"
+        else echo "Cannot start docker-proxy-{{.PORT}} - either the port is busy or another instance is running, remove it" 
+        fi       
+      fi
+
+
