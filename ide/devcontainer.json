@@ -1,0 +1,32 @@
+{
+	"name": "Agent41",
+	"image": "ghcr.io/mastrogpt/agent41-starter:2506201530",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"remoteUser": "node",
+	"containerEnv": {
+        "OPS_BRANCH": "main"
+    },
+	"runArgs": [
+    	"--network=host"
+    ],
+    "remoteEnv": {
+        "OPS_BRANCH": "main"
+    },
+	"postCreateCommand": "ops -update",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"pgant.antonio-ops-vscode-extension@1.3.2",
+				"ms-python.python",
+				"ms-vscode.test-adapter-converter",
+				"pamaron.pytest-runner",
+				"marp-team.marp-vscode",
+				"ryuta46.multi-command",
+				"george-alisson.html-preview-vscode",
+				"mathematic.vscode-pdf",
+				"littlefoxteam.vscode-python-test-adapter",
+				"1YiB.svelte-bundle"
+			]
+		}
+	}
+}
