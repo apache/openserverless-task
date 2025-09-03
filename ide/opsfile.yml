@@ -42,7 +42,7 @@ tasks:
   prereq:
     silent: true
     cmds:
-      - test -n "$DEVCONTAINER"  || test -n "$REMOTE_CONTAINERS"  || die "you need to run in a devcontainer - use ops ide devcontainer to add one to your project"
+      - test -n "$DEVCONTAINER"  || test -n "$REMOTE_CONTAINERS"  || die "you need to run in a devcontainer - use ops ide devcontainer"
       - test "$(python3 -V | awk -F. '{print $2}')" -ge 10 || die "python 3.10 or greater not available"
       - test -x "$(which virtualenv)" || die "you need python virtualenv"
       - test "$(node -v | awk -F. '{print substr($1,2) }')" -ge 18 || die "nodejs 18 or greater not available"
