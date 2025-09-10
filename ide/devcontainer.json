@@ -4,13 +4,15 @@
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"remoteUser": "node",
 	"containerEnv": {
-        "OPS_BRANCH": "main"
+        "OPS_BRANCH": "main", 
+		"DEVCONTAINER": "1"
     },
 	"runArgs": [
     	"--network=host"
     ],
     "remoteEnv": {
-        "OPS_BRANCH": "main"
+        "OPS_BRANCH": "main",
+		"REMOTE_CONTAINERS": "1"
     },
 	"postCreateCommand": "ops -update",
 	"customizations": {
