@@ -1,7 +1,6 @@
 {
 	"name": "Agent41",
 	"image": "ghcr.io/mastrogpt/agent41-starter:2506201530",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"remoteUser": "node",
 	"containerEnv": {
         "OPS_BRANCH": "main", 
