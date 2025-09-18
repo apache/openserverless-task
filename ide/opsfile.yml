@@ -41,8 +41,14 @@ tasks:
 
   prereq:
     silent: true
+    vars: 
+      MSG: |
+            This command must be run inside a devcontainer.
+            Please use 'ops ide devcontainer' to create a configuration and enter in a devcontainer.
+            You can then use 'ops ide devel' and 'ops ide deploy'.
+            You can also reopen the project with VSCode and use the command 'Reopen in Container'.
     cmds:
-      - test -n "$DEVCONTAINER"  || test -n "$REMOTE_CONTAINERS"  || die "you need to run in a devcontainer - use ops ide devcontainer"
+      - test -e "/.dockerenv" || die "{{.MSG}}"
       - test "$(python3 -V | awk -F. '{print $2}')" -ge 10 || die "python 3.10 or greater not available"
       - test -x "$(which virtualenv)" || die "you need python virtualenv"
       - test "$(node -v | awk -F. '{print substr($1,2) }')" -ge 18 || die "nodejs 18 or greater not available"
