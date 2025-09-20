@@ -31,6 +31,7 @@ spec:
       slim: ${OPERATOR_CONFIG_SLIM:-false}
       affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
       tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      ingressclass: ${OPERATOR_CONFIG_INGRESSCLASS:-auto}
       preload:
         only-apache: ${OPERATOR_CONFIG_PRELOAD_ONLY_APACHE:-true}    
   components:
