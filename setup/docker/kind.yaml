@@ -17,6 +17,17 @@
 
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."127.0.0.1:32000"]
+        endpoint = ["http://127.0.0.1:32000"]
+
+    [plugins."io.containerd.grpc.v1.cri".registry.configs]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs."127.0.0.1:32000".tls]
+        insecure_skip_verify = true
+         
 nodes:
 - role: control-plane
   kubeadmConfigPatches:
@@ -99,4 +110,4 @@ nodes:
     protocol: TCP 
   - containerPort: 32531
     hostPort: 9091
-    protocol: TCP                    
+    protocol: TCP           

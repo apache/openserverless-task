@@ -58,9 +58,9 @@ tasks:
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
     - envsubst -i api-template.yaml -o _api.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
-    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_api.yaml"
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_ROOT/setup/nuvolaris/system-api/_api.yaml"
     #- cat _ingress.yaml
-    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_ingress.yaml"
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_ROOT/setup/nuvolaris/system-api/_ingress.yaml"
     - |
       echo "Admin API deployed with HOSTNAME: ${SYS_API_HOSTNAME}/system"
   
