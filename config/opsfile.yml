@@ -1080,7 +1080,6 @@ tasks:
       then config MINIO_CONFIG_INGRESS_CONSOLE=true
       fi 
 
-
   etcd:
     silent: true
     cmds:
@@ -1158,7 +1157,6 @@ tasks:
             Specifies the volume size assigned to the image registry
           VAL: "{{.__disk}}"
           DEF: "50"
-                                      
 
   minimal:
     silent: true
@@ -1205,3 +1203,15 @@ tasks:
       config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6g
     - task: status
     - config CONFIGURED=true
+
+  ingress:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Ingress Class"
+        VAR: "OPERATOR_CONFIG_INGRESSCLASS"
+        HINT: | 
+              Specify the ingress class.
+        VAL: "{{.__class}}"
+        DEF: "auto"
