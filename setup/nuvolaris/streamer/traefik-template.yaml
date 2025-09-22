@@ -17,14 +17,26 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    ingressClassName: traefik
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    traefik.ingress.kubernetes.io/router.tls: "true"
+$T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+
   name: nuvolaris-streamer-api-ingress
   namespace: nuvolaris
+
 spec:
+  ingressClassName: traefik
+
+$T  tls:
+$T    - hosts:
+$T        - stream.${STREAMER_API_HOSTNAME:-localhost}
+$T      secretName: streamer-api-tls
+
   rules:
   - host: stream.${STREAMER_API_HOSTNAME:-localhost}
     http:
