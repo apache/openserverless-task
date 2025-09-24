@@ -124,7 +124,12 @@ tasks:
         then 
           config OPERATOR_COMPONENT_REGISTRY=true
           config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
-        fi                 
+        fi  
+      - | 
+        if {{.__seaweedfs}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_SEAWEEDFS=true          
+        fi                         
       - config CONFIGURED=true
       - task: status
 
@@ -204,7 +209,12 @@ tasks:
         if {{.__registry}} || {{.__all}}
         then 
           config OPERATOR_CONFIG_REGISTRY=false
-        fi                                  
+        fi
+      - | 
+        if {{.__seaweedfs}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_SEAWEEDFS=false
+        fi                                            
       - task: status
 
   status:
@@ -870,7 +880,16 @@ tasks:
         HINT: | 
               Specifies an integer value
         VAL: "{{.__pulsarledgelvol}}"
-        DEF: "20"                                               
+        DEF: "20" 
+    - task: read
+      vars:
+        MSG: "SEAWEEDFS Volume size"
+        VAR: "STORAGE_SIZE_SEAWEEDFS"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__seaweedfsvol}}"
+        DEF: "60"         
+
 
   controller:
     silent: true
@@ -1158,6 +1177,18 @@ tasks:
           VAL: "{{.__disk}}"
           DEF: "50"
 
+  seaweefs:
+    silent: true
+    cmds:
+    - |
+      if {{.__s3}}
+      then config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
+      fi    
+    - |
+      if {{.__console}}
+      then config SEAWEEDFS_CONFIG_INGRESS_CONSOLE_ENABLED=true
+      fi           
+
   minimal:
     silent: true
     cmds:
@@ -1186,13 +1217,13 @@ tasks:
       config OPERATOR_COMPONENT_KAFKA=false  
       config OPERATOR_COMPONENT_REDIS=true
       config OPERATOR_COMPONENT_MONGODB=true
-      config OPERATOR_COMPONENT_MINIO=true
+      config OPERATOR_COMPONENT_SEAWEEDFS=true
       config OPERATOR_COMPONENT_CRON=true
       config OPERATOR_COMPONENT_STATIC=true
       config OPERATOR_COMPONENT_POSTGRES=true
       config OPERATOR_COMPONENT_ETCD=true
       config OPERATOR_COMPONENT_MILVUS=true      
-      config MINIO_CONFIG_INGRESS_S3=true
+      config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
       config ETCD_CONFIG_REPLICAS=1
       config POSTGRES_CONFIG_REPLICAS=1
       config OPERATOR_CONFIG_SLIM=true
