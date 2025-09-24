@@ -325,6 +325,18 @@ tasks:
             sh: echo "$OPERATOR_COMPONENT_MINIO"
       - task: wait-pod
         vars:
+          SELECTOR: "-l app=seaweedfs"
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"
+          FILE: _seaweedfs
+      - task: wait
+        vars:
+          OBJECT:
+            sh: echo "pod/$(cat _seaweedfs)"
+          COND: 
+            sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"            
+      - task: wait-pod
+        vars:
           SELECTOR: "-l name=nuvolaris-milvus"
           COND: 
             sh: echo "$OPERATOR_COMPONENT_MILVUS"
