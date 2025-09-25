@@ -119,14 +119,14 @@ tasks:
           fi
         fi
 
-        if {{.__minio}} || {{.__all}}
+        if {{.__seaweedfs}} || {{.__all}}
         then 
-          if $OPERATOR_COMPONENT_MINIO
+          if $OPERATOR_COMPONENT_MINIO || $OPERATOR_COMPONENT_SEAWEEDFS
           then 
             MINIO_DATA_ENABLED=true
             MINIO_STATIC_ENABLED=true
           else 
-            die "Error! Minio is not enabled in OpenServerless"
+            die "Error! Minio or Seaweedfs are not enabled in OpenServerless"
           fi
         fi
 
