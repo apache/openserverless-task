@@ -23,6 +23,7 @@ vars:
   RETRY: 100
   TIMEOUT: 15s
   CONTEXT: ""
+  DRY: ""
 
 env:
 
@@ -49,25 +50,28 @@ env:
     sh: ops util ingress-type
 
 tasks:
-
-  boh:
-    desc: echo a message
-    silent: true
-    cmds:
-      - echo "$host.Name"
   
   deploy:
     silent: true
     ignore_error: false
     desc: deploy the streamer 
+    vars: 
+      T: 
+        sh: |
+            if kubectl -n nuvolaris get wsk/controller -ojsonpath='{.status.whisk_create.tls}' | rg on >/dev/null
+            then echo ""
+            else echo "#"
+            fi
     cmds:
     - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
     - test -n "$IMAGES_STREAMER" || die "IMAGES_STREAMER is not set. Please set it to the desired image version."
     - envsubst -i streamer-template.yaml -o _streamer.yaml > /dev/null 2>&1
-    - envsubst -i "${INGRESS_TYPE}-template.yaml" -o _ingress.yaml > /dev/null 2>&1
-    - kubectl -n nuvolaris apply -f _streamer.yaml
+    - |
+      export T="{{.T}}"
+      envsubst -i "${INGRESS_TYPE}-template.yaml" -o _ingress.yaml > /dev/null 2>&1
+    - "{{.DRY}} kubectl -n nuvolaris apply -f _streamer.yaml"
     #- cat _ingress.yaml
-    - kubectl -n nuvolaris apply -f _ingress.yaml
+    - "{{.DRY}} kubectl -n nuvolaris apply -f _ingress.yaml"
     - |
       echo "Streamer API deployed with HOSTNAME: stream.${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
 
