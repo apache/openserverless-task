@@ -92,6 +92,7 @@ tasks:
       - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_NUVOLARIS="$(random --str 12)"
       - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_NUVOLARIS="$(random --str 12)"
       - config SECRET_NUVOLARIS_METADATA="$(random --str 12)"
+      - config SECRET_SEAWEEDFS_NUVOLARIS="$(random --str 12)"
       - echo "Generated $(config -d | rg SECRET_ | wc -l) secrets."
 
   user-secrets:
