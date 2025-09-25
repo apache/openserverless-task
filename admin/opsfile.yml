@@ -119,7 +119,7 @@ tasks:
           fi
         fi
 
-        if {{.__seaweedfs}} || {{.__all}}
+        if {{.__minio}} || {{.__seaweedfs}} || {{.__all}}
         then 
           if $OPERATOR_COMPONENT_MINIO || $OPERATOR_COMPONENT_SEAWEEDFS
           then 
@@ -129,6 +129,7 @@ tasks:
             die "Error! Minio or Seaweedfs are not enabled in OpenServerless"
           fi
         fi
+
 
         if test -n "{{.__storagequota}}"
         then MINIO_STORAGE_QUOTA={{.__storagequota}}

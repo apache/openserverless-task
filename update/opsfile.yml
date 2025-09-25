@@ -61,6 +61,9 @@ tasks:
       - config SECRET_POSTGRES_REPLICA="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.postgres.admin.replica-password}')"
       - config SECRET_POSTGRES_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.postgres.nuvolaris.password}')"
       - config SECRET_NUVOLARIS_METADATA="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.nuvolaris.password}')"
+      - config SECRET_MILVUS_ROOT="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.milvus.password.root}')"
+      - config SECRET_MILVUS_S3="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.milvus.password.s3}')"
+      - config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.registry.auth.password}')"
 
   apply:
     desc: apply updated config
@@ -68,7 +71,7 @@ tasks:
       - $OPS update secrets
       - $OPS setup kubernetes runtimes
       - $OPS setup kubernetes instance
-      - $OPS setup kubernetes services
+      - $OPS setup kubernetes wait-services
       - $OPS setup nuvolaris login
 
   operator:
