@@ -202,13 +202,13 @@ tasks:
       - | 
         if {{.__milvus}} || {{.__all}}
         then 
-          config OPERATOR_CONFIG_MILVUS=false
-          config OPERATOR_CONFIG_ETCD=false
+          config OPERATOR_COMPONENT_MILVUS=false
+          config OPERATOR_COMPONENT_ETCD=false
         fi  
       - | 
         if {{.__registry}} || {{.__all}}
         then 
-          config OPERATOR_CONFIG_REGISTRY=false
+          config OPERATOR_COMPONENT_REGISTRY=false
         fi
       - | 
         if {{.__seaweedfs}} || {{.__all}}
