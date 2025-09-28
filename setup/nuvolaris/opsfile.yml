@@ -259,6 +259,8 @@ tasks:
             then ops -random --str 8
             else echo "{{.P}}"
             fi
+      FLAGS: '{{or .F "--all"}}'
+
     env:
       APIHOST: 
         sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
@@ -272,7 +274,7 @@ tasks:
       fi
     - echo "Creating user {{.USR}} in $APIHOST"
     - |
-      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
+      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' {{.FLAGS}}
       sleep 15
     - |
       export OPS_PASSWORD="{{.PSW}}"
