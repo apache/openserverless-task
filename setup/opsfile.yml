@@ -112,6 +112,7 @@ tasks:
       - ops config apihost miniops.me --protocol=http
       - ops setup devcluster
       - ops setup nuvolaris streamer deploy
+      - ops setup nuvolaris system-api deploy
       - ops setup nuvolaris add-user
 
   devcluster:

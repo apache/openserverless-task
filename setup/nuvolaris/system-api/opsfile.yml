@@ -46,8 +46,46 @@ env:
 
   INGRESS_TYPE:
     sh: $OPS util ingress-type
+  
+  REGISTRY_PASS:
+    sh: $OPS debug kube ctl CMD="-n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'"
 
 tasks:
+  install-toml:
+    desc: Update the buildkitd.toml file config map
+    silent: true
+    cmds:
+      - task: remove-toml
+      - $OPS debug kube ctl CMD="-n nuvolaris create configmap nuvolaris-buildkitd-conf --from-file=$OPS_PWD/setup/nuvolaris/system-api/deploy/buildkit/buildkitd.toml"
+  
+  remove-toml:
+    desc: Remove the buildkitd.toml config map
+    silent: true
+    cmds:
+      - |
+        if $OPS debug kube ctl CMD="-n nuvolaris get cm nuvolaris-buildkitd-conf" >/dev/null 2>&1;
+          then $OPS debug kube ctl CMD="-n nuvolaris delete configmap nuvolaris-buildkitd-conf"
+        fi
+  
+  install-secret:
+    desc: Create secret to push to internal registry
+    silent: true
+    cmds:
+      - task: remove-secret
+      - |
+        if ! $OPS debug kube ctl CMD="-n nuvolaris get secret registry-pull-secret-int" >/dev/null 2>&1;
+        then $OPS debug kube ctl CMD="create secret docker-registry registry-pull-secret-int --docker-server=http://nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}"
+        fi
+    
+  remove-secret:
+    desc: Delete secret to push to internal registry
+    silent: true
+    cmds:
+      - |
+        if $OPS debug kube ctl CMD="-n nuvolaris get secret registry-pull-secret-int" >/dev/null 2>&1;
+        then $OPS debug kube ctl CMD="-n nuvolaris delete secret registry-pull-secret-int"
+        fi
+
 
   deploy:
     silent: true
@@ -58,17 +96,21 @@ tasks:
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
     - envsubst -i api-template.yaml -o _api.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
-    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_api.yaml"
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_ROOT/setup/nuvolaris/system-api/_api.yaml"
     #- cat _ingress.yaml
-    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_PWD/setup/nuvolaris/system-api/_ingress.yaml"
+    - $OPS debug kube ctl CMD="-n nuvolaris apply -f $OPS_ROOT/setup/nuvolaris/system-api/_ingress.yaml"
+    - task: install-toml
+    - task: install-secret
     - |
       echo "Admin API deployed with HOSTNAME: ${SYS_API_HOSTNAME}/system"
   
   undeploy:
     silent: true
     desc: undeploy the admin api
-    ignore_error: true
+    ignore_error: false
     cmds:
+    - task: remove-secret
+    - task: remove-toml
     - $OPS debug kube ctl CMD="-n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api"
     - |
       echo "System Admin API undeployed"
