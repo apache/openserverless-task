@@ -19,6 +19,7 @@ import {glob} from 'glob';
 import {buildAction, buildZip, deployAction, deployPackage, deployProject} from './deploy.js';
 import {getOpenServerlessConfig} from './client.js';
 import {config} from "dotenv";
+import {syncDeployInfo} from "./syncDeployInfo";
 
 /**
  * This function will prepare and deploy the functions in `packages` directory.
@@ -158,13 +159,20 @@ export async function scan() {
         manifests.sort((a, b) => a.localeCompare(b));
     }
     if (manifests.length >0 ) {
-        if (Bun.file('packeges/.env')) {
+        if (Bun.file('packages/.env')) {
             console.log("Found packages .env file. Reading it");
-            config({ path: "./package/.env" });
+            config({ path: "./packages/.env" });
         }
         for (const manifest of manifests) {
             console.log(">>> Manifest:", manifest);
             await deployProject(manifest);
         }
+    }
+
+    try {
+        // Save deployment information with the new structure
+        syncDeployInfo(packages, deployments);
+    } catch (error) {
+        console.error("Error saving deployment information:", error);
     }
 }
