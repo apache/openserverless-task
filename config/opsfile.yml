@@ -118,7 +118,18 @@ tasks:
           then echo 'Milvus deployment requires MINIO. Enabling it.'
             config OPERATOR_COMPONENT_MINIO=true
           fi
-        fi        
+        fi
+      - | 
+        if {{.__registry}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_REGISTRY=true
+          config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
+        fi  
+      - | 
+        if {{.__seaweedfs}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_SEAWEEDFS=true          
+        fi                         
       - config CONFIGURED=true
       - task: status
 
@@ -191,9 +202,19 @@ tasks:
       - | 
         if {{.__milvus}} || {{.__all}}
         then 
-          config OPERATOR_CONFIG_MILVUS=false
-          config OPERATOR_CONFIG_ETCD=false
-        fi                          
+          config OPERATOR_COMPONENT_MILVUS=false
+          config OPERATOR_COMPONENT_ETCD=false
+        fi  
+      - | 
+        if {{.__registry}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_REGISTRY=false
+        fi
+      - | 
+        if {{.__seaweedfs}} || {{.__all}}
+        then 
+          config OPERATOR_COMPONENT_SEAWEEDFS=false
+        fi                                            
       - task: status
 
   status:
@@ -859,7 +880,16 @@ tasks:
         HINT: | 
               Specifies an integer value
         VAL: "{{.__pulsarledgelvol}}"
-        DEF: "20"                                               
+        DEF: "20" 
+    - task: read
+      vars:
+        MSG: "SEAWEEDFS Volume size"
+        VAR: "STORAGE_SIZE_SEAWEEDFS"
+        HINT: | 
+              Specifies an integer value
+        VAL: "{{.__seaweedfsvol}}"
+        DEF: "60"         
+
 
   controller:
     silent: true
@@ -1000,6 +1030,14 @@ tasks:
               Specifies nuvolaris controller activation options (Defaults to 1Mb)
         VAL: "{{.__activation_max_payload}}"
         DEF: "1048576"
+    - task: read
+      vars:
+        MSG: "Openwhisk Load Balancer BlackBox fraction"
+        VAR: "OPENWHISK_LB_BLACKBOX_FRACTION"
+        HINT: | 
+              Specifies OpenWhisk Load Balancer Blackbox fraction (Defaults to 100%)
+        VAL: "{{.__blackbox_fraction}}"
+        DEF: "100%"        
 
   storage:
     silent: true
@@ -1061,7 +1099,6 @@ tasks:
       then config MINIO_CONFIG_INGRESS_CONSOLE=true
       fi 
 
-
   etcd:
     silent: true
     cmds:
@@ -1103,6 +1140,55 @@ tasks:
           VAL: "{{.__maxdbnum}}"
           DEF: "64"
 
+  externalregistry:
+    silent: true
+    cmds:
+      - config REGISTRY_CONFIG_MODE=external
+      - task: readforce
+        vars:
+          MSG: "External Image Repo hostname (ex. ghcr.io))"
+          VAR: "REGISTRY_CONFIG_HOSTNAME"
+          VAL: "{{.__regurl}}"
+      - task: readforce
+        vars:
+          MSG: "External Image Repo Push/Pull username"
+          VAR: "REGISTRY_CONFIG_USERNAME"
+          VAL: "{{.__reguser}}"
+      - task: readforce
+        vars:
+          MSG: "External Image Repo Push/Pull password"
+          VAR: "REGISTRY_CONFIG_SECRET_PUSH_PULL"
+          VAL: "{{.__regpassword}}" 
+
+  registry:
+    silent: true
+    cmds:
+      - config REGISTRY_CONFIG_MODE=internal
+      - |
+        if {{.__ingress}}
+        then config REGISTRY_CONFIG_INGRESS_ENABLED=true
+        fi    
+      - task: read
+        vars:
+          MSG: "Registry Volume Size"
+          VAR: "REGISTRY_CONFIG_VOLUME_SIZE"
+          HINT: |
+            Specifies the volume size assigned to the image registry
+          VAL: "{{.__disk}}"
+          DEF: "50"
+
+  seaweefs:
+    silent: true
+    cmds:
+    - |
+      if {{.__s3}}
+      then config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
+      fi    
+    - |
+      if {{.__console}}
+      then config SEAWEEDFS_CONFIG_INGRESS_CONSOLE_ENABLED=true
+      fi           
+
   minimal:
     silent: true
     cmds:
@@ -1112,6 +1198,8 @@ tasks:
     - |
       config OPERATOR_COMPONENT_MONGODB=true
     - |
+      config OPERATOR_COMPONENT_SEAWEEDFS=false
+    - | 
       config OPERATOR_COMPONENT_MINIO=true
     - |
       config OPERATOR_COMPONENT_CRON=true  
@@ -1119,9 +1207,10 @@ tasks:
       config OPERATOR_COMPONENT_STATIC=true
     - |
       config OPERATOR_COMPONENT_POSTGRES=true
+    - |
+      config OPERATOR_COMPONENT_REGISTRY=false
     - task: status
     - config CONFIGURED=true
-
 
   slim:
     silent: true
@@ -1129,20 +1218,36 @@ tasks:
     - |
       config OPERATOR_COMPONENT_INVOKER=false
       config OPERATOR_COMPONENT_ZOOKEEPER=false
-      config OPERATOR_COMPONENT_KAFKA=false      
+      config OPERATOR_COMPONENT_KAFKA=false  
       config OPERATOR_COMPONENT_REDIS=true
       config OPERATOR_COMPONENT_MONGODB=true
       config OPERATOR_COMPONENT_MINIO=true
-      config OPERATOR_COMPONENT_CRON=false 
+      config OPERATOR_COMPONENT_SEAWEEDFS=false
+      config OPERATOR_COMPONENT_CRON=true
       config OPERATOR_COMPONENT_STATIC=true
       config OPERATOR_COMPONENT_POSTGRES=true
       config OPERATOR_COMPONENT_ETCD=true
-      config OPERATOR_COMPONENT_MILVUS=true
-      config MINIO_CONFIG_INGRESS_S3=true
+      config OPERATOR_COMPONENT_MILVUS=true      
+      config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
       config ETCD_CONFIG_REPLICAS=1
-      config POSTGRES_CONFIG_REPLICAS=1 
+      config POSTGRES_CONFIG_REPLICAS=1
       config OPERATOR_CONFIG_SLIM=true
+      config OPERATOR_COMPONENT_REGISTRY=false
+      config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
+      config OPENWHISK_TIME_LIMIT_MAX="10min"
     - |
       config OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY=6g
     - task: status
     - config CONFIGURED=true
+
+  ingress:
+    silent: true
+    cmds:
+    - task: read
+      vars:
+        MSG: "Ingress Class"
+        VAR: "OPERATOR_CONFIG_INGRESSCLASS"
+        HINT: | 
+              Specify the ingress class.
+        VAL: "{{.__class}}"
+        DEF: "auto"

@@ -31,6 +31,7 @@ spec:
       slim: ${OPERATOR_CONFIG_SLIM:-false}
       affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
       tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      ingressclass: ${OPERATOR_CONFIG_INGRESSCLASS:-auto}
       preload:
         only-apache: ${OPERATOR_CONFIG_PRELOAD_ONLY_APACHE:-true}    
   components:
@@ -66,6 +67,10 @@ spec:
     etcd: ${OPERATOR_COMPONENT_ETCD:-false}
     # MILVUS enabled or not
     milvus: ${OPERATOR_COMPONENT_MILVUS:-false}
+    # REGISTRY enabled or not
+    registry: ${OPERATOR_COMPONENT_REGISTRY:-false}
+    # REGISTRY enabled or not
+    seaweedfs: ${OPERATOR_COMPONENT_SEAWEEDFS:-false}    
   tls:
     acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL:-no-reply@email.com}
     acme-server-url: https://acme-v02.api.letsencrypt.org/directory
@@ -125,7 +130,7 @@ spec:
         limit-std: "${OPENWHISK_ACTION_MEMORY_LIMIT_STD:-256m}"
         limit-max: "${OPENWHISK_ACTION_MEMORY_LIMIT_MAX:-2048m}"
       loadbalancer:
-        blackbox-fraction : "10%"
+        blackbox-fraction : "${OPENWHISK_LB_BLACKBOX_FRACTION:100%}"
         timeout-factor: 2                
     controller:
       javaOpts: "$OPENWHISK_CONTROLLER_JAVA_OPTS"
@@ -239,4 +244,23 @@ spec:
       s3: $SECRET_MILVUS_S3
       etcd: $SECRET_ETCD_ROOT
     nuvolaris:
-      password: $SECRET_MILVUS_NUVOLARIS  
+      password: $SECRET_MILVUS_NUVOLARIS
+  registry:
+    mode: ${REGISTRY_CONFIG_MODE:-internal}
+    volume-size: ${REGISTRY_CONFIG_VOLUME_SIZE:-50}
+    auth:
+      username: ${REGISTRY_CONFIG_USERNAME:-opsuser}
+      password: ${REGISTRY_CONFIG_SECRET_PUSH_PULL-""}
+    hostname: ${REGISTRY_CONFIG_HOSTNAME:-auto}
+    ingress:
+      enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}
+  seaweedfs:
+    volume-size:  ${STORAGE_SIZE_SEAWEEDFS:-60}
+    nuvolaris:
+      user: nuvolaris
+      password: $SECRET_SEAWEEDFS_NUVOLARIS
+    ingress:
+      s3-enabled: ${SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED:-true}
+      s3-hostname: ${SEAWEEDFS_CONFIG_INGRESS_S3_HOSTNAME:-auto}
+      console-enabled: ${SEAWEEDFS_CONFIG_INGRESS_CONSOLE_ENABLED:-false}
+      console-hostname: ${SEAWEEDFS_CONFIG_INGRESS_CONSOLE_HOSTNAME:-auto}
