@@ -66,6 +66,9 @@ nodes:
   - hostPath: $DATADIR/kafka
     containerPath: /kafka
   extraPortMappings:
+  - containerPort: 30022
+    hostPort: 22
+    protocol: TCP
   - containerPort: 30232
     hostPort: 3232
     protocol: TCP
