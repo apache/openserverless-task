@@ -40,6 +40,8 @@ spec:
           value: devel
         - name: OPS_APIHOST
           value: http://controller:3233
+
+ 
         command:
         - /bin/bash
         - -c
@@ -51,9 +53,11 @@ spec:
             mkdir -p ~/.ssh ;
             chmod 600 ~/.ssh/authorized_keys ;
             echo "$$SSH_KEY" > ~/.ssh/authorized_keys ;
-            echo -e "export OPS_PASSWORD='$$OPS_PASSWORD'\nexport OPS_USERNAME='$$OPS_USERNAME'\nexport OPS_APIHOST='$$OPS_APIHOST'" >>.bashrc ;
             ops -update ;
             sudo /usr/sbin/sshd -p 2222 -D
+        # RENOVED - BUGGY - shhould be before sshd -p 2222 
+        #   echo -e "export OPS_PASSWORD='$$OPS_PASSWORD'\nexport OPS_USERNAME='$$OPS_USERNAME'\nexport OPS_APIHOST='$$OPS_APIHOST'" >>.bashrc ;
+
 ---
 apiVersion: v1
 kind: Service
