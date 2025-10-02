@@ -27,7 +27,7 @@ containerdConfigPatches:
     [plugins."io.containerd.grpc.v1.cri".registry.configs]
       [plugins."io.containerd.grpc.v1.cri".registry.configs."127.0.0.1:32000".tls]
         insecure_skip_verify = true
-         
+
 nodes:
 - role: control-plane
   kubeadmConfigPatches:
@@ -42,6 +42,9 @@ nodes:
     protocol: TCP
   - containerPort: 443
     hostPort: 443
+    protocol: TCP
+  - containerPort: 30222
+    hostPort: 2222
     protocol: TCP
 - role: worker
   extraMounts:
@@ -66,9 +69,6 @@ nodes:
   - hostPath: $DATADIR/kafka
     containerPath: /kafka
   extraPortMappings:
-  - containerPort: 30022
-    hostPort: 22
-    protocol: TCP
   - containerPort: 30232
     hostPort: 3232
     protocol: TCP

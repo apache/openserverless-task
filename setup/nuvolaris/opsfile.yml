@@ -248,6 +248,9 @@ tasks:
   system-api:
     desc: manage the system api deployment
 
+  devcontainer:
+    desc: manage the devcontainer deployment
+
   add-user:
     silent: true
     desc: create a new U=user (default 'devel') with P=password, (default a random pw)
@@ -259,8 +262,6 @@ tasks:
             then ops -random --str 8
             else echo "{{.P}}"
             fi
-      FLAGS: '{{or .F "--all"}}'
-
     env:
       APIHOST: 
         sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
@@ -274,7 +275,7 @@ tasks:
       fi
     - echo "Creating user {{.USR}} in $APIHOST"
     - |
-      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' {{.FLAGS}}
+      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' --all
       sleep 15
     - |
       export OPS_PASSWORD="{{.PSW}}"

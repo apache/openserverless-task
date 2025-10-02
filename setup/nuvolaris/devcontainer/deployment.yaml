@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-devcontainer
+  namespace: nuvolaris
+  labels:
+    app: ssh-devcontainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-devcontainer
+  template:
+    metadata:
+      labels:
+        app: ssh-devcontainer
+    spec:
+      hostname: ssh-devcontainer
+      containers:
+      - name: devcontainer
+        image: $IMAGE
+        ports:
+        - containerPort: 2222
+          name: ssh
+          protocol: TCP
+        env:
+        - name: DEBIAN_FRONTEND
+          value: noninteractive
+        - name: SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ssh-secret
+              key: authorized_keys
+        - name: OPS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: devel-secret
+              key: password
+        - name: OPS_USERNAME
+          value: devel
+        - name: OPS_APIHOST
+          value: http://controller:3233
+        command:
+        - /bin/bash
+        - -c
+        - >
+            sudo apt-get update ;
+            sudo apt-get install -y openssh-server ;
+            sudo mkdir -p /run/sshd ;
+            sudo ssh-keygen -A ;
+            mkdir -p ~/.ssh ;
+            chmod 600 ~/.ssh/authorized_keys ;
+            echo "$$SSH_KEY" > ~/.ssh/authorized_keys ;
+            echo -e "export OPS_PASSWORD='$$OPS_PASSWORD'\nexport OPS_USERNAME='$$OPS_USERNAME'\nexport OPS_APIHOST='$$OPS_APIHOST'" >>.bashrc ;
+            ops -update ;
+            sudo /usr/sbin/sshd -p 2222 -D
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-devcontainer
+  namespace: nuvolaris
+  labels:
+    app: ssh-devcontainer
+spec:
+  type: NodePort
+  selector:
+    app: ssh-devcontainer
+  ports:
+  - port: 2222
+    targetPort: 2222
+    nodePort: 30222
+    protocol: TCP
+    name: ssh
