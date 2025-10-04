@@ -62,6 +62,7 @@ spec:
         - /bin/bash
         - -c
         - >
+            sudo touch /.dockerenv ;
             sudo apt-get update ;
             sudo apt-get install -y openssh-server ;
             sudo mkdir -p /run/sshd ;
