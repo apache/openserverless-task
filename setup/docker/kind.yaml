@@ -48,26 +48,28 @@ nodes:
     protocol: TCP
 - role: worker
   extraMounts:
-  - hostPath: $DATADIR/data
+  - hostPath: "$DATADIR/data"
     containerPath: /data
-  - hostPath: $DATADIR/openwhisk/standalone
+  - hostPath: "$DATADIR/openwhisk/standalone"
     containerPath: /openwhisk/standalone
   - hostPath: $DATADIR/openwhisk/invoker
     containerPath: /openwhisk/invoker
-  - hostPath: $DATADIR/openwhisk/controller
+  - hostPath: "$DATADIR/openwhisk/controller"
     containerPath: /openwhisk/controller
-  - hostPath: $DATADIR/couchdb
+  - hostPath: "$DATADIR/couchdb"
     containerPath: /couchdb
-  - hostPath: $DATADIR/mongodb
+  - hostPath: "$DATADIR/mongodb"
     containerPath: /mongodb
-  - hostPath: $DATADIR/redis
+  - hostPath: "$DATADIR/redis"
     containerPath: /redis
-  - hostPath: $DATADIR/zookeper/data
+  - hostPath: "$DATADIR/zookeper/data"
     containerPath: /zookeeper/data
-  - hostPath: $DATADIR/zookeeper/log
+  - hostPath: "$DATADIR/zookeeper/log"
     containerPath: /zookeeper/log
-  - hostPath: $DATADIR/kafka
+  - hostPath: "$DATADIR/kafka"
     containerPath: /kafka
+  - hostPath: "$OPS_HOME/workspace"
+    containerPath: /workspace
   extraPortMappings:
   - containerPort: 30232
     hostPort: 3232

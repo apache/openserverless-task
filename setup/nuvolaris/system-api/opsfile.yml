@@ -36,19 +36,19 @@ env:
   SYS_API_CDB_HOST: couchdb
 
   SYS_API_CDB_USER:
-    sh: kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
+    sh: kubectl -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig" get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
 
   SYS_API_CDB_PASSWORD:
-    sh: kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
+    sh: kubectl -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig" get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
 
   SYS_API_HOSTNAME:
-    sh: kubectl -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
+    sh: kubectl -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig" get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
 
   INGRESS_TYPE:
     sh: ops util ingress-type
   
   REGISTRY_PASS:
-    sh: kubectl -n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
+    sh: kubectl -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig" get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
 
 tasks:
   install-toml:
@@ -86,7 +86,6 @@ tasks:
         then kubectl -n nuvolaris delete secret registry-pull-secret-int
         fi
 
-
   deploy:
     silent: true
     ignore_error: false
@@ -96,9 +95,9 @@ tasks:
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
     - envsubst -i api-template.yaml -o _api.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
-    - kubectl -n nuvolaris apply -f "$OPS_ROOT/setup/nuvolaris/system-api/_api.yaml"
+    - kubectl -n nuvolaris apply -f _api.yaml
     #- cat _ingress.yaml
-    - kubectl -n nuvolaris apply -f "$OPS_ROOT/setup/nuvolaris/system-api/_ingress.yaml"
+    - kubectl -n nuvolaris apply -f_ingress.yaml
     - task: install-toml
     - task: install-secret
     - |

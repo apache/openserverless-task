@@ -34,6 +34,9 @@ tasks:
         if ! rg "Host miniops" ~/.ssh/config >/dev/null
         then echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User node\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" >> ~/.ssh/config
         fi
+      - echo waiting the devcontainer to be ready...
+      - retry -t 20 -m 120 ssh miniops exit 2>/dev/null
+      - echo you can now connect to the devcontainer with 'ssh miniops'
 
   undeploy:
     silent: true
