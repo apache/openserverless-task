@@ -250,7 +250,7 @@ spec:
     volume-size: ${REGISTRY_CONFIG_VOLUME_SIZE:-50}
     auth:
       username: ${REGISTRY_CONFIG_USERNAME:-opsuser}
-      password: $REGISTRY_CONFIG_SECRET_PUSH_PULL
+      password: ${REGISTRY_CONFIG_SECRET_PUSH_PULL:-changeme-registry}
     hostname: ${REGISTRY_CONFIG_HOSTNAME:-auto}
     ingress:
       enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}
