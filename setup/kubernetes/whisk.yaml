@@ -258,7 +258,7 @@ spec:
     volume-size:  ${STORAGE_SIZE_SEAWEEDFS:-60}
     nuvolaris:
       user: nuvolaris
-      password: $SECRET_SEAWEEDFS_NUVOLARIS
+      password: ${SECRET_SEAWEEDFS_NUVOLARIS:-changeme-seaweedfs}
     ingress:
       s3-enabled: ${SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED:-true}
       s3-hostname: ${SEAWEEDFS_CONFIG_INGRESS_S3_HOSTNAME:-auto}
