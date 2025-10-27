@@ -52,11 +52,11 @@ async function extractArgs(files) {
       const lines = fileContent.split("\n");
       for (const line of lines) {
         // python style comment
-        if (line.match(/^#[ ]?--[^\s-].+/)) {
+        if (line.match(/^#[ ]?-{1,2}[^\s-].+/)) {
           res.push(line.trim().substring(1).trim());
         }
         // js style comment
-        if (line.match(/^\/\/[ ]?--[^\s-].+/)) {
+        if (line.match(/^\/\/[ ]?-{1,2}[^\s-].+/)) {
           res.push(line.trim().substring(2).trim());
         }
       }
