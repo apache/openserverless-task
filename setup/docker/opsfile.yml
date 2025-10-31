@@ -21,7 +21,9 @@ vars:
 
 env:
   DATADIR:
-    sh: echo $OPS_TMP/kind
+    sh: echo "$OPS_TMP/kind"
+  WORKSPACE:
+    sh: echo "$OPS_HOME/workspace"
   KUBECONFIG: 
     sh: |- 
         if test -e "$OPS_TMP/kubeconfig"
@@ -60,7 +62,7 @@ tasks:
   cluster:
     silent: true
     cmds:
-    - mkdir -p "$DATADIR"
+    - mkdir -p "$DATADIR" "$OPS_HOME/workspace"
     - envsubst -i kind.yaml -o _kind.yaml
     - > 
       kind create cluster 

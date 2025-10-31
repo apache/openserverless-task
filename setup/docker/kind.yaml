@@ -27,7 +27,7 @@ containerdConfigPatches:
     [plugins."io.containerd.grpc.v1.cri".registry.configs]
       [plugins."io.containerd.grpc.v1.cri".registry.configs."127.0.0.1:32000".tls]
         insecure_skip_verify = true
-         
+
 nodes:
 - role: control-plane
   kubeadmConfigPatches:
@@ -43,71 +43,29 @@ nodes:
   - containerPort: 443
     hostPort: 443
     protocol: TCP
-- role: worker
+  - containerPort: 30222
+    hostPort: 2222
+    protocol: TCP
   extraMounts:
-  - hostPath: $DATADIR/data
+  - hostPath: "$DATADIR/data"
     containerPath: /data
-  - hostPath: $DATADIR/openwhisk/standalone
+  - hostPath: "$DATADIR/openwhisk/standalone"
     containerPath: /openwhisk/standalone
   - hostPath: $DATADIR/openwhisk/invoker
     containerPath: /openwhisk/invoker
-  - hostPath: $DATADIR/openwhisk/controller
+  - hostPath: "$DATADIR/openwhisk/controller"
     containerPath: /openwhisk/controller
-  - hostPath: $DATADIR/couchdb
+  - hostPath: "$DATADIR/couchdb"
     containerPath: /couchdb
-  - hostPath: $DATADIR/mongodb
+  - hostPath: "$DATADIR/mongodb"
     containerPath: /mongodb
-  - hostPath: $DATADIR/redis
+  - hostPath: "$DATADIR/redis"
     containerPath: /redis
-  - hostPath: $DATADIR/zookeper/data
+  - hostPath: "$DATADIR/zookeper/data"
     containerPath: /zookeeper/data
-  - hostPath: $DATADIR/zookeeper/log
+  - hostPath: "$DATADIR/zookeeper/log"
     containerPath: /zookeeper/log
-  - hostPath: $DATADIR/kafka
+  - hostPath: "$DATADIR/kafka"
     containerPath: /kafka
-  extraPortMappings:
-  - containerPort: 30232
-    hostPort: 3232
-    protocol: TCP
-  - containerPort: 30233
-    hostPort: 3233
-    protocol: TCP
-  - containerPort: 30896
-    hostPort: 7896
-    protocol: TCP  
-  - containerPort: 30984
-    hostPort: 5984
-    protocol: TCP  
-  - containerPort: 30992 
-    hostPort: 9092
-    protocol: TCP
-  - containerPort: 30644
-    hostPort: 9644
-    protocol: TCP    
-  - containerPort: 6379
-    hostPort: 30379
-    protocol: TCP
-  - containerPort: 28017
-    hostPort: 32817
-    protocol: TCP
-  - containerPort: 32717
-    hostPort: 27017
-    protocol: TCP
-  - containerPort: 32090
-    hostPort: 9000
-    protocol: TCP 
-  - containerPort: 32091
-    hostPort: 9090
-    protocol: TCP            
-  - containerPort: 9080
-    hostPort: 9080
-    protocol: TCP            
-  - containerPort: 9010
-    hostPort: 9010
-    protocol: TCP 
-  - containerPort: 32530
-    hostPort: 19530
-    protocol: TCP 
-  - containerPort: 32531
-    hostPort: 9091
-    protocol: TCP           
+  - hostPath: "$OPS_HOME/workspace"
+    containerPath: /workspace
