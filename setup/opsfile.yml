@@ -81,6 +81,9 @@ tasks:
     cmds:
     - exit 0
 
+  devcontainer:
+    desc: manage the devcontainer deployment
+
   mini:
     silent: true
     desc: install miniops
