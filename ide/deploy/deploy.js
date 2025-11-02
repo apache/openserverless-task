@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import fs from 'fs/promises';
-import { expandEnv } from './env_utils';
-const { parse } = await import('shell-quote');
+import fs from "fs/promises";
+import { expandEnv } from "./env_utils";
+const { parse } = await import("shell-quote");
 
 const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
 
@@ -33,13 +33,13 @@ export function setDryRun(b) {
 async function exec(cmd) {
   console.log("$", cmd);
   cmd = expandEnv(cmd);
-  const cmdArgs = parse(cmd).filter(arg => typeof arg === "string");
-  
+  const cmdArgs = parse(cmd).filter((arg) => typeof arg === "string");
+
   const proc = Bun.spawn(cmdArgs, {
     shell: true,
     env: process.env,
     cwd: process.env.OPS_PWD,
-    stdio: ['inherit', 'inherit', 'inherit']
+    stdio: ["inherit", "inherit", "inherit"],
   });
   await proc.exited;
 }
@@ -51,11 +51,13 @@ async function extractArgs(files) {
       const fileContent = await fs.readFile(file, "utf-8");
       const lines = fileContent.split("\n");
       for (const line of lines) {
-        if (line.startsWith("#-")) {
-          res.push(line.trim().substring(1));
+        // python style comment
+        if (line.match(/^#[ ]?-{1,2}[^\s-].+/)) {
+          res.push(line.trim().substring(1).trim());
         }
-        if (line.startsWith("//-")) {
-          res.push(line.trim().substring(2));
+        // js style comment
+        if (line.match(/^\/\/[ ]?-{1,2}[^\s-].+/)) {
+          res.push(line.trim().substring(2).trim());
         }
       }
     }
@@ -87,7 +89,9 @@ export async function buildAction(pkg, action) {
 }
 
 export async function deployAction(artifact) {
-  let pkg = '', name='', typ = '';
+  let pkg = "",
+    name = "",
+    typ = "";
 
   if (activeDeployments.has(artifact)) {
     queue.push(artifact);
@@ -96,7 +100,7 @@ export async function deployAction(artifact) {
 
   activeDeployments.set(artifact, true);
   const indexInQueue = queue.indexOf(artifact);
-  if (indexInQueue>-1) {
+  if (indexInQueue > -1) {
     console.log(`⚙️ Deploying ${artifact} (from queue: ${indexInQueue})`);
   }
 
@@ -110,7 +114,7 @@ export async function deployAction(artifact) {
     console.log("❌ cannot deploy", artifact);
     return;
   }
-  
+
   await deployPackage(pkg);
 
   let toInspect;
@@ -134,7 +138,6 @@ export async function deployAction(artifact) {
   }
 }
 
-
 /**
  * Deploy a `file`
  * @param file
@@ -146,7 +149,7 @@ export async function deploy(file) {
   // const file = "packages/deploy/multi/__main__.py";
   // const file = "packages/deploy/multi/requirements.txt";
 
-  const stat = await fs.stat(file)
+  const stat = await fs.stat(file);
 
   if (stat.isDirectory()) {
     for (const start of MAINS) {
@@ -157,7 +160,7 @@ export async function deploy(file) {
       }
     }
   }
-  
+
   const sp = file.split("/");
   if (sp.length > 3) {
     await buildZip(sp[1], sp[2]);
@@ -174,10 +177,12 @@ export async function deploy(file) {
 export async function deployProject(artifact) {
   if (await fs.exists(artifact)) {
     const manifestContent = await Bun.file(artifact).text();
-    if (manifestContent.indexOf('packages:')!==-1) {
+    if (manifestContent.indexOf("packages:") !== -1) {
       await exec(`ops -wsk project deploy --manifest ${artifact}`);
     } else {
-      console.log(`⚠️ Warning: it seems that the ${artifact} file is not a valid manifest file. Skipping`);
+      console.log(
+        `⚠️ Warning: it seems that the ${artifact} file is not a valid manifest file. Skipping`
+      );
     }
   }
 }
