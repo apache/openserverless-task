@@ -64,6 +64,9 @@ export function syncDeployInfo(packages, deployments) {
         packageActions: packageActions
     };
 
+    if (!existsSync('.ops')) {
+        mkdirSync('.ops', { recursive: true });
+    }
     writeFileSync('.ops/deployment.json', JSON.stringify(deploymentInfo, null, 2));
     console.log("> Saved deployment information to .ops/deployment.json");
 }
