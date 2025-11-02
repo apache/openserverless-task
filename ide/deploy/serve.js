@@ -17,6 +17,7 @@
 
 import {stat} from "fs/promises";
 import {resolve, extname} from "path";
+import {lookup as lookupMime} from 'mime-types';
 import {parse} from "url";
 import process from 'process';
 import { file } from "bun";
@@ -54,16 +55,44 @@ async function findAvailablePort(host, startPort = 8080) {
  * @returns {Promise<Buffer<ArrayBuffer>>}
  */
 async function toBuffer(stream) {
-    const list = []
-    const reader = stream.getReader();
-    while (true) {
-        const {value, done} = await reader.read();
-        if (value)
-            list.push(value)
-        if (done)
-            break
+    // If there's no body (e.g. OPTIONS requests or empty bodies), return null
+    if (!stream) return null;
+
+    // Some runtimes provide a ReadableStream with getReader(), others may give a Node-style stream
+    if (typeof stream.getReader === 'function') {
+        const list = [];
+        const reader = stream.getReader();
+        while (true) {
+            const {value, done} = await reader.read();
+            if (value)
+                list.push(value);
+            if (done)
+                break;
+        }
+        return Buffer.concat(list);
     }
-    return Buffer.concat(list)
+
+    // If it's already a Buffer or ArrayBuffer-like
+    if (Buffer.isBuffer(stream)) return stream;
+    if (stream instanceof ArrayBuffer) return Buffer.from(new Uint8Array(stream));
+
+    // If it's an async iterator (Node readable), consume it
+    if (stream[Symbol.asyncIterator]) {
+        const list = [];
+        for await (const chunk of stream) {
+            list.push(Buffer.from(chunk));
+        }
+        return Buffer.concat(list);
+    }
+
+    // Unknown type: try to stringify
+    try {
+        const s = String(stream);
+        return Buffer.from(s, 'utf8');
+    } catch (e) {
+        return null;
+    }
+
 }
 
 //
@@ -73,20 +102,10 @@ async function toBuffer(stream) {
  * @returns {*|string}
  */
 function getMimeType(filePath) {
-    const ext = extname(filePath).toLowerCase();
-    const mimeTypes = {
-        ".html": "text/html",
-        ".css": "text/css",
-        ".js": "application/javascript",
-        ".json": "application/json",
-        ".png": "image/png",
-        ".jpg": "image/jpeg",
-        ".gif": "image/gif",
-        ".svg": "image/svg+xml",
-        ".txt": "text/plain",
-        // Add more mimetypes as needed
-    };
-    return mimeTypes[ext] || "application/octet-stream";
+    // Use the mime-types package to resolve mimetypes for a broad set of extensions.
+    // Fallback to application/octet-stream when unknown.
+    const m = lookupMime(filePath);
+    return m || "application/octet-stream";
 }
 
 const excludedAssets = ['favicon.ico'];
@@ -154,15 +173,45 @@ async function main() {
 
                 if (fileStats.isFile()) {
                     const mimeType = flags.mimeType || getMimeType(filePath);
+
+                    // Compute caching headers
+                    const lastModified = fileStats.mtime.toUTCString();
+                    // Simple ETag based on inode/size/mtime if available
+                    const etag = `W/"${fileStats.size}-${fileStats.mtimeMs}"`;
+
+                    // Handle conditional requests
+                    const ifNoneMatch = req.headers.get('if-none-match');
+                    const ifModifiedSince = req.headers.get('if-modified-since');
+                    if (ifNoneMatch && ifNoneMatch === etag) {
+                        return new Response(null, {status: 304, headers: {"ETag": etag}});
+                    }
+                    if (ifModifiedSince) {
+                        const since = new Date(ifModifiedSince);
+                        if (!isNaN(since.getTime()) && fileStats.mtime <= since) {
+                            return new Response(null, {status: 304, headers: {"Last-Modified": lastModified, "ETag": etag}});
+                        }
+                    }
+
                     const headers = {
                         "Content-Type": mimeType,
+                        "Content-Length": String(fileStats.size),
+                        "Last-Modified": lastModified,
+                        "ETag": etag,
                     };
                     if (flags.cacheTime) {
                         headers["Cache-Control"] = `max-age=${flags.cacheTime}`;
                     }
                     console.log(`[200] - Serving file ${pathname} from filesystem`);
-                    const data = await Bun.file(filePath).text();
-                    return new Response(data, {headers});
+                    // Stream the file to avoid loading the whole file into memory
+                    // Bun.file(filePath).stream() returns a ReadableStream
+                    try {
+                        const stream = Bun.file(filePath).stream();
+                        return new Response(stream, {headers});
+                    } catch (e) {
+                        // Fallback: read as arrayBuffer if stream isn't available
+                        const ab = await Bun.file(filePath).arrayBuffer();
+                        return new Response(ab, {headers});
+                    }
                 }
             } catch (err) {
                 let shouldExclude = (excludedAssets.indexOf(pathname) !== -1);
@@ -189,12 +238,21 @@ async function main() {
                         method: req.method,
                         headers: newHeaders,
                     };
-                    if (req.method.toLowerCase() !== 'get') {
-                        let body = await toBuffer(req.body);
-                        body = body.toString('utf8');
-
-                        if (body !== undefined) {
-                            init['body'] = body;
+                    // Only forward a body when the method permits it and a body exists
+                    const method = req.method.toLowerCase();
+                    const canHaveBody = (method !== 'get' && method !== 'head' && method !== 'options');
+                    if (canHaveBody && req.body) {
+                        const buf = await toBuffer(req.body);
+                        if (buf && buf.length > 0) {
+                            // prefer sending string when it's valid UTF-8 text
+                            let bodyToSend = buf;
+                            try {
+                                const text = buf.toString('utf8');
+                                bodyToSend = text;
+                            } catch (e) {
+                                bodyToSend = buf;
+                            }
+                            init['body'] = bodyToSend;
                         }
                     }
                     const respP = await fetch(destProxyUrl, init);

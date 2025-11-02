@@ -4,7 +4,8 @@
     "commander": "=13.1.0",
     "dotenv": "^16.4.7",
     "glob": "=11.0.1",
-    "shell-quote": "^1.8.3"
+    "shell-quote": "^1.8.3",
+    "mime-types": "^2.1.35"
   },
   "devDependencies": {
     "@types/bun": "=1.2.2"
