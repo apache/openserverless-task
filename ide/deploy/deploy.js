@@ -160,7 +160,7 @@ export async function deploy(file) {
   
   const sp = file.split("/");
   if (sp.length > 3) {
-    buildZip(sp[1], sp[2]);
+    await buildZip(sp[1], sp[2]);
     file = await buildAction(sp[1], sp[2]);
   }
   console.log(`Deploying ${file}`);
