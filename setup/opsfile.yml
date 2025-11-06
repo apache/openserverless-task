@@ -76,26 +76,38 @@ tasks:
         done
         {{end}}
 
-  prereq:
-    silent: true
-    cmds:
-    - exit 0
 
   mini:
-    silent: true
     desc: install miniops
+    vars: 
+       APIHOST: '{{or ._apihost_ "http://miniops.me"}}'
+    cmds: 
+      - echo '{{.APIHOST}}' | rg 'https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]+/?' >/dev/null || die "please spefify an accessibile http://host"
+      - task: _mini
+        vars:
+          APIHOST: '{{.APIHOST}}'
+          PROTO:
+            sh:  echo '{{.APIHOST}}' | rg -o '(https?)://' -r '$1'
+          DOMAIN:
+            sh:  echo '{{.APIHOST}}' | rg -o 'https?://((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]+)/?' -r '$1'
+
+  _mini:
+    silent: true
     cmds:
+      - echo APIHOST={{.APIHOST}}
+      - echo PROTO={{.PROTO}}
+      - echo DOMAIN={{.DOMAIN}}
       - docker -v || die "Docker is not installed. Please install Docker Desktop first."
       - docker info 2>/dev/null >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
         if test -z {{.__skip_check_cluster}}
         then          
-          if curl -sL http://miniops.me >/dev/null 2>/dev/null
+          if curl -sL {{.APIHOST}} >/dev/null 2>/dev/null
           then
-            if curl -sL http://miniops.me/api/info 2>/dev/null | jq  -r .description 2>/dev/null | rg OpenWhisk >/dev/null 2>/dev/null
+            if curl -sL {{.APIHOST}}/api/info 2>/dev/null | jq  -r .description 2>/dev/null | rg OpenWhisk >/dev/null 2>/dev/null
             then
               echo "*** Apache OpenServerless mini is already installed."
-              echo "*** Login with: ops ide login devel http://miniops.me"
+              echo "*** Login with: ops ide login devel {{.APIHOST}}"
               echo "*** You can find the password in .ops/devel.password in your home directory"
               echo "*** You can can uninstall and restart with: ops setup docker delete"
               exit 1
@@ -109,7 +121,7 @@ tasks:
         fi
       - ops setup docker check-space
       - ops config slim
-      - ops config apihost miniops.me --protocol=http
+      - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
       - ops setup devcluster
       - ops setup nuvolaris streamer deploy
       - ops setup nuvolaris system-api deploy

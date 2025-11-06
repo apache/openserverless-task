@@ -36,19 +36,19 @@ env:
   SYS_API_CDB_HOST: couchdb
 
   SYS_API_CDB_USER:
-    sh: kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
+    sh: ops util kubectl -- -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
 
   SYS_API_CDB_PASSWORD:
-    sh: kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
+    sh: ops util kubectl -- -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
 
   SYS_API_HOSTNAME:
-    sh: kubectl -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
+    sh: ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
+  
+  REGISTRY_PASS:
+    sh: ops util kubectl -- -n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
 
   INGRESS_TYPE:
     sh: ops util ingress-type
-  
-  REGISTRY_PASS:
-    sh: kubectl -n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
 
 tasks:
   install-toml:
