@@ -24,9 +24,9 @@ OpenServerless Ide Development Utilities.
 
 ```text
 Usage:
-    ide login [<username>] [<apihost>]
+    ide login [<username>] [<apihost>] [--local] [--pin]
     ide devel [--fast] [--dry-run]
-    ide deploy [<action>] [--dry-run]
+    ide deploy [<action>|--packages|--web] [--dry-run]
     ide undeploy [<action>] [--dry-run]
     ide clean
     ide setup 
@@ -60,6 +60,27 @@ Usage:
 ## Options
 
 ```
+--pin           Save the current key in .env as AUTH_CHECK to verify deployments use that key
+--local         Save the login as a local .wskprops instead of a global one
 --fast          Skip the initial deployment step and go in incremental update mode
 --dry-run       Simulates the execution without making any actual changes 
+--packages      Only deploy packages, skip web
+--wen           Only deploy web, skip packages
 ```
+
+## Login 
+
+If you login with `ops ide login` it will read the .env and 
+login using env vars `OPS_USERNAME` `OPS_PASSWORD` `OPS_APIHOST`
+
+If you login with `ops ide login <username>` it will use, if not empty in preference:
+
+`OPS_<username>_USERNAME` `OPS_<username>_PASSWORD` `OPS_<username>_APIHOST`
+
+By default the credentials are stored in ~/.wskprops.
+If there is a local `.wskprops` in current directory it will used that instead.
+
+If you specify `--local` credentials are stored in the local file.
+Also if you login and there is already a local file will be used the local instead of the global.
+
+If you specify `--pin` an `AUTH_CHECK` variable will be added to your `.env` to verify deployments use the intended configurations and not a different one by mistake.

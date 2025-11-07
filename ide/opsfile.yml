@@ -36,7 +36,15 @@ vars:
       then cat "$OPS_ROOT/ide/deploy/hash.lock"
       else echo "0"
       fi
-      
+
+env:
+  WSK_CONFIG_FILE:
+    sh: |
+        if test -e "$OPS_PWD/..wskprops"
+        then echo "$OPS_PWD/.wskprops"
+        else echo ~/.wskprops
+        fi
+
 tasks:
 
   prereq:
@@ -148,9 +156,28 @@ tasks:
         if test -e "$OPS_PWD/.env"
         then source "$OPS_PWD/.env"
         fi
+
+        # load user variables if any
+        if [ -n "{{._username_}}" ]
+        then
+          if [ -n "$OPS_{{._username_}}_USERNAME"]
+          then  OPS_USERNAME="$OPS_{{._username_}}_USERNAME"
+                echo Using username from $OPS_{{._username_}}_USERNAME for login  
+          fi
+          if [ -n "$OPS_{{._username_}}_APIHOST"]
+          then  OPS_APIHOST="$OPS_{{._username_}}_APIHOST"
+                echo Using apihost from $OPS_{{._username_}}_APIHOST for login  
+          fi
+          if [ -n "$OPS_{{._username_}}_PASSWORD"]
+          then  OPS_PASSWORD="$OPS_{{._username_}}_PASSWORD"
+                echo Using password from $OPS_{{._username_}}_PASSWORD for login  
+          fi
+        fi
+        
         if test -n "{{._apihost_}}"
         then OPSDEV_APIHOST="{{._apihost_}}"
         fi
+        
         echo "*** Configuring Access to OpenServerless ***"
         if test -z "{{._apihost_}}"
         then 
@@ -180,6 +207,16 @@ tasks:
         if test -n "$OPS_PASSWORD"
         then export "OPS_PASSWORD"
         fi
+
+        if {{.__local}}
+        then export WSK_CONFIG_FILE="$OPS_PWD/.wskprops"
+        fi
+
+        if test -n "$WSK_CONFIG_FILE"
+        then echo Using local credentials: "$WSK_CONFIG_FILE" 
+        else echo Using global credentials: "$WSK_CONFIG_FILE", use `--local` for local
+        fi
+
         if $OPS -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
         then
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
@@ -187,12 +224,21 @@ tasks:
           config OPSDEV_APIHOST="$OPSDEV_APIHOST"
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
-          source ~/.wskprops
+          source "$WSK_CONFIG_FILE"
+          if {{.__pin}}
+          then 
+              echo "Pinning credentials to avoid deployment mistakes"
+              if rg .env "^AUTH_CHECK=" 
+              then awk -v v="$AUTH" 'BEGIN{FS=OFS="="} /^AUTH_CHECK=/{ $2=v }1' .env > .env.tmp$$ && mv .env.tmp$$ .env
+                  echo "Note: replaced existing pinned credentials"
+              else echo "$UTH_CHECK=$AUTH" >>.env
+              fi
+          fi
         else 
           false
         fi
-  
-  
+
+
 
   poll:
     silent: true
@@ -218,6 +264,9 @@ tasks:
       - task: prereq
       - |
         set -a
+        if test -e "$OPS_PWD/.wskprops"
+        then export WSK_CONFIG_FILE="$OPS_PWD/.wskprops"
+        fi
         if test -e $OPS_PWD/.env
         then source $OPS_PWD/.env
         fi
@@ -226,22 +275,40 @@ tasks:
         fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH" 
-             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
              fi
         fi
+
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
         fi
-        if test -z "{{._action_}}"
-        then
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
-            OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
-            echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
-            $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
-            echo "URL: $OPSDEV_HOST"
+
+        if {{.__web}}
+        then deploy_packages=""
+        else deploy_packages="1"
+        fi
+
+        if {{.__packages}}
+        then deploy_web=""
+        else deploy_web="1"
+        fi
+
+        if test -n "{{._action_}}"
+        then 
+            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY  
         else
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            
+            if [ -n "$deploy_packages"]
+            then 
+                bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
+            fi
+            if [-n "$deploy_web"]
+            then
+              OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
+              echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
+              $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
+              echo "URL: $OPSDEV_HOST"
+            fi
         fi
 
   undeploy:
@@ -254,7 +321,6 @@ tasks:
         then DRY="--dry-run"
         else DRY=""
         fi
-
         # Check if an action argument is provided
         if test -n "{{._action_}}"
         then
@@ -287,7 +353,6 @@ tasks:
            /bin/rm -vf "$OPS_PWD"/packages/*/*.zip 
         else die "no packages in current directory"
         fi
-
 
   devel:
     interactive: true
@@ -332,7 +397,6 @@ tasks:
         fi
         bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -w $FAST $DRY
         true
-
 
   shell:
     desc: open a bash shell with the current environment
