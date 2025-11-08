@@ -157,6 +157,11 @@ tasks:
         then source "$OPS_PWD/.env"
         fi
 
+        IS_LOCAL=$(if {{.__local}}; then echo "1" ; else echo "" ; fi)
+        IS_PIN=$(if {{.__pin}} ; then echo "1" ; else echo "" ; fi)
+        IS_LOCAL="$IS_LOCAL$OPS_LOCAL"
+        IS_PIN="$IS_PIN$OPS_PIN"
+
         # load user variables if any
         if [ -n "{{._username_}}" ]
         then
@@ -172,6 +177,8 @@ tasks:
           then  OPS_PASSWORD="$OPS_{{._username_}}_PASSWORD"
                 echo Using password from $OPS_{{._username_}}_PASSWORD for login  
           fi
+          IS_LOCAL="$IS_LOCAL$OPS_{{._username_}}_LOCAL"
+          IS_PIN="$IS_PIN$OPS_{{._username_}}_PIN"
         fi
         
         if test -n "{{._apihost_}}"
@@ -208,7 +215,7 @@ tasks:
         then export "OPS_PASSWORD"
         fi
 
-        if {{.__local}}
+        if test -n "$IS_LOCAL"
         then export WSK_CONFIG_FILE="$OPS_PWD/.wskprops"
         fi
 
@@ -225,7 +232,7 @@ tasks:
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source "$WSK_CONFIG_FILE"
-          if {{.__pin}}
+          if test -n "$IS_PIN"
           then 
               echo "Pinning credentials to avoid deployment mistakes"
               if rg .env "^AUTH_CHECK=" 
@@ -237,8 +244,6 @@ tasks:
         else 
           false
         fi
-
-
 
   poll:
     silent: true

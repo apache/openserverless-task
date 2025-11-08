@@ -60,12 +60,12 @@ Usage:
 ## Options
 
 ```
+--dry-run       Simulates the execution without making any actual changes 
+--packages      Only deploy packages, skip web upload
+--web           Only deploy web folder, skip packages
 --pin           Save the current key in .env as AUTH_CHECK to verify deployments use that key
 --local         Save the login as a local .wskprops instead of a global one
 --fast          Skip the initial deployment step and go in incremental update mode
---dry-run       Simulates the execution without making any actual changes 
---packages      Only deploy packages, skip web
---wen           Only deploy web, skip packages
 ```
 
 ## Login 
@@ -80,7 +80,10 @@ If you login with `ops ide login <username>` it will use, if not empty in prefer
 By default the credentials are stored in ~/.wskprops.
 If there is a local `.wskprops` in current directory it will used that instead.
 
-If you specify `--local` credentials are stored in the local file.
+If you specify `--local` or the variable `OPS_LOCAL` or ops `OPS_<username>_LOCAL` is not empty, 
+credentials are stored in the local file.
 Also if you login and there is already a local file will be used the local instead of the global.
 
-If you specify `--pin` an `AUTH_CHECK` variable will be added to your `.env` to verify deployments use the intended configurations and not a different one by mistake.
+If you specify `--pin`, or the variable `OPS_PIN` or `OPS_<username>_PIN`, 
+an `AUTH_CHECK` variable will be added to your `.env` to verify deployments 
+use the same configurations of the login and not another by mistake.
