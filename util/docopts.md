@@ -24,6 +24,7 @@ OpenServerless Utilities
 
 ```text
 Usage:
+  util apihost
   util system
   util update-cli
   util check-operator-version <version>
@@ -48,6 +49,7 @@ Usage:
 ## Commands
 
 ```
+-  apihost                 current apihost
 -  system                  system info (<os>-<arch> in Go format)
 -  update-cli              update the cli downloading the binary
 -  check-operator-version  check if you need to update the operator

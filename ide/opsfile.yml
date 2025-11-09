@@ -22,7 +22,7 @@ vars:
   API_HOST:
     sh: |
       echo "http://localhost:80"
-  
+
   DEPLOY_CURRENT_HASH:
     sh: |
       if test -e "$OPS_ROOT/ide/deploy/bun.lockb"
@@ -36,12 +36,12 @@ vars:
       then cat "$OPS_ROOT/ide/deploy/hash.lock"
       else echo "0"
       fi
-      
+
 tasks:
 
   prereq:
     silent: true
-    vars: 
+    vars:
       MSG: |
             This command must be run inside a devcontainer.
             Please use 'ops ide devcontainer' to create a configuration and enter in a devcontainer.
@@ -59,7 +59,7 @@ tasks:
       - test "$(ops -wsk property get --namespace | awk '{ print $3 }')" = "$OPSDEV_USERNAME" || die "Repeat the login"
       - |
         if ! test -d "$OPS_ROOT/ide/deploy/node_modules" || [ "{{.DEPLOY_CURRENT_HASH}}" != "{{.DEPLOY_PREVIOUS_HASH}}" ]
-          then 
+          then
             cd $OPS_ROOT/ide/deploy && bun install && rm -f $OPS_ROOT/ide/deploy/hash.lock && bun $OPS_ROOT/ide/deploy/bun.lockb --hash > $OPS_ROOT/ide/deploy/hash.lock
         fi
       - |
@@ -67,9 +67,9 @@ tasks:
         then if ! test -d "$OPS_PWD/node_modules"
              then cd $OPS_PWD ; bun install
              fi
-        fi      
+        fi
       - task: kill
-  
+
   devcontainer:
     silent: true
     desc: add a devcontainer to your project
@@ -77,13 +77,13 @@ tasks:
       - |
         if test -e "$OPS_PWD/.devcontainer/devcontainer.json"
         then echo "a .devcontainer already exists"
-        else 
+        else
           mkdir -p "$OPS_PWD/.devcontainer"
           cp devcontainer.json "$OPS_PWD/.devcontainer/"
           echo "devcontainer created in .devcontainer - please use VSCode and the command 'Reopen in Container'"
         fi
       - |
-        if echo "$OPS_PWD/" | rg ' ' 
+        if echo "$OPS_PWD/" | rg ' '
         then die "please place your workspace in a folder WITHOUT SPACES IN THE FOLDER NAME!!!!"
         fi
       - bun x @devcontainers/cli up --workspace-folder "$OPS_PWD"
@@ -98,7 +98,7 @@ tasks:
         PIDFILE=$(ops -opspath ~/.ops/tmp/deploy.pid)
         echo $PIDFILE
         if test -e $PIDFILE
-        then          
+        then
           PID=$(cat $PIDFILE)
 
           if [ ! -z "$PID" ]; then
@@ -106,14 +106,14 @@ tasks:
             then
               echo "Found previous deploy pid: $PID"
               kill "$PID"
-              # PGRP=$(ps -o 'pgid=' -p $PID | xargs)              
+              # PGRP=$(ps -o 'pgid=' -p $PID | xargs)
               # if [ ! -z "$PGRP" ];
-              # then 
+              # then
               #   echo "Terminating deploy process group $PGRP"
               #   kill "$PGRP"
               # else
               #   echo "Terminating deploy process $PID"
-              #   kill "$PID" 
+              #   kill "$PID"
               # fi
             fi
           fi
@@ -153,7 +153,7 @@ tasks:
         fi
         echo "*** Configuring Access to OpenServerless ***"
         if test -z "{{._apihost_}}"
-        then 
+        then
             if test -z "$OPS_APIHOST"
             then
                 echo -n "Enter Apihost: "
@@ -188,11 +188,11 @@ tasks:
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source ~/.wskprops
-        else 
+        else
           false
         fi
-  
-  
+
+
 
   poll:
     silent: true
@@ -225,23 +225,41 @@ tasks:
         then source $OPS_PWD/packages/.env
         fi
         if test -n "$AUTH_CHECK"
-        then if test "$AUTH_CHECK" != "$AUTH" 
-             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+        then if test "$AUTH_CHECK" != "$AUTH"
+             then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
              fi
         fi
+
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
         fi
-        if test -z "{{._action_}}"
+
+        if {{.__web}}
+        then deploy_packages=""
+        else deploy_packages="1"
+        fi
+
+        if {{.__packages}}
+        then deploy_web=""
+        else deploy_web="1"
+        fi
+
+        if test -n "{{._action_}}"
         then
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
-            OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
-            echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
-            $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
-            echo "URL: $OPSDEV_HOST"
+            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY
         else
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            
+            if [ -n "$deploy_packages" ]
+            then
+                bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
+            fi
+            if [ -n "$deploy_web" ]
+            then
+              OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
+              echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
+              $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
+              echo "URL: $OPSDEV_HOST"
+            fi
         fi
 
   undeploy:
@@ -254,7 +272,6 @@ tasks:
         then DRY="--dry-run"
         else DRY=""
         fi
-
         # Check if an action argument is provided
         if test -n "{{._action_}}"
         then
@@ -270,24 +287,23 @@ tasks:
           then echo '$' $OPS util clean
           else $OPS util clean
         fi
-        
+
 
   clean:
     silent: true
     cmds:
       - task: kill
       - |
-        if test -d "$OPS_PWD/packages" 
-        then 
+        if test -d "$OPS_PWD/packages"
+        then
            echo "*** removing virtualenv"
            /bin/rm -rvf "$OPS_PWD"/packages/*/*/virtualenv/
            echo "*** removing node_modules"
            /bin/rm -rvf "$OPS_PWD"/packages/*/*/node_modules/
            echo "*** removing .zip"
-           /bin/rm -vf "$OPS_PWD"/packages/*/*.zip 
+           /bin/rm -vf "$OPS_PWD"/packages/*/*.zip
         else die "no packages in current directory"
         fi
-
 
   devel:
     interactive: true
@@ -304,7 +320,7 @@ tasks:
         then source $OPS_PWD/packages/.env
         fi
         if test -n "$AUTH_CHECK"
-        then if test "$AUTH_CHECK" != "$AUTH" 
+        then if test "$AUTH_CHECK" != "$AUTH"
              then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
              fi
         fi
@@ -332,7 +348,6 @@ tasks:
         fi
         bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -w $FAST $DRY
         true
-
 
   shell:
     desc: open a bash shell with the current environment

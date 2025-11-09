@@ -47,6 +47,12 @@ tasks:
     cmds:
       - echo "{{OS}}-{{ARCH}}"
 
+  apihost:
+    desc: current apihost``
+    silent: true
+    cmds:
+      - ops -wsk property get | awk '/whisk API host/{print $4}'
+
   update-cli:
     desc: update CLI
     silent: true
