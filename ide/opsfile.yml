@@ -249,11 +249,11 @@ tasks:
         then 
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY  
         else
-            if [ -n "$deploy_packages"]
+            if [ -n "$deploy_packages" ]
             then 
                 bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
             fi
-            if [-n "$deploy_web"]
+            if [ -n "$deploy_web" ]
             then
               OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
               echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
