@@ -226,22 +226,40 @@ tasks:
         fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH" 
-             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+             then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
              fi
         fi
+
         if {{.__dry_run}}
         then DRY="--dry-run" ; ECHO='echo'
         else DRY="" ; ECHO=""
         fi
-        if test -z "{{._action_}}"
-        then
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
-            OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
-            echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
-            $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
-            echo "URL: $OPSDEV_HOST"
+
+        if {{.__web}}
+        then deploy_packages=""
+        else deploy_packages="1"
+        fi
+
+        if {{.__packages}}
+        then deploy_web=""
+        else deploy_web="1"
+        fi
+
+        if test -n "{{._action_}}"
+        then 
+            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY  
         else
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY            
+            if [ -n "$deploy_packages"]
+            then 
+                bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
+            fi
+            if [-n "$deploy_web"]
+            then
+              OPS_UPLOAD_FOLDER=`bun {{.TASKFILE_DIR}}/deploy/info.js upload web`
+              echo "UPLOAD ASSETS FROM ${OPS_UPLOAD_FOLDER}"
+              $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
+              echo "URL: $OPSDEV_HOST"
+            fi
         fi
 
   undeploy:
@@ -254,7 +272,6 @@ tasks:
         then DRY="--dry-run"
         else DRY=""
         fi
-
         # Check if an action argument is provided
         if test -n "{{._action_}}"
         then
@@ -287,7 +304,6 @@ tasks:
            /bin/rm -vf "$OPS_PWD"/packages/*/*.zip 
         else die "no packages in current directory"
         fi
-
 
   devel:
     interactive: true
@@ -332,7 +348,6 @@ tasks:
         fi
         bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -w $FAST $DRY
         true
-
 
   shell:
     desc: open a bash shell with the current environment
