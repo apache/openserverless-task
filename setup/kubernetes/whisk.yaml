@@ -1,3 +1,20 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
 apiVersion: nuvolaris.org/v1
 kind: Whisk
 metadata:
@@ -5,31 +22,59 @@ metadata:
   namespace: nuvolaris
 spec:
   nuvolaris:
-    password: $SECRET_NUVOLARIS_METADATA
-    kube: ${OPERATOR_CONFIG_KUBE:-auto}
-    apihost: ${OPERATOR_CONFIG_APIHOST}
-    storageclass: ${OPERATOR_CONFIG_STORAGECLASS:-auto}
-    provisioner: ${OPERATOR_CONFIG_STORAGEPROVISIONER:-auto}
-    protocol: ${OPERATOR_CONFIG_HOSTPROTOCOL:-auto}
-    affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
-    tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      password: $SECRET_NUVOLARIS_METADATA
+      kube: ${OPERATOR_CONFIG_KUBE:-auto}
+      apihost: ${OPERATOR_CONFIG_APIHOST}
+      storageclass: ${OPERATOR_CONFIG_STORAGECLASS:-auto}
+      provisioner: ${OPERATOR_CONFIG_STORAGEPROVISIONER:-auto}
+      protocol: ${OPERATOR_CONFIG_HOSTPROTOCOL:-auto}
+      slim: ${OPERATOR_CONFIG_SLIM:-false}
+      affinity: ${OPERATOR_CONFIG_AFFINITY:-false}
+      tolerations: ${OPERATOR_CONFIG_TOLERATIONS:-false}
+      ingressclass: ${OPERATOR_CONFIG_INGRESSCLASS:-auto}
+      preload:
+        only-apache: ${OPERATOR_CONFIG_PRELOAD_ONLY_APACHE:-true}
   components:
+    # start openwhisk controller
     openwhisk: true
-    invoker: true
+    # start openwhisk invoker
+    invoker: ${OPERATOR_COMPONENT_INVOKER:-true}
+    # start couchdb
     couchdb: true
-    zookeeper: true
-    kafka: true
+    # start zookeeper
+    zookeeper: ${OPERATOR_COMPONENT_ZOOKEEPER:-true}
+    # start kafka
+    kafka: ${OPERATOR_COMPONENT_KAFKA:-true}
+    # prometheus monitoring enabled or not
     monitoring: ${OPERATOR_COMPONENT_PROMETHEUS:-false}
+    # start mongodb
     mongodb: ${OPERATOR_COMPONENT_MONGODB:-false}
+    # start redis
     redis: ${OPERATOR_COMPONENT_REDIS:-false}
+    # start cron based action parser
     cron: ${OPERATOR_COMPONENT_CRON:-false}
+    # enable TLS
     tls: ${OPERATOR_COMPONENT_TLS:-false}
+    # minio enabled or not
     minio: ${OPERATOR_COMPONENT_MINIO:-false}
+    # minio static enabled or not
     static: ${OPERATOR_COMPONENT_STATIC:-false}
+    # postgres enabled or not
     postgres: ${OPERATOR_COMPONENT_POSTGRES:-false}
+    # quota enabled or not
     quota: ${OPERATOR_COMPONENT_QUOTA:-false}
+    # etcd enabled or not
+    etcd: ${OPERATOR_COMPONENT_ETCD:-false}
+    # MILVUS enabled or not
+    milvus: ${OPERATOR_COMPONENT_MILVUS:-false}
+    # REGISTRY enabled or not
+    registry: ${OPERATOR_COMPONENT_REGISTRY:-false}
+    # REGISTRY enabled or not
+    seaweedfs: ${OPERATOR_COMPONENT_SEAWEEDFS:-false}
+    # SPARK enabled or not
+    spark: ${OPERATOR_COMPONENT_SPARK:-false}
   tls:
-    acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL}
+    acme-registered-email: ${OPERATOR_CONFIG_TLSEMAIL:-no-reply@email.com}
     acme-server-url: https://acme-v02.api.letsencrypt.org/directory
   openwhisk:
     namespaces:
@@ -52,22 +97,22 @@ spec:
     volume-size: ${STORAGE_SIZE_KAFKA:-30}
   zookeeper:
     host: zookeeper
-    data-volume-size: ${STORAGE_SIZE_ZOOKEEPER:-5}
+    data-volume-size:  ${STORAGE_SIZE_ZOOKEEPER:-5}
     log-volume-size: ${STORAGE_SIZE_ZOOKEEPER:-5}
   controller:
-    protocol: http
-    host: controller
-    port: '3233'
-    image: $IMAGES_CONTROLLER
+    protocol: "http"
+    host : "controller"
+    port: "3233"
+    image: "$IMAGES_CONTROLLER"
   invoker:
-    protocol: http
-    host: invoker
-    port: '8080'
-    image: $IMAGES_INVOKER
+    protocol: "http"
+    host : "invoker"
+    port: "8080"
+    image: "$IMAGES_INVOKER"
   scheduler:
-    schedule: '* * * * *'
+    schedule: "* * * * *"
   quota:
-    schedule: '*/10 * * * *'
+    schedule: "*/10 * * * *"
   configs:
     limits:
       activations:
@@ -79,42 +124,42 @@ spec:
       triggers:
         fires-perMinute: ${OPENWHISK_TRIGGER_PER_MINUTE:-999}
       time:
-        limit-min: ${OPENWHISK_TIME_LIMIT_MIN:-100ms}
-        limit-std: ${OPENWHISK_TIME_LIMIT_STD:-1min}
-        limit-max: ${OPENWHISK_TIME_LIMIT_MAX:-5min}
+        limit-min: "${OPENWHISK_TIME_LIMIT_MIN:-100ms}"
+        limit-std: "${OPENWHISK_TIME_LIMIT_STD:-1min}"
+        limit-max: "${OPENWHISK_TIME_LIMIT_MAX:-5min}"
       memory:
-        limit-min: ${OPENWHISK_ACTION_MEMORY_LIMIT_MIN:-128m}
-        limit-std: ${OPENWHISK_ACTION_MEMORY_LIMIT_STD:-256m}
-        limit-max: ${OPENWHISK_ACTION_MEMORY_LIMIT_MAX:-2048m}
+        limit-min: "${OPENWHISK_ACTION_MEMORY_LIMIT_MIN:-128m}"
+        limit-std: "${OPENWHISK_ACTION_MEMORY_LIMIT_STD:-256m}"
+        limit-max: "${OPENWHISK_ACTION_MEMORY_LIMIT_MAX:-2048m}"
       loadbalancer:
-        blackbox-fraction: 10%
+        blackbox-fraction : "${OPENWHISK_LB_BLACKBOX_FRACTION:100%}"
         timeout-factor: 2
     controller:
-      javaOpts: $OPENWHISK_CONTROLLER_JAVA_OPTS
-      loggingLevel: ${OPENWHISK_CONTROLLER_LOGGINGLEVEL:-INFO}
+      javaOpts: "$OPENWHISK_CONTROLLER_JAVA_OPTS"
+      loggingLevel: "${OPENWHISK_CONTROLLER_LOGGINGLEVEL:-INFO}"
       replicas: ${OPENWHISK_CONTROLLER_REPLICAS:-1}
       resources:
-        cpu-req: 500m
-        cpu-lim: '1'
-        mem-req: $OPENWHISK_CONTROLLER_RES_MIN_MEM
-        mem-lim: $OPENWHISK_CONTROLLER_RES_MAX_MEM
+        cpu-req: "500m"
+        cpu-lim: "1"
+        mem-req: "$OPENWHISK_CONTROLLER_RES_MIN_MEM"
+        mem-lim: "$OPENWHISK_CONTROLLER_RES_MAX_MEM"
     invoker:
-      javaOpts: $OPENWHISK_INVOKER_JAVA_OPTS
-      loggingLevel: ${OPENWHISK_INVOKER_LOGGINGLEVEL:-INFO}
+      javaOpts: "$OPENWHISK_INVOKER_JAVA_OPTS"
+      loggingLevel: "${OPENWHISK_INVOKER_LOGGINGLEVEL:-INFO}"
       replicas: ${OPENWHISK_INVOKER_REPLICAS:-1}
       containerPool:
-        userMemory: $OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY
+        userMemory: "$OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY"
       kubernetes:
         user_pod_affinity_enabled: ${NUVOLARIS_AFFINITY:-false}
-        user_pod_affinity_key: nuvolaris-role
-        user_pod_affinity_value: invoker
+        user_pod_affinity_key : "nuvolaris-role"
+        user_pod_affinity_value : "invoker"
         timeouts_run: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN:-1}
         timeouts_logs: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS:-1}
       resources:
-        cpu-req: 500m
-        cpu-lim: '1'
-        mem-req: $OPENWHISK_INVOKER_RES_MIN_MEM
-        mem-lim: $OPENWHISK_INVOKER_RES_MAX_MEM
+        cpu-req: "500m"
+        cpu-lim: "1"
+        mem-req: "$OPENWHISK_INVOKER_RES_MIN_MEM"
+        mem-lim: "$OPENWHISK_INVOKER_RES_MAX_MEM"
   redis:
     persistence-enabled: ${REDIS_PERSISTENCE_ENABLED:-true}
     volume-size: ${STORAGE_SIZE_REDIS:-25}
@@ -132,8 +177,8 @@ spec:
     nuvolaris:
       user: nuvolaris
       password: $SECRET_MONGODB_NUVOLARIS
-    exposedExternally: false
-    useOperator: false
+    exposedExternally: False
+    useOperator: False
   minio:
     ingress:
       s3-enabled: ${MINIO_CONFIG_INGRESS_S3:-false}
@@ -158,7 +203,7 @@ spec:
     failover: ${POSTGRES_CONFIG_FAILOVER:-false}
     backup:
       enabled: ${POSTGRES_CONFIG_BACKUP_ENABLED:-false}
-      schedule: ${POSTGRES_CONFIG_BACKUP_SCHEDULE:-0 */1 * * *}
+      schedule: "${POSTGRES_CONFIG_BACKUP_SCHEDULE:-0 */1 * * *}"
   monitoring:
     prometheus:
       volume-size: ${STORAGE_SIZE_MONITORING:-30}
@@ -168,8 +213,8 @@ spec:
       slack:
         enabled: ${OPERATOR_CONFIG_ALERTSLACK:-false}
         default: true
-        slack_channel_name: $OPERATOR_CONFIG_SLACK_CHANNELNAME
-        slack_api_url: $OPERATOR_CONFIG_SLACK_APIURL
+        slack_channel_name: "$OPERATOR_CONFIG_SLACK_CHANNELNAME"
+        slack_api_url: "$OPERATOR_CONFIG_SLACK_APIURL"
       gmail:
         enabled: ${OPERATOR_CONFIG_ALERTGMAIL:-false}
         default: false
@@ -177,14 +222,58 @@ spec:
         to: $OPERATOR_CONFIG_EMAIL_TO
         username: $OPERATOR_CONFIG_GMAIL_USERNAME
         password: $OPERATOR_CONFIG_GMAIL_PASSWORD
+  etcd:
+    volume-size: ${STORAGE_SIZE_ETCD:-25}
+    replicas: ${ETCD_CONFIG_REPLICAS:-3}
+    auto-compaction-retention: "${ETCD_AUTO_COMPACTION_RETENTION:-1}"
+    quota-backend-bytes: ${ETCD_QUOTA_BACKEND_BYTES:-2147483648}
+    root:
+      password: $SECRET_ETCD_ROOT
+  milvus:
+    volume-size:
+      cluster: ${STORAGE_SIZE_MILVUS_CLUSTER:-20}
+      zookeeper: ${STORAGE_SIZE_MILVUS_ZOOKEEPER:-10}
+      journal: ${STORAGE_SIZE_MILVUS_PULSAR_JOURNAL:-25}
+      ledgers: ${STORAGE_SIZE_MILVUS_PULSAR_LEDGERS:-50}
+    replicas: ${MILVUS_CONFIG_REPLICAS:-1}
+    proxy:
+      max-role-num: ${PROXY_MILVUS_MAX_ROLE_NUM:-100}
+      max-user-num: ${PROXY_MILVUS_MAX_USER_NUM:-100}
+    root-coord:
+      max-database-num: ${ROOTCOORD_MILVUS_DATABASE_NUM:-64}
+    password:
+      root: $SECRET_MILVUS_ROOT
+      s3: $SECRET_MILVUS_S3
+      etcd: $SECRET_ETCD_ROOT
+    nuvolaris:
+      password: $SECRET_MILVUS_NUVOLARIS
+  registry:
+    mode: ${REGISTRY_CONFIG_MODE:-internal}
+    volume-size: ${REGISTRY_CONFIG_VOLUME_SIZE:-50}
+    auth:
+      username: ${REGISTRY_CONFIG_USERNAME:-opsuser}
+      password: ${REGISTRY_CONFIG_SECRET_PUSH_PULL:-changeme-registry}
+    hostname: ${REGISTRY_CONFIG_HOSTNAME:-auto}
+    ingress:
+      enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}
+  seaweedfs:
+    volume-size:  ${STORAGE_SIZE_SEAWEEDFS:-60}
+    nuvolaris:
+      user: nuvolaris
+      password: ${SECRET_SEAWEEDFS_NUVOLARIS:-changeme-seaweedfs}
+    ingress:
+      s3-enabled: ${SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED:-true}
+      s3-hostname: ${SEAWEEDFS_CONFIG_INGRESS_S3_HOSTNAME:-auto}
+      console-enabled: ${SEAWEEDFS_CONFIG_INGRESS_CONSOLE_ENABLED:-false}
+      console-hostname: ${SEAWEEDFS_CONFIG_INGRESS_CONSOLE_HOSTNAME:-auto}
   spark:
-    enabled: true
+    enabled: ${OPERATOR_COMPONENT_SPARK:-false}
     mode: standalone
     image: apache/spark:3.5.0
     history:
-      enabled: true
+      enabled: ${SPARK_HISTORY_ENABLED:-true}
       backend: s3a
       s3a:
-        bucket: spark-history
+        bucket: ${SPARK_HISTORY_BUCKET:-spark-history}
         endpoint: http://minio.nuvolaris.svc.cluster.local:9000
         secretRef: nuvolaris-minio
