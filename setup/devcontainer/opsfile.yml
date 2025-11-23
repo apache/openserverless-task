@@ -1,7 +1,11 @@
-version: "3" 
+version: "3"
 
 vars:
-  IMAGE: ghcr.io/mastrogpt/agent41-starter:2506201530
+  UID:
+    sh: 'echo {{ if eq OS "windows" }}1000{{ else }}$(id -u){{ end }}'
+  GID:
+    sh: 'echo {{ if eq OS "windows" }}1000{{ else }}$(id -g){{ end }}'
+  DRY: ""
 
 env:
   KUBECONFIG:
@@ -15,17 +19,17 @@ tasks:
 
   deploy:
     silent: true
-    desc: deploy the devcontainer
+    desc: deploy the devcontainer in kubernetes
     cmds:
       - test -e ~/.ssh/id_rsa.pub || die "please generate an ssh key with ssh-keygen in ~/.ssh/id_rsa.pub"
       - >
-          kubectl -n nuvolaris create secret generic ssh-secret 
+          kubectl -n nuvolaris create secret generic ssh-secret
           --from-literal=authorized_keys="$(cat ~/.ssh/id_rsa.pub)" 2>/dev/null || die "devcontainer already exists"
       - >
-          kubectl -n nuvolaris create secret generic devel-secret 
+          kubectl -n nuvolaris create secret generic devel-secret
           --from-literal=password="$(cat ~/.ops/devel.password)"
       - |
-        export IMAGE="{{.IMAGE}}"
+        export IMAGE="{{.IMAGES_DEVCONTAINER}}"
         envsubst < deployment.yaml >_deployment.yaml
         kubectl apply -f _deployment.yaml
       - ops setup kubernetes wait-pod SELECTOR="-l app=ssh-devcontainer" COND=false FILE=_devcontainer
@@ -35,42 +39,33 @@ tasks:
         then echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User node\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" >> ~/.ssh/config
         fi
       - >
-        retry -t 100 -m 600 ssh miniops exit 2>&1 
+        retry -t 100 -m 600 ssh miniops exit 2>&1
         | awk '{s=""; for(i=1;i<=NR;i++) s=s"#"; printf "\rwaiting for ssh: [%s]", s; fflush()}'
       - echo -e "\nyou can now connect to the devcontainer with 'ssh miniops'"
 
   undeploy:
     silent: true
-    desc: undeploy the devcontainer
+    desc: undeploy the devcontainer in kubernetes
     cmds:
-      - kubectl -n nuvolaris delete deploy/ssh-devcontainer secret/ssh-secret secret/devel-secret 
+      - kubectl -n nuvolaris delete deploy/ssh-devcontainer secret/ssh-secret secret/devel-secret
       - echo Please remove the Host miniops entry from your ~/.ssh/config file if present
 
-  docker-deploy:
-    desc: deploy the ssh-devcontainer with docker
+  run:
+    desc: run the ssh-devcontainer in docker with W=<workspace absolute path>
     silent: true
+    requires: { vars: [W]}
     cmds:
-      - >  
-        docker run 
+      - test -e "$OPS_PWD/workspace/package.json" || die "mising workdpace folder with starter"
+      - test -e ~/.ssh/id_rsa.pub || die "please generate an ssh key with 'ssk-keygen -t rsa'"
+      - echo "{{.W}}" | rg '^/' || die "W=<absolute path> required"
+      - docker rm -f ssh-devcontainer 2>/dev/null
+      - >
+        {{.DRY}} docker run
+        --hostname ssh-devcontainer
         --name ssh-devcontainer --rm
-        -e SSH_KEY="$(cat ~/.ssh/id_rsa.pub)" 
-        --entrypoint /bin/bash 
-        -p 2222:2222
-        {{.IMAGE}}
-        -c '
-            mkdir -p ~/.ssh ;
-            echo "$SSH_KEY" > ~/.ssh/authorized_keys ;
-            chmod 600 ~/.ssh/authorized_keys ;
-            sudo apt-get update ;
-            sudo apt-get install -y openssh-server ;
-            sudo mkdir -p /run/sshd ;
-            sudo ssh-keygen -A ;
-            echo starting sshd... ;
-            sudo /usr/sbin/sshd -p 2222 -D
-          '
+        -e SSHKEY="$(cat ~/.ssh/id_rsa.pub)"
+        -e USERID={{.UID}}
+        --mount "type=bind,src={{.W}},dst=/home/workspace"
+        -p 2223:2222
+        {{.IMAGES_DEVCONTAINER}}
 
-  docker-undeploy:
-    desc: deploy the ssh-devcontainer with docker
-    silent: true
-    cmds:
-    - docker rm -f ssh-devcontainer || echo "no docker container ssh-devcontainer running"
