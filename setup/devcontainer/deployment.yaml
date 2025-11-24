@@ -31,40 +31,19 @@ spec:
           name: ssh
           protocol: TCP
         securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
+          runAsUser: $USERID
+          runAsGroup: $USERID
         volumeMounts:
         - name: workspace
-          mountPath: /workspace
+          mountPath: /home/workspace
         env:
         - name: DEBIAN_FRONTEND
           value: noninteractive
-        - name: SSH_KEY
+        - name: SSHKEY
           valueFrom:
             secretKeyRef:
               name: ssh-secret
               key: authorized_keys
-        - name: DEVEL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-               name: devel-secret
-               key: password
-        command:
-        - /bin/bash
-        - -c
-        - >
-            sudo touch /.dockerenv ;
-            sudo apt-get update ;
-            sudo apt-get install -y openssh-server ;
-            sudo mkdir -p /run/sshd ;
-            sudo ssh-keygen -A ;
-            mkdir -p ~/.ssh ;
-            chmod 600 ~/.ssh/authorized_keys ;
-            echo "$$SSH_KEY" > ~/.ssh/authorized_keys ;
-            ln -sf /workspace ~/workspace ;
-            echo "ops -update ; env OPS_PASSWORD='$$DEVEL_PASSWORD' ops ide login devel http://miniops.me" >>~/.bashrc ;
-            sudo chown -R 1000:1000 /workspace ;            
-            sudo /usr/sbin/sshd -p 2222 -D
       - name: reverse-proxy
         image: nginx:alpine
         ports:
