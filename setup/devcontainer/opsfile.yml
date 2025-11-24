@@ -6,6 +6,7 @@ vars:
   GID:
     sh: 'echo {{ if eq OS "windows" }}1000{{ else }}$(id -g){{ end }}'
   DRY: ""
+  EXTRA: ""
 
 env:
   KUBECONFIG:
@@ -36,7 +37,7 @@ tasks:
       - |
         touch ~/.ssh/config
         if ! rg "Host miniops" ~/.ssh/config >/dev/null
-        then echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User node\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" >> ~/.ssh/config
+        then echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User devel\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" >> ~/.ssh/config
         fi
       - >
         retry -t 100 -m 600 ssh miniops exit 2>&1
@@ -50,10 +51,18 @@ tasks:
       - kubectl -n nuvolaris delete deploy/ssh-devcontainer secret/ssh-secret secret/devel-secret
       - echo Please remove the Host miniops entry from your ~/.ssh/config file if present
 
-  run:
+  docker2kind:
+    silent: true
+    desc: load the devcontainer image from docker to kind to avoid pulling from outside
+    cmds:
+    - kind load docker-image {{.IMAGES_DEVCONTAINER}} --name nuvolaris
+
+  docker-run:
     desc: run the ssh-devcontainer in docker with W=<workspace absolute path>
     silent: true
     requires: { vars: [W]}
+    vars:
+      EXTRA: #"--entrypoint=/bin/bash -ti"
     cmds:
       - test -e "$OPS_PWD/workspace/package.json" || die "mising workdpace folder with starter"
       - test -e ~/.ssh/id_rsa.pub || die "please generate an ssh key with 'ssk-keygen -t rsa'"
@@ -67,5 +76,7 @@ tasks:
         -e USERID={{.UID}}
         --mount "type=bind,src={{.W}},dst=/home/workspace"
         -p 2223:2222
+        {{.EXTRA}}
         {{.IMAGES_DEVCONTAINER}}
+
 
