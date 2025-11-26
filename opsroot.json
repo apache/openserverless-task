@@ -10,7 +10,7 @@
       "invoker": "ghcr.io/nuvolaris/openwhisk-invoker:3.1.0-mastrogpt.2402101445",
       "streamer": "registry.hub.docker.com/apache/openserverless-streamer:0.1.0-incubating.2505031325",
       "systemapi": "registry.hub.docker.com/apache/openserverless-admin-api:0.1.0-incubating.2509280912",
-      "devcontainer": "docker pull ghcr.io/sciabarracom/openserverless-devcontainer:0.1.0-incubating.2511241359"
+      "devcontainer": "ghcr.io/sciabarracom/openserverless-devcontainer:0.1.0-incubating.2511261630"
     }
   }
 }
