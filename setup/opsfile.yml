@@ -31,14 +31,14 @@ tasks:
     vars:
       PORTS: "{{ .PORTS | default \"\" }}"
     cmds:
-      - |        
+      - |
         {{if eq OS "windows"}}
         $ports = "{{ .PORTS }}".Split(" ")
         foreach ($entry in $ports) {
           $parts = $entry -split "/"
           $port = $parts[0]
           $protocol = $parts[1].ToLower()
-        
+
           if ($protocol -eq "tcp" -and (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue)) {
             Write-Host "TCP Port $port is in use!" -ForegroundColor Red
             exit 1
@@ -79,9 +79,9 @@ tasks:
 
   mini:
     desc: install miniops
-    vars: 
+    vars:
        APIHOST: '{{or ._apihost_ "http://miniops.me"}}'
-    cmds: 
+    cmds:
       - echo '{{.APIHOST}}' | rg 'https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]+/?' >/dev/null || die "please spefify an accessibile http://host"
       - task: _mini
         vars:
@@ -101,7 +101,7 @@ tasks:
       - docker info 2>/dev/null >/dev/null || die "Docker is not running. Please start Docker Desktop first."
       - |
         if test -z {{.__skip_check_cluster}}
-        then          
+        then
           if curl -sL {{.APIHOST}} >/dev/null 2>/dev/null
           then
             if curl -sL {{.APIHOST}}/api/info 2>/dev/null | jq  -r .description 2>/dev/null | rg OpenWhisk >/dev/null 2>/dev/null
@@ -122,7 +122,6 @@ tasks:
       - ops setup docker check-space
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
-      - ops setup devcluster
       - ops setup nuvolaris streamer deploy
       - ops setup nuvolaris system-api deploy
       - ops setup nuvolaris add-user
@@ -139,7 +138,7 @@ tasks:
       then  {{.RUN}} ops setup docker delete
       else
         if test -z {{.__skip_check_ports}}
-        then 
+        then
           task check-ports PORTS="{{ .PORTS }}"
         fi
         {{.RUN}} ops setup docker create
@@ -150,7 +149,7 @@ tasks:
         {{.RUN}} ops setup kubernetes create
         {{.RUN}} ops setup nuvolaris login
         config STATUS_LAST=devcluster
-      fi   
+      fi
 
   cluster:
     silent: true
@@ -163,8 +162,8 @@ tasks:
       else
             {{.RUN}} ops setup kubernetes create CONTEXT="{{._context_}}"
             {{.RUN}} ops setup nuvolaris login
-            config STATUS_LAST=cluster 
-            if test -n "{{._context_}}" 
+            config STATUS_LAST=cluster
+            if test -n "{{._context_}}"
             then config STATUS_CONTEXT="{{._context_}}"
             fi
       fi
@@ -184,32 +183,32 @@ tasks:
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"
-          fi   
+          fi
       fi
 
   status:
     silent: true
-    cmds: 
+    cmds:
       - |
-        case "$STATUS_LAST" in 
+        case "$STATUS_LAST" in
         (devcluster) {{.RUN}} ops setup devcluster --status ;;
         (cluster)    {{.RUN}} ops setup cluster "$STATUS_CONTEXT" --status ;;
-        (server)     {{.RUN}} ops setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
+        (server)     {{.RUN}} ops setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;;
         (*) echo nothing installed yet
         esac
 
   uninstall:
     silent: true
-    cmds: 
+    cmds:
       - |
-        case "$STATUS_LAST" in 
-        (devcluster) 
+        case "$STATUS_LAST" in
+        (devcluster)
           {{.RUN}} ops setup devcluster --uninstall
           config -r STATUS_LAST
         ;;
-        (cluster)   
-          if test -n "$STATUS_CONTEXT" 
-          then 
+        (cluster)
+          if test -n "$STATUS_CONTEXT"
+          then
               {{.RUN}} ops setup cluster "$STATUS_CONTEXT" --uninstall
               config -r STATUS_CONTEXT
           else
@@ -217,16 +216,16 @@ tasks:
           fi
           config -r STATUS_LAST
         ;;
-        (server)    
+        (server)
           if test -z "$STATUS_USERNAME"
-          then 
+          then
                 {{.RUN}} ops setup server "$STATUS_SERVER" --uninstall
           else
                 {{.RUN}} ops setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
                 config -r STATUS_USERNAME
           fi
-          config -r STATUS_LAST STATUS_SERVER 
-        ;; 
+          config -r STATUS_LAST STATUS_SERVER
+        ;;
         (*) echo nothing installed yet
         esac
 
