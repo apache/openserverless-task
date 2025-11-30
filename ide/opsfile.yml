@@ -141,15 +141,19 @@ tasks:
 
 
   login:
-    silent: true
+    silent: false
     desc: login in you OpenServerless host
     cmds:
       - |
+        set -a
         if test -e "$OPS_PWD/.env"
         then source "$OPS_PWD/.env"
         fi
+        if test -n "$OPS_USERNAME"
+        then echo "Please use OPS_USER, OPS_USERNAME is deprecated"
+        fi
         if test -n "{{._apihost_}}"
-        then OPSDEV_APIHOST="{{._apihost_}}"
+        then export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         echo "*** Configuring Access to OpenServerless ***"
         if test -z "{{._apihost_}}"
@@ -158,23 +162,23 @@ tasks:
             then
                 echo -n "Enter Apihost: "
                 read OPSDEV_APIHOST
-                OPSDEV_APIHOST="$(echo $OPSDEV_APIHOST | tr -d '\r')"
+                export OPSDEV_APIHOST="$(echo $OPSDEV_APIHOST | tr -d '\r')"
             else
-                OPSDEV_APIHOST="$OPS_APIHOST"
+                export OPSDEV_APIHOST="$OPS_APIHOST"
             fi
-        else OPSDEV_APIHOST="{{._apihost_}}"
+        else export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         if test -z "{{._username_}}"
         then
-            if test -n "$OPS_USERNAME"
+            if test -n "$OPS_USER"
             then
-                OPSDEV_USERNAME="$OPS_USERNAME"
+                export OPSDEV_USERNAME="$OPS_USER"
             else
               echo -n "Enter Username: "
               read OPSDEV_USERNAME
-              OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
+              export OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
             fi
-        else OPSDEV_USERNAME="{{._username_}}"
+        else export OPSDEV_USERNAME="{{._username_}}"
         fi
         echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
         if test -n "$OPS_PASSWORD"
@@ -188,8 +192,6 @@ tasks:
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source ~/.wskprops
-        else
-          false
         fi
 
 
