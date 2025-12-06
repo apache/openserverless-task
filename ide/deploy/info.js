@@ -21,8 +21,8 @@ import process from "process";
 
 program
     .description('Deployer info')
-    .argument('<param>', 'The key to query')
-    .argument('<param>', 'The default value')
+    .argument('<key>', 'The key to query')
+    .argument('[default]', 'The default value')
     .parse(process.argv);
 
 const key = program.args[0];

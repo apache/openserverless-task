@@ -35,8 +35,11 @@ async function signalHandler() {
         await globalWatcher.close();
     }
 
-    unlinkSync(expanduser('~/.ops/tmp/deploy.pid'));
-    process.kill(process.getpgrp(), 'SIGKILL');
+    const pidPath = expanduser('~/.ops/tmp/deploy.pid');
+    if (existsSync(pidPath)) {
+        unlinkSync(pidPath);
+    }
+    process.kill(process.pid, 'SIGTERM');
     process.exit(0); // should not be reached but just in case...
 }
 
@@ -45,7 +48,7 @@ function checkPort() {
     server.listen(8080, '127.0.0.1');
     server.on('error', () => {
         console.log('deployment mode already active (or something listening in 127.0.0.1:8080)');
-        server.close();
+        server.close();        
     });
     server.on('listening', () => server.close());
 }
@@ -60,7 +63,6 @@ async function main() {
 
 
     process.on('SIGTERM', signalHandler);
-    process.on('SIGKILL', signalHandler);
     const pidfile = expanduser('~/.ops/tmp/deploy.pid');
     console.log('PID', pid);
 
@@ -83,6 +85,11 @@ async function main() {
 
     setDryRun(options.dryRun);
     setUndeployDryRun(options.dryRun);
+
+    if (!existsSync(directory)) {
+        console.error(`❌ Error: Directory ${directory} does not exist`);
+        process.exit(1);
+    }
     process.chdir(directory);
 
     if (options.undeploy) {
@@ -125,7 +132,7 @@ async function main() {
 
     } else if (options.deploy) {
         await scan();
-        await build()
+        await build();
         process.exit(0);
     } else if (options.single !== '') {
         let action = options.single;
@@ -148,5 +155,3 @@ main().catch(err => {
     console.error(err);
     process.exit(1);
 });
-
-setInterval(() => {}, 1000);
