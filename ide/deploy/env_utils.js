@@ -47,7 +47,7 @@ export function expandEnv(str, env = process.env) {
           const name = varMatch[1];
           let val;
           if (name === "$") val = process.pid;
-          else if (name === "?") val = "0"; // impossibile sapere senza contesto
+          else if (name === "?") val = "0"; // Cannot determine actual exit code without execution context
           else if (name === "#") val = "0";
           else if (name === "!") val = "";
           else val = env[name] ?? "";

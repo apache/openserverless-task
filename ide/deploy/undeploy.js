@@ -17,7 +17,8 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { spawnSync } from 'child_process';
-import { cleanupDeployInfo, removeActionFromDeployInfo } from "./syncDeployInfo";
+import { cleanupDeployInfo, removeActionFromDeployInfo } from "./syncDeployInfo.js";
+import { expandEnv } from './env_utils.js';
 
 let dryRun = false;
 
@@ -28,7 +29,13 @@ export function setDryRun(b) {
 function exec(cmd) {
   console.log("$", cmd);
   if (!dryRun) {
-    spawnSync(cmd, { shell: true, env: process.env, stdio: "inherit" });
+    cmd = expandEnv(cmd);
+    const result = spawnSync(cmd, { shell: true, env: process.env, stdio: "inherit" });
+    if (result.error) {
+      console.error(`Command failed: ${cmd}`, result.error);
+      throw result.error;
+    }
+    return result;
   }
 }
 

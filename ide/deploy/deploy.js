@@ -110,8 +110,9 @@ export async function deployAction(artifact) {
     name = spData[0];
     typ = spData[1];
     pkg = sp[1];
-  } catch {
-    console.log("❌ cannot deploy", artifact);
+  } catch(error) {
+    
+    console.log("❌ cannot deploy", artifact, "Error:", error.message);
     return;
   }
 
