@@ -34,6 +34,7 @@ Usage:
   util no-user-secrets <username>
   util kubectl <args>...
   util kubeconfig
+  util kubeget <object> <jsonpath>
   util config <configjson> [--override] [--showhelp]
   util clean
   util upload [<folder>] [--batchsize=<batchsize>] [--verbose] [--clean]
@@ -53,12 +54,13 @@ Usage:
 -  system                  system info (<os>-<arch> in Go format)
 -  update-cli              update the cli downloading the binary
 -  check-operator-version  check if you need to update the operator
--  secrets                 generate system secrets 
+-  secrets                 generate system secrets
 -  nosecrets               remove system secrets
 -  user-secrets            generate user secrets for the given user
 -  no-user-secrets         remove user secrets for the given user
 -  kubectl                 execute kubectl on current kubeconfig
 -  kubeconfig              export OVERWRITING current kubeconfig to ~/.kube/config
+-  kubeget                 extract info from an object with a jsonpath
 -  config                  update configuration file interactively
 -  clean                   clean up the web bucket
 -  upload                  uploads a folder to the web bucket in OpenServerless.

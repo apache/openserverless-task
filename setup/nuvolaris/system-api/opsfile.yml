@@ -36,16 +36,20 @@ env:
   SYS_API_CDB_HOST: couchdb
 
   SYS_API_CDB_USER:
-    sh: ops util kubectl -- -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
+    #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.user}'
+    sh: ops util kubeget wsk/controller .spec.couchdb.admin.user
 
   SYS_API_CDB_PASSWORD:
-    sh: ops util kubectl -- -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
+    #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}'
+    sh: ops util kubeget wsk/controller .spec.couchdb.admin.password
 
   SYS_API_HOSTNAME:
-    sh: ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
-  
+    #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
+    sh: ops util kubeget ingress/apihost .spec.rules[0].host
+
   REGISTRY_PASS:
-    sh: ops util kubectl -- -n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
+    #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n nuvolaris get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
+    sh: ops util kubeget cm/config .metadata.annotations.registry_password
 
   INGRESS_TYPE:
     sh: ops util ingress-type
@@ -57,7 +61,7 @@ tasks:
     cmds:
       - task: remove-toml
       - kubectl -n nuvolaris create configmap nuvolaris-buildkitd-conf --from-file="$OPS_ROOT/setup/nuvolaris/system-api/deploy/buildkit/buildkitd.toml"
-  
+
   remove-toml:
     desc: Remove the buildkitd.toml config map
     silent: true
@@ -66,7 +70,7 @@ tasks:
         if kubectl -n nuvolaris get cm nuvolaris-buildkitd-conf >/dev/null 2>&1;
           then kubectl -n nuvolaris delete configmap nuvolaris-buildkitd-conf
         fi
-  
+
   install-secret:
     desc: Create secret to push to internal registry
     silent: true
@@ -74,9 +78,9 @@ tasks:
       - task: remove-secret
       - |
         if ! kubectl -n nuvolaris get secret registry-pull-secret-int >/dev/null 2>&1;
-        then kubectl create secret docker-registry registry-pull-secret-int --docker-server=http://nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
+        then kubectl -n nuvolaris create secret docker-registry registry-pull-secret-int --docker-server=http://nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
         fi
-    
+
   remove-secret:
     desc: Delete secret to push to internal registry
     silent: true
@@ -86,11 +90,10 @@ tasks:
         then kubectl -n nuvolaris delete secret registry-pull-secret-int
         fi
 
-
   deploy:
     silent: true
     ignore_error: false
-    desc: deploy the admin api 
+    desc: deploy the admin api
     cmds:
     - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
@@ -103,7 +106,7 @@ tasks:
     - task: install-secret
     - |
       echo "Admin API deployed with HOSTNAME: ${SYS_API_HOSTNAME}/system"
-  
+
   undeploy:
     silent: true
     desc: undeploy the admin api
@@ -114,7 +117,7 @@ tasks:
     - kubectl -n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api
     - |
       echo "System Admin API undeployed"
-  
+
 
   update:
     silent: true
@@ -122,7 +125,7 @@ tasks:
     cmds:
       - task: deploy
       - kubectl -n nuvolaris rollout restart statefulset nuvolaris-system-api
-    preconditions:      
+    preconditions:
       - sh: '[ $IMAGES_SYSTEMAPI != $CURRENT_API_VERSION ]'
         msg: "Current OpenServerless System API stateful set it is already updated to newest version. Request ignored."
     env:
