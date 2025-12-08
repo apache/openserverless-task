@@ -122,6 +122,7 @@ tasks:
       - ops setup docker check-space
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
+      - ops setup devcluster
       - ops setup nuvolaris streamer deploy
       - ops setup nuvolaris system-api deploy
       - ops setup nuvolaris add-user
