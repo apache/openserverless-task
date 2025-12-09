@@ -78,6 +78,7 @@ tasks:
 
 
   mini:
+    silent: true
     desc: install miniops
     vars:
        APIHOST: '{{or ._apihost_ "http://miniops.me"}}'

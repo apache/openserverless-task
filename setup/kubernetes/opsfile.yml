@@ -31,44 +31,44 @@ env:
       fi
 
 # sets memory parameter for the controller invoker and corresponding pods
-  OPENWHISK_CONTROLLER_JAVA_OPTS: 
+  OPENWHISK_CONTROLLER_JAVA_OPTS:
     sh: |
       if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
       then echo -Xmx2G
       else echo -Xmx"$OPENWHISK_CONTROLLER_JVMGB"G
       fi
-  OPENWHISK_INVOKER_JAVA_OPTS: 
+  OPENWHISK_INVOKER_JAVA_OPTS:
     sh: |
       if [ -z "$OPENWHISK_INVOKER_JVMGB" ]
       then echo -Xmx2G
       else echo -Xmx"$OPENWHISK_INVOKER_JVMGB"G
       fi
-  OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY: 
+  OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY:
     sh: |
       if [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
       then echo 2048m
       else pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((pool*1024))m
       fi
-  OPENWHISK_CONTROLLER_RES_MIN_MEM: 
+  OPENWHISK_CONTROLLER_RES_MIN_MEM:
     sh: |
       if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
       then echo 2G
       else echo "$OPENWHISK_CONTROLLER_JVMGB"G
       fi
-  OPENWHISK_CONTROLLER_RES_MAX_MEM: 
+  OPENWHISK_CONTROLLER_RES_MAX_MEM:
     sh: |
       if [ -z "$OPENWHISK_CONTROLLER_JVMGB" ]
       then echo 3G
       else mem=$OPENWHISK_CONTROLLER_JVMGB; echo $((mem+1))G
       fi
-  OPENWHISK_INVOKER_RES_MIN_MEM: 
+  OPENWHISK_INVOKER_RES_MIN_MEM:
     sh: |
       if [ -z "$OPENWHISK_INVOKER_JVMGB" ]
-      then echo 3G 
+      then echo 3G
       else mem=$OPENWHISK_INVOKER_JVMGB; echo $((mem))G
       fi
-  OPENWHISK_INVOKER_RES_MAX_MEM: 
-    sh: | 
+  OPENWHISK_INVOKER_RES_MAX_MEM:
+    sh: |
       if [ -z "$OPENWHISK_INVOKER_JVMGB" ] && [ -z "$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB" ]
       then echo 4G
       else mem=$OPENWHISK_INVOKER_JVMGB; pool=$OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB; echo $((mem+1))G
@@ -89,10 +89,10 @@ env:
       fi
 
 tasks:
-  
+
   streamer:
     desc: deploy streamer
-  
+
   status:
     desc: show nuvolaris cluster status
     silent: true
@@ -126,7 +126,7 @@ tasks:
     status:
       - test "{{.COND}}" != "true"
     env:
-      BAR: 
+      BAR:
         sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.OBJECT}}" || die "use OBJECT=<to-wait-for>"
@@ -146,7 +146,7 @@ tasks:
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do 
+        do
           printf "\rwaiting for {{.OBJECT}} ready: [${BAR:0:$((N++))}]"
           if kubectl -n nuvolaris wait --for=condition=Ready "{{.OBJECT}}" --timeout={{.TIMEOUT}} >/dev/null 2>&1
           then RES=true ; break
@@ -154,7 +154,7 @@ tasks:
         done
         printf "\n"
         $RES
-  
+
   wait-pod:
     #desc: wait for a pod to be available - leave the result in FILE
     silent: true
@@ -166,7 +166,7 @@ tasks:
         - COND
         - FILE
     env:
-      BAR: 
+      BAR:
         sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - |
@@ -214,7 +214,7 @@ tasks:
       - kubectl -n nuvolaris apply -f _runtimes.yaml
     vars:
       RUNTIMES:
-        sh: |          
+        sh: |
           if test -e "$OPS_TMP/runtimes.json"
           then echo "$OPS_TMP/runtimes.json"
           else echo "$OPS_ROOT/runtimes.json"
@@ -299,53 +299,53 @@ tasks:
       - task: wait
         vars:
           OBJECT: po/redis-0
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_REDIS"
       - task: wait
         vars:
           OBJECT: po/nuvolaris-mongodb-0
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_MONGODB"
       - task: wait
         vars:
           OBJECT: pod/nuvolaris-postgres-1-0
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_POSTGRES"
       - task: wait-pod
         vars:
           SELECTOR: "-l app=minio"
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_MINIO"
           FILE: _minio
-      - task: wait
-        vars:
-          OBJECT:
-            sh: echo "pod/$(cat _minio)"
-          COND: 
-            sh: echo "$OPERATOR_COMPONENT_MINIO"
+      #- task: wait
+      #  vars:
+      #    OBJECT:
+      #      sh: echo "pod/$(cat _minio)"
+      #    COND:
+      #      sh: echo "$OPERATOR_COMPONENT_MINIO"
       - task: wait-pod
         vars:
           SELECTOR: "-l app=seaweedfs"
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"
           FILE: _seaweedfs
       - task: wait
         vars:
           OBJECT:
             sh: echo "pod/$(cat _seaweedfs)"
-          COND: 
-            sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"            
+          COND:
+            sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"
       - task: wait-pod
         vars:
           SELECTOR: "-l name=nuvolaris-milvus"
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_MILVUS"
           FILE: _milvus
       - task: wait
         vars:
           OBJECT:
             sh: echo "pod/$(cat _milvus)"
-          COND: 
+          COND:
             sh: echo "$OPERATOR_COMPONENT_MILVUS"
 
   create:
@@ -369,7 +369,7 @@ tasks:
     - config SKIP_OPERATOR_LAUNCH=1
     - task: create
     - config -r SKIP_OPERATOR_LAUNCH
-  
+
   deploy:
     silent: true
     desc: deploy in namespace (use namespace admin)
@@ -388,7 +388,7 @@ tasks:
     desc: delete cluster
     cmds:
       - source forcedelete.src
-      - kubectl delete clusterissuers/letsencrypt-issuer 2>/dev/null      
+      - kubectl delete clusterissuers/letsencrypt-issuer 2>/dev/null
       - kubectl -n nuvolaris delete sts/nuvolaris-operator --grace-period=0
       - kubectl -n nuvolaris delete po,sts,job,deploy,svc --all --grace-period=0
       - kubectl -n nuvolaris delete cm,secret,sa,role --all
@@ -407,7 +407,7 @@ tasks:
     desc: "unlock locked deletion (removing a finalizers)"
     cmds:
       - >
-        kubectl -n nuvolaris patch wsk/controller --type=merge 
+        kubectl -n nuvolaris patch wsk/controller --type=merge
         --patch '{"metadata": {"finalizers":[] } }'
 
   operator-update:
@@ -417,7 +417,7 @@ tasks:
       - "kubectl apply -f crds"
       - task: operator
       - kubectl -n nuvolaris rollout restart statefulset nuvolaris-operator
-    preconditions:      
+    preconditions:
       - sh: '[ $ENT_IMAGES_OPERATOR != $(nuv debug operator:version) ]'
         msg: "Current OpenServerless operator it is already updated to newest version. Request ignored."
 
@@ -426,9 +426,9 @@ tasks:
     silent: true
     cmds:
       - ops setup kubernetes prepare
-      - ops setup kubernetes whiskcrd      
-      - |        
+      - ops setup kubernetes whiskcrd
+      - |
         kubectl apply -f _whisk.yaml
       - task: wait
         vars:
-          OBJECT: pod/controller-0    
+          OBJECT: pod/controller-0

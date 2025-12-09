@@ -52,7 +52,7 @@ env:
 tasks:
 
   deploy:
-    silent: false
+    silent: true
     ignore_error: false
     desc: deploy the streamer
     vars:
