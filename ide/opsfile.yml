@@ -141,7 +141,7 @@ tasks:
 
 
   login:
-    silent: false
+    silent: true
     desc: login in you OpenServerless host
     cmds:
       - |
