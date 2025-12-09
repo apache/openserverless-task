@@ -253,7 +253,6 @@ tasks:
         then
             bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY
         else
-<<<<<<< HEAD
             if [ -n "$deploy_packages" ]
             then
                 bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -d $DRY
@@ -265,9 +264,6 @@ tasks:
               $ECHO $OPS util upload ${OPS_UPLOAD_FOLDER:-web}
               echo "URL: $OPSDEV_HOST"
             fi
-=======
-            bun {{.TASKFILE_DIR}}/deploy/index.js "$OPS_PWD" -s "{{._action_}}" $DRY
->>>>>>> 0c6ebab (debug)
         fi
 
   undeploy:
