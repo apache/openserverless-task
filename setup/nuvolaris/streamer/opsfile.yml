@@ -16,7 +16,7 @@
 # under the License.
 version: '3'
 
-vars: 
+vars:
   VAR: ""
   MSG: ""
   VAL: ""
@@ -34,31 +34,31 @@ env:
       else echo ~/.kube/config
       fi
 
-  STREAMER_API_HOSTNAME: 
+  STREAMER_API_HOSTNAME:
       sh: |
-        ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}'       
-  
+        ops util kubeget ingress/apihost .spec.rules[0].host
+
   OW_APIHOST:
     sh: |
-      HOST=$(ops util kubectl -- -n nuvolaris get ingress/apihost -o jsonpath='{.spec.rules[0].host}')
-      if [ $OPERATOR_COMPONENT_INVOKER = true ]; 
+      HOST=$(ops util kubeget ingress/apihost .spec.rules[0].host)
+      if [ $OPERATOR_COMPONENT_INVOKER = true ];
         then echo "$HOST"
         else echo "http://controller:3233"
-      fi 
+      fi
 
   INGRESS_TYPE:
     sh: ops util ingress-type
 
 tasks:
-  
+
   deploy:
     silent: true
     ignore_error: false
-    desc: deploy the streamer 
-    vars: 
-      T: 
+    desc: deploy the streamer
+    vars:
+      T:
         sh: |
-            if kubectl -n nuvolaris get wsk/controller -ojsonpath='{.status.whisk_create.tls}' | rg on >/dev/null
+            if ops util kubeget wsk/controller .status.whisk_create.tls | rg on >/dev/null
             then echo ""
             else echo "#"
             fi
@@ -77,7 +77,7 @@ tasks:
 
   undeploy:
     silent: true
-    desc: undeploy the streamer 
+    desc: undeploy the streamer
     ignore_error: true
     cmds:
     - kubectl -n nuvolaris delete sts/nuvolaris-streamer-api ing/nuvolaris-streamer-api-ingress
@@ -86,16 +86,16 @@ tasks:
 
   update:
     silent: true
-    desc: update the streamer 
+    desc: update the streamer
     cmds:
       - task: deploy
       - kubectl -n nuvolaris rollout restart statefulset nuvolaris-streamer-api
-    preconditions:      
+    preconditions:
       - sh: '[ $IMAGES_STREAMER != $CURRENT_STREAMER_VERSION ]'
         msg: "Current nuvolaris streamer API stateful set it is already updated to newest version. Request ignored."
     env:
       CURRENT_STREAMER_VERSION:
         sh: |
           echo "$(kubectl -n nuvolaris get pod/nuvolaris-streamer-api-0 -ojsonpath='{.spec.containers[0].image}')"
-                      
-  
+
+
