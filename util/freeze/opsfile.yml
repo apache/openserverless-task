@@ -1,0 +1,26 @@
+version: 3
+
+vars:
+  KIND_CLUSTER: nuvolaris-control-plane
+  #KIND_CLUSTER: kind-control-plane
+  KIND_IMAGE:
+    sh: >
+       docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image'
+
+tasks:
+
+  list-images:
+    desc: list images in kind
+    cmds:
+    - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_images.lst
+    - >
+      docker exec -it {{.KIND_CLUSTER}} crictl images 2>/dev/null
+      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause)|docker.io\/kindest\/)/ {print $1 ":" $2  }'
+      | tee -a _images.lst
+
+    #  | awk '!/^registry.k8s.io/ { print $1 ":" $2  }'
+
+  save:
+    desc: save all current images
+    cmds:
+    - echo '{{.KIND_IMAGE}}'
