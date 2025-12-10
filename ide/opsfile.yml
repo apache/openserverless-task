@@ -141,7 +141,7 @@ tasks:
 
 
   login:
-    silent: true
+    silent: false
     desc: login in you OpenServerless host
     cmds:
       - |
@@ -228,7 +228,11 @@ tasks:
         fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH"
+<<<<<<< HEAD
              then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
+=======
+             then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
+>>>>>>> 0c6ebab (debug)
              fi
         fi
 

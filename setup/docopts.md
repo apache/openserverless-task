@@ -30,6 +30,7 @@ Usage:
   setup server <server> [<user>] [--uninstall|--status]
   setup status
   setup uninstall
+  setup devcontainer
 ```
 
 ## Commands
@@ -43,13 +44,14 @@ Usage:
                       the server must be accessible with ssh using the <user> with sudo power, default root
   setup status        show the status of the last installation
   setup uninstall     uninstall the last installation
+  setup devcontainer  manage a devcontainer accessible with ssh
 ```
 
 ## Options
 
 ```
-  --uninstall           execute an uninstall instead of an installation 
-  --status              show the status instead of an installation 
+  --uninstall           execute an uninstall instead of an installation
+  --status              show the status instead of an installation
   --skip-check-ports    skip the check of already used ports
   --skip-preload-images skip the preload images step
 ```

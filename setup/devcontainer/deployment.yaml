@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-devcontainer
+  namespace: nuvolaris
+  labels:
+    app: ssh-devcontainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-devcontainer
+  template:
+    metadata:
+      labels:
+        app: ssh-devcontainer
+    spec:
+      hostname: ssh-devcontainer
+      volumes:
+      - name: workspace
+        hostPath:
+          path: /workspace
+      - name: nginx-config
+        configMap:
+          name: nginx-proxy-config
+      containers:
+      - name: devcontainer
+        image: $IMAGE
+        ports:
+        - containerPort: 2222
+          name: ssh
+          protocol: TCP
+        securityContext:
+          runAsUser: $USERID
+          runAsGroup: $USERID
+        volumeMounts:
+        - name: workspace
+          mountPath: /home/workspace
+        env:
+        - name: DEBIAN_FRONTEND
+          value: noninteractive
+        - name: SSHKEY
+          valueFrom:
+            secretKeyRef:
+              name: ssh-secret
+              key: authorized_keys
+      - name: reverse-proxy
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        command: ["nginx", "-g", "daemon off;"]
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-proxy-config
+  namespace: nuvolaris
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    http {
+        client_max_body_size 1g;
+
+        server {
+            listen 80;
+            server_name miniops.me *.miniops.me;
+
+            location / {
+                proxy_pass http://ingress-nginx-controller.ingress-nginx.svc.cluster.local;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+                proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto http;
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-devcontainer
+  namespace: nuvolaris
+  labels:
+    app: ssh-devcontainer
+spec:
+  type: NodePort
+  selector:
+    app: ssh-devcontainer
+  ports:
+  - port: 2222
+    targetPort: 2222
+    nodePort: 30222
+    protocol: TCP
+    name: ssh
