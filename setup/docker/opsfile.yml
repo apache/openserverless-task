@@ -17,6 +17,7 @@
 version: '3'
 
 vars:
+  CLUSTER: nuvolaris1
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
 
 env:
@@ -24,8 +25,8 @@ env:
     sh: echo "$OPS_TMP/kind"
   WORKSPACE:
     sh: echo "$OPS_HOME/workspace"
-  KUBECONFIG: 
-    sh: |- 
+  KUBECONFIG:
+    sh: |-
         if test -e "$OPS_TMP/kubeconfig"
         then echo "$OPS_TMP/kubeconfig"
         else echo ~/.kube/config
@@ -38,7 +39,7 @@ tasks:
     desc: status of the Apache OpenServerless cluster in Docker
     cmds:
     - |
-      if kind get clusters | rg nuvolaris
+      if kind get clusters | rg {{.CLUSTER}}
       then echo Cluster Apache OpenServerless up and running
       else echo Cluster Apache OpenServerless not found
       fi
@@ -53,7 +54,7 @@ tasks:
       echo "=== Kind Version"
       kind version
       echo "=== Kind Clusters"
-      kind get clusters 
+      kind get clusters
       if test -e $KUBECONFIG
       then  echo "=== Nodes"
             kubectl get nodes
@@ -67,6 +68,7 @@ tasks:
     - >
       kind create cluster
       --kubeconfig="$OPS_TMP/kubeconfig"
+<<<<<<< HEAD
       --wait=1m --name=nuvolaris
       --config=_kind.yaml
     - |
@@ -80,11 +82,16 @@ tasks:
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
  
+=======
+      --wait=1m --name={{.CLUSTER}}
+      --config=_kind.yaml
+
+>>>>>>> 2afc1a6 (offline images)
   ingress:
     silent: true
     cmds:
-    - > 
-      kubectl --kubeconfig="$OPS_TMP/kubeconfig" 
+    - >
+      kubectl --kubeconfig="$OPS_TMP/kubeconfig"
       apply -f ingress-deploy.yaml
 
   check-space:
@@ -101,11 +108,11 @@ tasks:
       - config SKIP_PRELOAD_IMAGES
     cmds:
     - |
-      for image in "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"   
+      for image in "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"
       do
         docker pull "$image" --platform "linux/{{ARCH}}"
-        if ! kind load docker-image "$image" --name nuvolaris 
-        then 
+        if ! kind load docker-image "$image" --name {{.CLUSTER}}
+        then
           echo "*** Cannot preload images. You can disable preload with ops -config SKIP_PRELOAD_IMAGES=1"
           echo "*** Workaround on Docker Desktop: disable 'Use containerd for pulling and storing images' on General"
           echo "*** WARNING! If you skip preload, it can take a lot of time before the system starts. Be patient."
@@ -121,7 +128,7 @@ tasks:
       | rg apache/openserverless-runtime \
       | while read -r image; do
           docker pull "$image" --platform "linux/{{ARCH}}"
-          kind load docker-image "$image" --name nuvolaris
+          kind load docker-image "$image" --name "{{.CLUSTER}}"
           docker rmi "$image"
         done
 
@@ -133,7 +140,7 @@ tasks:
     - echo "Cleaning all docker images and containers"
     - docker ps -qa | while read a ; do docker rm -f "$a" ; done
     - docker images -qa | while read a ; do docker rmi -f "$a" ; done
-    - docker system prune -af 
+    - docker system prune -af
     - docker volume prune -af
     - docker system df
 
@@ -143,16 +150,16 @@ tasks:
     cmds:
     - task: cluster
     - task: ingress
-    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
+    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
     status:
-    - kind get clusters | rg nuvolaris
+    - kind get clusters | rg {{.CLUSTER}}
 
   delete:
     silent: true
     desc: destroy the Apache OpenServerless cluster in Docker
     cmds:
-    - kind delete clusters nuvolaris
-    - rm -f "$OPS_TMP/kubeconfig" "$OPS_TMP/kind.kubeconfig"
+    - kind delete clusters {{.CLUSTER}}
+    - rm -f "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
   kubeconfig:
     desc: export kubeconfig

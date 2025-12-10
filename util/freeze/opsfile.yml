@@ -9,18 +9,90 @@ vars:
 
 tasks:
 
-  list-images:
-    desc: list images in kind
+  docker-save:
+    silent: true
+    desc: save images in docker
     cmds:
-    - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_images.lst
-    - >
-      docker exec -it {{.KIND_CLUSTER}} crictl images 2>/dev/null
-      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause)|docker.io\/kindest\/)/ {print $1 ":" $2  }'
-      | tee -a _images.lst
+    - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_docker.lst
+    - mkdir -p ~/.ops/.images/docker
+    - |
+      cat _docker.lst | while read img
+      do
+        file=~/.ops/.images/docker/{{ARCH}}-$(base64 -e "$img")
+        if test -e "$file"
+        then echo "already saved $img.{{ARCH}} "
+        else echo ">>> Saving: $img"
+             if retry docker save "$img" -o "$file"
+             then echo "OK: save $file"
+             else echo "*** FAIL: save $file"
+             fi
+        fi
+      done
 
-    #  | awk '!/^registry.k8s.io/ { print $1 ":" $2  }'
+  kind-save:
+    silent: false
+    desc: list images in kindes
+    env:
+      CLU: "{{.KIND_CLUSTER}}"
+      ARCH: "{{ARCH}}"
+    cmds:
+    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml > _kind.lst
+    - >
+      docker exec -it "$CLU" crictl images 2>/dev/null
+      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
+      >> _kind.lst
+    - mkdir -p ~/.ops/.images/kind
+    - |
+      cat _kind.lst | while read img
+      do
+        file=~/.ops/.images/kind/$ARCH-"$(base64 -e "$img")"
+        if test -e "$file"
+        then echo "already saved $img"
+        else echo ">>> Saving: $img"
+            if ! retry docker pull "$img" 2>/dev/null
+            then echo "*** FAIL pull $img" ; continue
+            fi
+            if ! retry docker save "$img" -o "$file" 2>/dev/null
+            then echo "*** FAIL save $file" ; continue
+            fi
+            echo "OK: save $file"
+        fi
+      done
 
   save:
-    desc: save all current images
+    desc: images
     cmds:
-    - echo '{{.KIND_IMAGE}}'
+    - task: docker-save
+    - task: kind-save
+
+  list:
+    desc: list images
+    cmds:
+      - |
+        rm -f _docker.lst _kind.lst
+        for dir in docker kind
+        do for file in ~/.ops/.images/$dir/{{ARCH}}-*
+           do if test -e "$file"
+              then
+                b64=$(basename "$file")
+                img=$(base64 -d "${b64#*-}")
+                echo $dir/$img
+                echo img >>_$dir.lst
+              fi
+           done
+        done
+
+  clean:
+    desc: clean images
+    cmds:
+    - rm -f -v  ~/.ops/.images/docker/*
+    - rm -f -v  ~/.ops/.images/kind/*
+
+
+  purge:
+    desc: remove and purge images
+    cmds:
+    - rm -v _docker.lst _kind.lst
+    - task: list
+    - cat _docker.lst _kind.lst
+
