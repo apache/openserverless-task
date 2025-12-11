@@ -64,11 +64,21 @@ tasks:
     cmds:
     - mkdir -p "$DATADIR" "$OPS_HOME/workspace"
     - envsubst -i kind.yaml -o _kind.yaml
-    - > 
-      kind create cluster 
-      --kubeconfig="$OPS_TMP/kubeconfig" 
-      --wait=1m --name=nuvolaris 
+    - >
+      kind create cluster
+      --kubeconfig="$OPS_TMP/kubeconfig"
+      --wait=1m --name=nuvolaris
       --config=_kind.yaml
+    - |
+      docker exec nuvolaris-control-plane mkdir -p /etc/containerd/certs.d/127.0.0.1:32000
+      docker exec nuvolaris-control-plane sh -c 'cat > /etc/containerd/certs.d/127.0.0.1:32000/hosts.toml << EOF
+      server = "http://127.0.0.1:32000"
+
+      [host."http://127.0.0.1:32000"]
+        capabilities = ["pull", "resolve", "push"]
+        skip_verify = true
+      EOF'
+      docker exec nuvolaris-control-plane systemctl restart containerd
  
   ingress:
     silent: true
