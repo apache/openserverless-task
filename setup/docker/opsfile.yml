@@ -17,7 +17,7 @@
 version: '3'
 
 vars:
-  CLUSTER: nuvolaris1
+  CLUSTER: nuvolaris
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
 
 env:
@@ -33,7 +33,6 @@ env:
         fi
 
 tasks:
-
   status:
     silent: true
     desc: status of the Apache OpenServerless cluster in Docker
@@ -148,7 +147,9 @@ tasks:
     silent: true
     desc: create the Apache OpenServerless cluster in Docker
     cmds:
+    - ops util freeze docker-load
     - task: cluster
+    - ops util freeze kind-load
     - task: ingress
     - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
     status:

@@ -1,19 +1,25 @@
 version: 3
 
 vars:
-  KIND_CLUSTER: nuvolaris-control-plane
-  #KIND_CLUSTER: kind-control-plane
+  CLUSTER: nuvolaris
+  KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
   KIND_IMAGE:
     sh: >
        docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image'
 
 tasks:
 
+  docker-list:
+    silent: true
+    desc: save images in docker
+    cmds:
+    - awk '/image:/{print $2}' $OPS_ROOT/setup/docker/kind.yaml | tee _docker.lst
+
   docker-save:
     silent: true
     desc: save images in docker
     cmds:
-    - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_docker.lst
+    - task: docker-list
     - mkdir -p ~/.ops/.images/docker
     - |
       cat _docker.lst | while read img
@@ -22,25 +28,35 @@ tasks:
         if test -e "$file"
         then echo "already saved $img.{{ARCH}} "
         else echo ">>> Saving: $img"
-             if retry docker save "$img" -o "$file"
+             if docker pull "$img"
+             then echo "OK: save $file"
+             else echo "*** FAIL: pull $img"
+             fi
+             if docker save "$img" -o "$file"
              then echo "OK: save $file"
              else echo "*** FAIL: save $file"
              fi
         fi
       done
 
+  kind-list:
+    silent: false
+    env:
+      CLU: "{{.KIND_CLUSTER}}"
+    desc: list images in kindes
+    cmds:
+    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml | tee _kind.lst
+    - >
+      docker exec -it "$CLU" crictl images 2>/dev/null
+      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
+      | tee _kind.lst
+
   kind-save:
     silent: false
     desc: list images in kindes
     env:
       CLU: "{{.KIND_CLUSTER}}"
-      ARCH: "{{ARCH}}"
     cmds:
-    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml > _kind.lst
-    - >
-      docker exec -it "$CLU" crictl images 2>/dev/null
-      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
-      >> _kind.lst
     - mkdir -p ~/.ops/.images/kind
     - |
       cat _kind.lst | while read img
@@ -49,23 +65,24 @@ tasks:
         if test -e "$file"
         then echo "already saved $img"
         else echo ">>> Saving: $img"
-            if ! retry docker pull "$img" 2>/dev/null
+            if !  docker pull "$img" 
             then echo "*** FAIL pull $img" ; continue
             fi
-            if ! retry docker save "$img" -o "$file" 2>/dev/null
+            if ! docker save "$img" -o "$file" 
             then echo "*** FAIL save $file" ; continue
             fi
             echo "OK: save $file"
         fi
       done
 
-  save:
+  save-images:
     desc: images
     cmds:
+    - kind get clusters | grep {{.CLUSTER}} || die "please setup an ops cluster first"
     - task: docker-save
     - task: kind-save
 
-  list:
+  list-images:
     desc: list images
     cmds:
       - |
@@ -77,22 +94,51 @@ tasks:
                 b64=$(basename "$file")
                 img=$(base64 -d "${b64#*-}")
                 echo $dir/$img
-                echo img >>_$dir.lst
+                echo $img >>_$dir.lst
               fi
            done
         done
 
-  clean:
+  clean-images:
     desc: clean images
     cmds:
     - rm -f -v  ~/.ops/.images/docker/*
     - rm -f -v  ~/.ops/.images/kind/*
 
-
-  purge:
+  purge-images:
     desc: remove and purge images
     cmds:
     - rm -v _docker.lst _kind.lst
     - task: list
-    - cat _docker.lst _kind.lst
+    - |
+      cat _docker.lst _kind.lst | while read img
+      do docker rmi -f $img
+      done
 
+  docker-load:
+    silent: true
+    desc: load images
+    cmds:
+      - |
+        for file in ~/.ops/.images/docker/{{ARCH}}-*
+        do             
+          b64=$(basename "$file")
+          img=$(base64 -d "${b64#*-}")
+          echo Docker: loading "$img" 
+          docker load -i "$file"
+          #docker tag $(awk '{print $4}' _image) $img
+          docker tag ${img#*@} ${img%@*}
+        done
+
+  kind-load:
+    silent: true
+    desc: load images
+    cmds:
+      - |
+        for file in ~/.ops/.images/kind/{{ARCH}}-*
+        do                 
+           b64=$(basename "$file")
+           img=$(base64 -d "${b64#*-}")
+           echo Kind: loading $img
+           kind load image-archive "$file" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane
+        done
