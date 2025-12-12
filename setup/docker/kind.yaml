@@ -31,36 +31,36 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true,nuvolaris.io/kube=kind"
-  #extraPortMappings:
-  #- containerPort: 80
-  #  hostPort: 80
-  #  protocol: TCP
-  #- containerPort: 443
-  #  hostPort: 443
-  #  protocol: TCP
-  #- containerPort: 30222
-  #  hostPort: 2222
-  #  protocol: TCP
-  #extraMounts:
-  #- hostPath: "$DATADIR/data"
-  #  containerPath: /data
-  #- hostPath: "$DATADIR/openwhisk/standalone"
-  #  containerPath: /openwhisk/standalone
-  #- hostPath: $DATADIR/openwhisk/invoker
-  #  containerPath: /openwhisk/invoker
-  #- hostPath: "$DATADIR/openwhisk/controller"
-  #  containerPath: /openwhisk/controller
-  #- hostPath: "$DATADIR/couchdb"
-  #  containerPath: /couchdb
-  #- hostPath: "$DATADIR/mongodb"
-  #  containerPath: /mongodb
-  #- hostPath: "$DATADIR/redis"
-  #  containerPath: /redis
-  #- hostPath: "$DATADIR/zookeper/data"
-  #  containerPath: /zookeeper/data
-  #- hostPath: "$DATADIR/zookeeper/log"
-  #  containerPath: /zookeeper/log
-  #- hostPath: "$DATADIR/kafka"
-  #  containerPath: /kafka
-  # - hostPath: "$OPS_HOME/workspace"
-  #  containerPath: /workspace
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+  - containerPort: 30222
+    hostPort: 2222
+    protocol: TCP
+  extraMounts:
+  - hostPath: "$DATADIR/data"
+    containerPath: /data
+  - hostPath: "$DATADIR/openwhisk/standalone"
+    containerPath: /openwhisk/standalone
+  - hostPath: $DATADIR/openwhisk/invoker
+    containerPath: /openwhisk/invoker
+  - hostPath: "$DATADIR/openwhisk/controller"
+    containerPath: /openwhisk/controller
+  - hostPath: "$DATADIR/couchdb"
+    containerPath: /couchdb
+  - hostPath: "$DATADIR/mongodb"
+    containerPath: /mongodb
+  - hostPath: "$DATADIR/redis"
+    containerPath: /redis
+  - hostPath: "$DATADIR/zookeper/data"
+    containerPath: /zookeeper/data
+  - hostPath: "$DATADIR/zookeeper/log"
+    containerPath: /zookeeper/log
+  - hostPath: "$DATADIR/kafka"
+    containerPath: /kafka
+  - hostPath: "$OPS_HOME/workspace"
+    containerPath: /workspace
