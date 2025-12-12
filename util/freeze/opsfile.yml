@@ -3,6 +3,12 @@ version: 3
 vars:
   CLUSTER: nuvolaris
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
+<<<<<<< HEAD
+=======
+  IMAGES:
+     sh: >
+        echo ~/.ops/{{OS}}-{{ARCH}}/images
+>>>>>>> 1e87124 (fixes)
   KIND_IMAGE:
     sh: >
        awk '/image:/{print $2}' $OPS_ROOT/setup/docker/kind.yaml | tee _docker.lst
@@ -31,12 +37,17 @@ tasks:
     silent: true
     desc: save images in docker
     cmds:
+<<<<<<< HEAD
     - task: docker-list
     - mkdir -p ~/.ops/.images/docker
+=======
+    - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_docker.lst
+    - mkdir -p {{.IMAGES}}/docker
+>>>>>>> 1e87124 (fixes)
     - |
       cat _docker.lst | while read img
       do
-        file=~/.ops/.images/docker/{{ARCH}}-$(base64 -e "$img")
+        file={{.IMAGES}}/docker/$(base64 -e "$img")
         if test -e "$file"
         then echo "already saved $img.{{ARCH}} "
         else echo ">>> Saving: $img"
@@ -57,12 +68,25 @@ tasks:
     env:
       CLU: "{{.KIND_CLUSTER}}"
     cmds:
+<<<<<<< HEAD
     - task: kind-list
     - mkdir -p ~/.ops/.images/kind
     - |
       cat _kind.lst | while read img
       do
         file=~/.ops/.images/kind/{{ARCH}}-"$(base64 -e "$img")"
+=======
+    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml > _kind.lst
+    - >
+      docker exec -it "$CLU" crictl images 2>/dev/null
+      | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
+      >> _kind.lst
+    - mkdir -p {{.IMAGES}}/kind
+    - |
+      cat _kind.lst | while read img
+      do
+        file={{.IMAGES}}/"$(base64 -e "$img")"
+>>>>>>> 1e87124 (fixes)
         if test -e "$file"
         then echo "already saved $img"
         else echo ">>> Saving: $img"
@@ -90,11 +114,11 @@ tasks:
       - rm -f _images.lst
       - |
         for dir in docker kind
-        do for file in ~/.ops/.images/$dir/{{ARCH}}-*
+        do for file in {{.IMAGES}}/$dir/*
            do if test -e "$file"
               then
                 b64=$(basename "$file")
-                img=$(base64 -d "${b64#*-}")
+                img=$(base64 -d "${b64}")
                 echo $dir/$img
                 echo $img >>_images.lst
               fi
@@ -106,12 +130,19 @@ tasks:
     silent: true
     desc: clean images
     cmds:
+<<<<<<< HEAD
     - rm -f -v  ~/.ops/.images/docker/*
     - rm -f -v  ~/.ops/.images/kind/*
 
   docker-clean:
     silent: true
     desc: remove images from docker
+=======
+    - rm -f -v  {{.IMAGES}}/docker/* {{.IMAGES}}/kind/*
+
+  purge:
+    desc: remove and purge images
+>>>>>>> 1e87124 (fixes)
     cmds:
     - task: docker-list
     - |
