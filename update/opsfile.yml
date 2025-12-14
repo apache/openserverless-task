@@ -33,7 +33,6 @@ env:
       fi
 
 tasks:
-  hi: echo hi
 
   cli:
     desc: update the cli
