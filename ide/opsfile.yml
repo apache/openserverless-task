@@ -156,6 +156,22 @@ tasks:
         then export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         echo "*** Configuring Access to OpenServerless ***"
+        if test -z "{{._username_}}"
+        then
+            if test -n "$OPS_USER"
+            then
+                export OPSDEV_USERNAME="$OPS_USER"
+            else
+              echo -n "Enter Username: "
+              read OPSDEV_USERNAME
+              export OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
+            fi
+        else
+            export OPSDEV_USERNAME="{{._username_}}"
+            if test -e "$OPS_PWD/.env.{{._username_}}"
+            then source "$OPS_PWD/.env.{{._username_}}"
+            fi
+        fi
         if test -z "{{._apihost_}}"
         then
             if test -z "$OPS_APIHOST"
@@ -167,18 +183,6 @@ tasks:
                 export OPSDEV_APIHOST="$OPS_APIHOST"
             fi
         else export OPSDEV_APIHOST="{{._apihost_}}"
-        fi
-        if test -z "{{._username_}}"
-        then
-            if test -n "$OPS_USER"
-            then
-                export OPSDEV_USERNAME="$OPS_USER"
-            else
-              echo -n "Enter Username: "
-              read OPSDEV_USERNAME
-              export OPSDEV_USERNAME="$(echo $OPSDEV_USERNAME | tr -d '\r')"
-            fi
-        else export OPSDEV_USERNAME="{{._username_}}"
         fi
         echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
         if test -n "$OPS_PASSWORD"
