@@ -67,7 +67,6 @@ tasks:
     - >
       kind create cluster
       --kubeconfig="$OPS_TMP/kubeconfig"
-<<<<<<< HEAD
       --wait=1m --name=nuvolaris
       --config=_kind.yaml
     - |
@@ -80,12 +79,7 @@ tasks:
         skip_verify = true
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
- 
-=======
-      --wait=1m --name={{.CLUSTER}}
-      --config=_kind.yaml
 
->>>>>>> 2afc1a6 (offline images)
   ingress:
     silent: true
     cmds:
