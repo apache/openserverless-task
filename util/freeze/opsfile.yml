@@ -3,12 +3,9 @@ version: 3
 vars:
   CLUSTER: nuvolaris
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
-<<<<<<< HEAD
-=======
   IMAGES:
      sh: >
         echo ~/.ops/{{OS}}-{{ARCH}}/images
->>>>>>> 1e87124 (fixes)
   KIND_IMAGE:
     sh: >
        awk '/image:/{print $2}' $OPS_ROOT/setup/docker/kind.yaml | tee _docker.lst
@@ -22,7 +19,7 @@ tasks:
     - docker inspect  {{.KIND_CLUSTER}} 2>/dev/null | jq -r '.[0].Config.Image'
 
   kind-list:
-    silent: false
+    silent: true
     env:
       CLU: "{{.KIND_CLUSTER}}"
     desc: list images in kindes
@@ -37,13 +34,8 @@ tasks:
     silent: true
     desc: save images in docker
     cmds:
-<<<<<<< HEAD
-    - task: docker-list
-    - mkdir -p ~/.ops/.images/docker
-=======
     - docker inspect  {{.KIND_CLUSTER}} | jq -r '.[0].Config.Image' >_docker.lst
     - mkdir -p {{.IMAGES}}/docker
->>>>>>> 1e87124 (fixes)
     - |
       cat _docker.lst | while read img
       do
@@ -68,14 +60,6 @@ tasks:
     env:
       CLU: "{{.KIND_CLUSTER}}"
     cmds:
-<<<<<<< HEAD
-    - task: kind-list
-    - mkdir -p ~/.ops/.images/kind
-    - |
-      cat _kind.lst | while read img
-      do
-        file=~/.ops/.images/kind/{{ARCH}}-"$(base64 -e "$img")"
-=======
     - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml > _kind.lst
     - >
       docker exec -it "$CLU" crictl images 2>/dev/null
@@ -85,8 +69,7 @@ tasks:
     - |
       cat _kind.lst | while read img
       do
-        file={{.IMAGES}}/"$(base64 -e "$img")"
->>>>>>> 1e87124 (fixes)
+        file={{.IMAGES}}/kind/"$(base64 -e "$img")"
         if test -e "$file"
         then echo "already saved $img"
         else echo ">>> Saving: $img"
@@ -130,32 +113,14 @@ tasks:
     silent: true
     desc: clean images
     cmds:
-<<<<<<< HEAD
-    - rm -f -v  ~/.ops/.images/docker/*
-    - rm -f -v  ~/.ops/.images/kind/*
-
-  docker-clean:
-    silent: true
-    desc: remove images from docker
-=======
     - rm -f -v  {{.IMAGES}}/docker/* {{.IMAGES}}/kind/*
-
-  purge:
-    desc: remove and purge images
->>>>>>> 1e87124 (fixes)
-    cmds:
-    - task: docker-list
-    - |
-      cat _docker.lst | while read img
-      do docker rmi -f $img
-      done
 
   docker-load:
     silent: true
     desc: load disk images in docker
     cmds:
       - |
-        for file in ~/.ops/.images/docker/{{ARCH}}-*
+        for file in {{.IMAGES}}/docker/*
         do
           b64=$(basename "$file")
           img=$(base64 -d "${b64#*-}")
@@ -165,7 +130,7 @@ tasks:
           docker tag ${img#*@} ${img%@*}
         done
     status:
-      - test -z "$(ls ~/.ops/.images/docker/{{ARCH}}-* 2>/dev/null)"
+      - test -z "$(ls {{.IMAGES}}/docker/* 2>/dev/null)"
 
   kind-load:
     silent: true
@@ -173,7 +138,7 @@ tasks:
     cmds:
       - |
         N=0
-        for file in ~/.ops/.images/kind/{{ARCH}}-*
+        for file in {{.IMAGES}}/kind/*
         do
            N=$(($N+1))
            printf "\rKind: loading images: [$(seq 1 $N | awk '{printf "#"}')]"
@@ -183,7 +148,7 @@ tasks:
            kind load image-archive "$file" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane
         done
     status:
-      - test -z "$(ls ~/.ops/.images/kind/{{ARCH}}-* 2>/dev/null)"
+      - test -z "$(ls {{.IMAGES}}/kind/* 2>/dev/null)"
 
   test-clean:
   ignore_errors: true

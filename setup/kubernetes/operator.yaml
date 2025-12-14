@@ -19,8 +19,8 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: nuvolaris-operator
-  namespace: nuvolaris  
-spec:  
+  namespace: nuvolaris
+spec:
   replicas: 1
   selector:
     matchLabels:
@@ -67,18 +67,18 @@ spec:
         - key: "nuvolaris-role"
           operator: "Equal"
           value: core
-          effect: "NoSchedule"     
+          effect: "NoSchedule"
       securityContext:
           runAsUser: 1001
-          fsGroup: 1001       
+          fsGroup: 1001
       volumes:
       - name: deploy
         persistentVolumeClaim:
-          claimName: nuvolaris-operator-deploy-pvc       
+          claimName: nuvolaris-operator-deploy-pvc
       containers:
         - name: nuvolaris-operator
           image: ${IMAGES_OPERATOR}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["./run.sh"]
           args: ["--verbose"]
           securityContext:
@@ -87,4 +87,4 @@ spec:
                 - ALL
           volumeMounts:
           - name: deploy
-            mountPath: "/home/nuvolaris/deploy"              
+            mountPath: "/home/nuvolaris/deploy"
