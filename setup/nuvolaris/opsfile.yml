@@ -23,14 +23,14 @@ vars:
   CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
   RETRY: 100
   TIMEOUT: 10
-  ETC: 
+  ETC:
     sh: if $WSK_INSECURE ; then echo "-i" ; else echo "" ; fi
   CFG: "kubectl -n nuvolaris get wsk/controller"
   SLEEP: "500"
 
 env:
-  KUBECONFIG: 
-    sh: | 
+  KUBECONFIG:
+    sh: |
         if test -e "$OPS_TMP/kubeconfig"
         then echo "$OPS_TMP/kubeconfig"
         else echo ~/.kube/config
@@ -42,7 +42,7 @@ tasks:
     #desc: wait for apihost available
     silent: true
     env:
-      BAR: 
+      BAR:
         sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
     - |
@@ -61,10 +61,10 @@ tasks:
       echo $APIHOST
 
   wait-cm:
-    desc: wait for an annotation in nuvolaris cm/config 
+    desc: wait for an annotation in nuvolaris cm/config
     silent: true
     env:
-      BAR: 
+      BAR:
         sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
@@ -72,13 +72,13 @@ tasks:
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do           
+        do
           ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{{.JSONPATH}}')"
           if [[ -z "$ANNOT_VALUE" ]]
-          then 
+          then
             printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
             sleep 5
-          else  
+          else
             RES=true; break
           fi
         done
@@ -89,7 +89,7 @@ tasks:
     desc: wait for an annotation in nuvolaris cm/config to be set and have a specific value
     silent: true
     env:
-      BAR: 
+      BAR:
         sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
     cmds:
       - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
@@ -101,10 +101,10 @@ tasks:
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do           
+        do
           ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.system_action_status}')"
           if [[ -z "$ANNOT_VALUE" ]]
-          then 
+          then
             printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
             sleep 5
           else
@@ -120,11 +120,11 @@ tasks:
     silent: true
     cmds:
     - |
-      export OPSDEV_APIHOST=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.apihost}')
+      export OPSDEV_APIHOST=$(ops util kubeget cm/config .metadata.annotations.apihost)
       export OPSDEV_USERNAME=nuvolaris
-      export AUTH=$(kubectl --kubeconfig="$KUBECONFIG" -n nuvolaris get wsk/controller -ojsonpath='{.spec.openwhisk.namespaces.nuvolaris}')
+      export AUTH=$(ops util kubeget wsk/controller .spec.openwhisk.namespaces.nuvolaris)
       echo Checking connection...
-      retry -t 100 -m 600 $OPS -wsk {{.ETC}} --apihost "$OPSDEV_APIHOST" --auth "$AUTH" namespace list
+      retry -t 100 -m 600 ops -wsk {{.ETC}} --apihost "$OPSDEV_APIHOST" --auth "$AUTH" namespace list
       export OPS_PASSWORD=$(kubectl -n nuvolaris get wsk/controller -ojsonpath -ojsonpath='{.spec.nuvolaris.password}')
       ops -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
       OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
@@ -167,7 +167,7 @@ tasks:
       MONGODB_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.mongodb_url}')"
       {{.RUN}} wsk {{.ETC}} action update hello/mongodb mongodb.js -p mongodb_url "$MONGODB_URL"
     - "{{.RUN}} wsk {{.ETC}} action invoke hello/mongodb -r | rg 'hello'"
-  
+
   redis:
     silent: true
     desc: redis test
@@ -202,7 +202,7 @@ tasks:
   postgres:
     silent: true
     desc: postgres test
-    cmds:    
+    cmds:
     - "{{.RUN}} wsk {{.ETC}} package update hello"
     - |
       POSTGRES_URL="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.postgres_url}')"
@@ -210,7 +210,7 @@ tasks:
     - "{{.RUN}} wsk {{.ETC}} action invoke hello/postgres -r"
 
   sleep:
-    desc: sleep 
+    desc: sleep
     silent: true
     cmds:
     - "{{.RUN}} wsk action update sleep sleep.js --web=true --timeout 300000"
@@ -262,9 +262,9 @@ tasks:
       FLAGS: '{{or .F "--all"}}'
 
     env:
-      APIHOST: 
+      APIHOST:
         sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
-      HOST: 
+      HOST:
         sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
     cmds:
     #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
