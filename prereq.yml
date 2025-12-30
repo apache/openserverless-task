@@ -287,30 +287,30 @@ tasks:
       ;;
       esac
 
-  kubefwd:
-    desc: download kubefwd
-    vars:
-      VERSION: "1.22.5"
-      SUFFIX:
-        sh: |
-            case "{{.OS}}-{{.ARCH}}" in
-            linux-amd64) echo "_Linux_x86_64" ;;
-            linux-arm64) echo "_Linux_arm64" ;;
-            darwin-amd64) echo "_Darwin_x86_64" ;;
-            darwin-arm64) echo "_Darwin_arm64" ;;
-            windows-*) echo "_Windows_x86_64" ;;
-            *) echo "unknown" ;;
-            esac
-            #https://github.com/txn2/kubefwd/releases/download/1.22.5/kubefwd_Darwin_x86_64.tar.gz
-      URL: "https://github.com/txn2/kubefwd/releases/download/{{.VERSION}}/kubefwd{{.SUFFIX}}{{.ARC}}"
-      FILE: "{{base .URL}}"
-      OUT: kubefwd
-    cmds:
-    - task: download-and-extract
-      vars:
-        URL: "{{.URL}}"
-        FILE: "{{.FILE}}"
-        OUT: kubefwd
+  #kubefwd:
+  #  desc: download kubefwd
+  #  vars:
+  #    VERSION: "1.25.3"
+  #    SUFFIX:
+  #      sh: |
+  #          case "{{.OS}}-{{.ARCH}}" in
+  #          linux-amd64) echo "_Linux_x86_64" ;;
+  #          linux-arm64) echo "_Linux_arm64" ;;
+  #          darwin-amd64) echo "_Darwin_x86_64" ;;
+  #          darwin-arm64) echo "_Darwin_arm64" ;;
+  #          windows-*) echo "_Windows_x86_64" ;;
+  #          *) echo "unknown" ;;
+  #          esac
+  #          #https://github.com/txn2/kubefwd/releases/download/1.22.5/kubefwd_Darwin_x86_64.tar.gz
+  #    URL: "https://github.com/txn2/kubefwd/releases/download/{{.VERSION}}/kubefwd{{.SUFFIX}}{{.ARC}}"
+  #    FILE: "{{base .URL}}"
+  #    OUT: kubefwd
+  #  cmds:
+  #  - task: download-and-extract
+  #    vars:
+  #      URL: "{{.URL}}"
+  #      FILE: "{{.FILE}}"
+  #      OUT: kubefwd
 
   all:
     - task: 7zz
@@ -322,11 +322,11 @@ tasks:
     - task: rg
     - task: uv
     - task: helm
-    - task: kubefwd
     - task: yq
     # do not test zip as it is a special case
     #- task: zip
     # commented out for now
+    #- task: kubefwd
     #- task: hugo
     #- task: k3d
 
