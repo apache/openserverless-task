@@ -3,12 +3,15 @@ version: 3
 vars:
   CLUSTER: nuvolaris
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
+  BASE:
+    sh: echo ~/.ops
   IMAGES:
      sh: >
-        echo ~/.ops/{{OS}}-{{ARCH}}/images
+        echo {{.BASE}}/{{OS}}-{{ARCH}}/images
   KIND_IMAGE:
     sh: >
        awk '/image:/{print $2}' $OPS_ROOT/setup/docker/kind.yaml | tee _docker.lst
+
 
 tasks:
 
