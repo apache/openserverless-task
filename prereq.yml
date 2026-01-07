@@ -290,7 +290,7 @@ tasks:
   kubefwd:
     desc: download kubefwd
     vars:
-      VERSION: "1.22.5"
+      VERSION: "1.25.8"
       SUFFIX:
         sh: |
             case "{{.OS}}-{{.ARCH}}" in
