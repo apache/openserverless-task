@@ -46,7 +46,7 @@ tasks:
         if test -e "$file"
         then echo "already saved $img.{{ARCH}} "
         else echo ">>> Saving: $img"
-             if docker pull "$img"
+             if docker pull --platform linux/{{ARCH}} "$img"
              then echo "OK: save $file"
              else echo "*** FAIL: pull $img"
              fi
@@ -76,7 +76,7 @@ tasks:
         if test -e "$file"
         then echo "already saved $img"
         else echo ">>> Saving: $img"
-            if !  docker pull "$img"
+            if !  docker pull --platform linux/{{ARCH}} "$img"
             then echo "*** FAIL pull $img" ; continue
             fi
             if ! docker save "$img" -o "$file"
