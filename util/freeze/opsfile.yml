@@ -12,7 +12,6 @@ vars:
     sh: >
        awk '/image:/{print $2}' $OPS_ROOT/setup/docker/kind.yaml | tee _docker.lst
 
-
 tasks:
 
   docker-list:
@@ -148,7 +147,8 @@ tasks:
            #echo $file
            b64="$(basename "$file")"
            img="$(base64 -d "${b64#*-}")"
-           kind load image-archive "$file" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane
+           docker load -i "$file" --platform "linux/{{ARCH}}"
+           kind load docker-image "$img" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane
         done
     status:
       - test -z "$(ls {{.IMAGES}}/kind/* 2>/dev/null)"

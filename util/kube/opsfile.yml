@@ -32,8 +32,14 @@ env:
 
 tasks:
 
+  waitinfo:
+    silent: true
+    desc: get info on the cluster retrying until it is available
+    cmds:
+    - retry -t 100 -m 10 kubectl cluster-info
+
   waitfor:
-    desc: wait for an object matching a condition 
+    desc: wait for an object matching a condition
     silent: true
     cmds:
       - test -n "{{.OBJ}}" || die "use OBJ=<pod/pod-name>"
@@ -42,14 +48,14 @@ tasks:
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do           
+        do
           if kubectl -n nuvolaris wait --for="{{.FOR}}" "{{.OBJ}}" --timeout="{{.TIMEOUT}}s"
-          then RES=true; break            
+          then RES=true; break
           else echo "$((N++)) Waiting {{.OBJ}} for {{.FOR}}"
                sleep "{{.SLEEP}}s"
           fi
         done
-        $RES 
+        $RES
 
   wait:
     desc: wait for a value matching the given jsonpath on the specific resources under the namespace nuvolaris
@@ -61,17 +67,17 @@ tasks:
         N=0
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
-        do           
+        do
           MATCHING_VALUE="$(kubectl -n nuvolaris get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
           if [[ -z "$MATCHING_VALUE" ]]
-          then 
+          then
             echo "$((N++)) Waiting for {{.JSONPATH}} to be non empty value"
             sleep 5
-          else  
+          else
             RES=true; break
           fi
         done
-        $RES 
+        $RES
 
   export:
     desc: exporting NAMEd kubeconfig to specified FILE
@@ -80,7 +86,7 @@ tasks:
     - test -e "$OPS_TMP/{{.NAME}}.kubeconfig" || die "no {{.NAME}} kubeconfig"
     - |
       FILE="$(realpath {{.FILE}})"
-      cp "$OPS_TMP/kubeconfig" "$FILE" 
+      cp "$OPS_TMP/kubeconfig" "$FILE"
 
   import:
     desc: importing FILE  to the NAMEd kubeconfig
