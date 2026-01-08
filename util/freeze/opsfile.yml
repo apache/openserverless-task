@@ -122,7 +122,7 @@ tasks:
     desc: load disk images in docker
     cmds:
       - |
-        for file in {{.IMAGES}}/docker/*
+        for file in {{.IMAGES}}/docker/* {{.IMAGES}}/kind/*
         do
           b64=$(basename "$file")
           img=$(base64 -d "${b64#*-}")
@@ -147,8 +147,7 @@ tasks:
            #echo $file
            b64="$(basename "$file")"
            img="$(base64 -d "${b64#*-}")"
-           docker load -i "$file" --platform "linux/{{ARCH}}"
-           kind load docker-image "$img" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane
+           kind load docker-image "$img" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane 2>/dev/null
         done
     status:
       - test -z "$(ls {{.IMAGES}}/kind/* 2>/dev/null)"

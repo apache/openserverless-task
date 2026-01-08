@@ -79,6 +79,7 @@ tasks:
         skip_verify = true
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
+      retry kubectl --kubeconfig="$OPS_TMP/kubeconfig" cluster-info
 
   ingress:
     silent: true
@@ -109,13 +110,19 @@ tasks:
     silent: true
     desc: create the Apache OpenServerless cluster in Docker
     cmds:
-    - ops util freeze docker-load
-    - task: cluster
-    - ops util freeze kind-load
-    - task: ingress
-    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
-    status:
-    - kind get clusters | rg {{.CLUSTER}}
+      - |
+        if  kind get clusters | rg {{.CLUSTER}}
+        then
+           kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
+        else
+           ops util freeze docker-load
+           ops setup docker cluster
+           ops util freeze kind-load
+           kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
+           ops setup docker ingress
+        fi
+      - ops util kube waitinfo
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
   delete:
     silent: true
