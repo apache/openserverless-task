@@ -66,8 +66,7 @@ tasks:
     - envsubst -i kind.yaml -o _kind.yaml
     - >
       kind create cluster
-      --kubeconfig="$OPS_TMP/kubeconfig"
-      --wait=1m --name=nuvolaris
+      --wait=2m --name=nuvolaris
       --config=_kind.yaml
     - |
       docker exec nuvolaris-control-plane mkdir -p /etc/containerd/certs.d/127.0.0.1:32000
@@ -79,7 +78,10 @@ tasks:
         skip_verify = true
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
-      retry kubectl --kubeconfig="$OPS_TMP/kubeconfig" cluster-info
+      kind export kubeconfig -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
+      echo "waiting for kind ready..."
+      retry test -e $OPS_TMP/kubeconfig
+      retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
 
   ingress:
     silent: true
@@ -118,10 +120,8 @@ tasks:
            ops util freeze docker-load
            ops setup docker cluster
            ops util freeze kind-load
-           kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
            ops setup docker ingress
         fi
-      - ops util kube waitinfo
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
   delete:

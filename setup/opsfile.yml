@@ -144,7 +144,6 @@ tasks:
           task check-ports PORTS="{{ .PORTS }}"
         fi
         {{.RUN}} ops setup docker create
-        {{.RUN}} ops util kube waitinfo
         {{.RUN}} ops setup kubernetes create
         {{.RUN}} ops setup nuvolaris login
         config STATUS_LAST=devcluster
