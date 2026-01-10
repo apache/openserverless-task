@@ -57,7 +57,7 @@ tasks:
       done
 
   kind-save:
-    silent: false
+    silent: true
     desc: list images in kindes
     env:
       CLU: "{{.KIND_CLUSTER}}"
@@ -74,7 +74,7 @@ tasks:
         file={{.IMAGES}}/kind/"$(base64 -e "$img")"
         if test -e "$file"
         then echo "already saved $img"
-        else echo ">>> Saving: $img"
+        else echo ">>> Saving: {{ARCH}} $img"
             if !  docker pull --platform linux/{{ARCH}} "$img"
             then echo "*** FAIL pull $img" ; continue
             fi
@@ -122,7 +122,7 @@ tasks:
     desc: load disk images in docker
     cmds:
       - |
-        for file in {{.IMAGES}}/docker/* {{.IMAGES}}/kind/*
+        for file in {{.IMAGES}}/docker/*
         do
           b64=$(basename "$file")
           img=$(base64 -d "${b64#*-}")
@@ -139,16 +139,15 @@ tasks:
     desc: load disk images in kind
     cmds:
       - |
-        N=0
         for file in {{.IMAGES}}/kind/*
         do
-           N=$(($N+1))
-           printf "\rKind: loading images: [$(seq 1 $N | awk '{printf "#"}')]"
-           #echo $file
            b64="$(basename "$file")"
            img="$(base64 -d "${b64#*-}")"
-           kind load docker-image "$img" -n {{.CLUSTER}} --nodes {{.CLUSTER}}-control-plane 2>/dev/null
+           echo "Kind: loadging $img"
+           docker exec -i {{.CLUSTER}}-control-plane ctr --namespace=k8s.io images import --snapshotter=overlayfs - < "$file"
         done
+        echo 'Images loaded:'
+      - task: kind-list
     status:
       - test -z "$(ls {{.IMAGES}}/kind/* 2>/dev/null)"
 
