@@ -143,7 +143,7 @@ tasks:
         do
            b64="$(basename "$file")"
            img="$(base64 -d "${b64#*-}")"
-           echo "Kind: loadging $img"
+           echo "Kind: loading $img"
            docker exec -i {{.CLUSTER}}-control-plane ctr --namespace=k8s.io images import --snapshotter=overlayfs - < "$file"
         done
         echo 'Images loaded:'
