@@ -80,14 +80,14 @@ tasks:
       docker exec nuvolaris-control-plane systemctl restart containerd
       kind export kubeconfig -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
       echo "waiting for kind ready..."
-      retry test -e $OPS_TMP/kubeconfig
+      retry -t 100 -m 600 test -e $OPS_TMP/kubeconfig
       retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
 
   ingress:
     silent: true
     cmds:
     - >
-      kubectl --kubeconfig="$OPS_TMP/kubeconfig"
+      retry kubectl --kubeconfig="$OPS_TMP/kubeconfig"
       apply -f ingress-deploy.yaml
 
   check-space:
@@ -114,8 +114,7 @@ tasks:
     cmds:
       - |
         if  kind get clusters | rg {{.CLUSTER}}
-        then
-           kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
+        then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
         else
            ops util freeze docker-load
            ops setup docker cluster
