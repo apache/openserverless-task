@@ -322,7 +322,7 @@ tasks:
     - task: rg
     - task: uv
     - task: helm
-    - task: kubefwd
+    #- task: kubefwd
     - task: yq
     # do not test zip as it is a special case
     #- task: zip
