@@ -66,8 +66,7 @@ tasks:
     - envsubst -i kind.yaml -o _kind.yaml
     - >
       kind create cluster
-      --kubeconfig="$OPS_TMP/kubeconfig"
-      --wait=1m --name=nuvolaris
+      --wait=2m --name=nuvolaris
       --config=_kind.yaml
     - |
       docker exec nuvolaris-control-plane mkdir -p /etc/containerd/certs.d/127.0.0.1:32000
@@ -79,12 +78,16 @@ tasks:
         skip_verify = true
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
+      kind export kubeconfig -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
+      echo "waiting for kind ready..."
+      retry -t 100 -m 600 test -e $OPS_TMP/kubeconfig
+      retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
 
   ingress:
     silent: true
     cmds:
     - >
-      kubectl --kubeconfig="$OPS_TMP/kubeconfig"
+      retry kubectl --kubeconfig="$OPS_TMP/kubeconfig"
       apply -f ingress-deploy.yaml
 
   check-space:
@@ -92,38 +95,6 @@ tasks:
     desc: check if the user has the minimum required disk space
     cmds:
       - uv run space.py
-
-  preload:
-    silent: true
-    desc: preload the Apache OpenServerless images in docker to speed up the cluster creation
-    ignore_errors: true
-    status:
-      - config SKIP_PRELOAD_IMAGES
-    cmds:
-    - |
-      for image in "$IMAGES_STREAMER" "$IMAGES_OPERATOR"  "$IMAGES_CONTROLLER"
-      do
-        docker pull "$image" --platform "linux/{{ARCH}}"
-        if ! kind load docker-image "$image" --name {{.CLUSTER}}
-        then
-          echo "*** Cannot preload images. You can disable preload with ops -config SKIP_PRELOAD_IMAGES=1"
-          echo "*** Workaround on Docker Desktop: disable 'Use containerd for pulling and storing images' on General"
-          echo "*** WARNING! If you skip preload, it can take a lot of time before the system starts. Be patient."
-          exit 1
-        fi
-        docker rmi "$image"
-      done
-    - |
-      jq -r '.runtimes[][]
-      | select(.default == true)
-      | .image
-      | "\(.prefix)/\(.name):\(.tag)"' <$OPS_ROOT/runtimes.json \
-      | rg apache/openserverless-runtime \
-      | while read -r image; do
-          docker pull "$image" --platform "linux/{{ARCH}}"
-          kind load docker-image "$image" --name "{{.CLUSTER}}"
-          docker rmi "$image"
-        done
 
   clean-all:
     silent: true
@@ -141,13 +112,16 @@ tasks:
     silent: true
     desc: create the Apache OpenServerless cluster in Docker
     cmds:
-    - ops util freeze docker-load
-    - task: cluster
-    - ops util freeze kind-load
-    - task: ingress
-    - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
-    status:
-    - kind get clusters | rg {{.CLUSTER}}
+      - |
+        if  kind get clusters | rg {{.CLUSTER}}
+        then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
+        else
+           ops util freeze docker-load
+           ops setup docker cluster
+           ops util freeze kind-load
+           ops setup docker ingress
+        fi
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
   delete:
     silent: true
