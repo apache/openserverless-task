@@ -20,13 +20,9 @@ DIR="${1:?directory}"
 ZIP="${2:?zip file}"
 cd "$DIR"
 if ! test -d virtualenv
-  then virtualenv virtualenv
+then uv venv virtualenv --python=/usr/bin/python3
 fi
-source virtualenv/bin/activate
-pip install --upgrade pip
-pip install -r  requirements.txt
-virtualenv/bin/python -m pip uninstall -y -q setuptools wheel pip
-touch virtualenv/bin/activate
+uv pip install --python= virtualenv/bin/python -r requirements.txt
 if test -f "$ZIP"
   then rm "$ZIP"
 fi

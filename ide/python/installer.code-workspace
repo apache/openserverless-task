@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../python-starter"
+		}
+	],
+	"settings": {
+		"workbench.colorCustomizations": {
+			"activityBar.background": "#5A0F2E",
+			"titleBar.activeBackground": "#7E1541",
+			"titleBar.activeForeground": "#FEFBFD"
+		}
+	}
+}
