@@ -22,7 +22,7 @@ cd "$DIR"
 if ! test -d virtualenv
 then uv venv virtualenv --python=/usr/bin/python3
 fi
-uv pip install --python= virtualenv/bin/python -r requirements.txt
+uv pip install --python=virtualenv/bin/python -r requirements.txt
 if test -f "$ZIP"
   then rm "$ZIP"
 fi
