@@ -24,12 +24,12 @@ OpenServerless Ide Development Utilities.
 
 ```text
 Usage:
-    ide login [<username>] [<apihost>]
+    ide login [<username>] [<apihost>] [--pin]
     ide devel [--fast] [--dry-run]
     ide deploy [<action>|--packages|--web] [--dry-run]
     ide undeploy [<action>] [--dry-run]
     ide clean
-    ide setup 
+    ide setup
     ide serve
     ide poll
     ide shell
@@ -60,8 +60,9 @@ Usage:
 ## Options
 
 ```
---dry-run       Simulates the execution without making any actual changes 
+--dry-run       Simulates the execution without making any actual changes
 --packages      Only deploy packages, skip web upload
 --web           Only deploy web folder, skip packages
 --fast          Skip the initial deployment step and go in incremental update mode
+--pin           Pin the current auth in the .env to check you are not deploying on the wrong user
 ```
