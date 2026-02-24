@@ -19,6 +19,7 @@ import {glob} from 'glob';
 import {buildAction, buildZip, deployAction, deployPackage, deployProject} from './deploy.js';
 import {getOpenServerlessConfig} from './client.js';
 import {config} from "dotenv";
+import {syncDeployInfo} from "./syncDeployInfo";
 
 /**
  * This function will prepare and deploy the functions in `packages` directory.
@@ -52,21 +53,19 @@ export async function scan() {
     // load user defined requirements or use `defaultReqsGlobs`
     const packageGlobs = await getOpenServerlessConfig("requirements", defaultReqsGlobs);
     // requirements
-    const reqs = [];
+    const reqsSet = new Set();
 
     // Check for additional packages from each package
-    // and add them to the requirements array
+    // and add them to the requirements set
     for (const pkgGlob of packageGlobs) {
         const items = await glob(pkgGlob);
         for (const item of items) {
-            if (!reqs.includes(item)) {
-                reqs.push(item);
-            }
+            reqsSet.add(item);
         }
     }
 
     // let's package the functions that have requirements
-    for (const req of reqs) {
+    for (const req of reqsSet) {
         console.log(">> Requirements:", req);
         const sp = req.split("/");
         const act = await buildZip(sp[1], sp[2]);
@@ -83,18 +82,16 @@ export async function scan() {
     ];
     // load user defined main functions or use `defaultMainsGlobs`
     const mainsGlobs = await getOpenServerlessConfig("mains", defaultMainsGlobs);
-    const mains = [];
+    const mainsSet = new Set();
 
     for (const mainGlob of mainsGlobs) {
         const items = await glob(mainGlob);
         for (const item of items) {
-            if (!mains.includes(item)) {
-                mains.push(item);
-            }
+            mainsSet.add(item);
         }
     }
 
-    for (const main of mains) {
+    for (const main of mainsSet) {
         console.log(">> Main:", main);
         const sp = main.split("/");
         const act = await buildAction(sp[1], sp[2]);
@@ -110,18 +107,16 @@ export async function scan() {
         "packages/*/*.go"
     ];
     const singlesGlobs = await getOpenServerlessConfig("singles", defaultSinglesGlobs);
-    const singles = [];
+    const singlesSet = new Set();
 
     for (const singleGlob of singlesGlobs) {
         const items = await glob(singleGlob);
         for (const item of items) {
-            if (!singles.includes(item)) {
-                singles.push(item);
-            }
+            singlesSet.add(item);
         }
     }
 
-    for (const single of singles) {
+    for (const single of singlesSet) {
         console.log(">> Action:", single);
         const sp = single.split("/");
         deployments.add(single);
@@ -146,25 +141,30 @@ export async function scan() {
         "packages/*/*.yaml",
     ];
     const manifestsGlobs = await getOpenServerlessConfig("manifests", defaultProjectGlobs);
-    const manifests = [];
+    const manifestsSet = new Set();
 
     for (const manifestGlobs of manifestsGlobs) {
         const items = await glob(manifestGlobs);
         for (const item of items) {
-            if (!manifests.includes(item)) {
-                manifests.push(item);
-            }
+            manifestsSet.add(item);
         }
-        manifests.sort((a, b) => a.localeCompare(b));
     }
-    if (manifests.length >0 ) {
-        if (Bun.file('packeges/.env')) {
+    const manifests = Array.from(manifestsSet).sort((a, b) => a.localeCompare(b));
+    if (manifests.length > 0) {
+        if (await Bun.file('packages/.env').exists()) {
             console.log("Found packages .env file. Reading it");
-            config({ path: "./package/.env" });
+            config({ path: "./packages/.env" });
         }
         for (const manifest of manifests) {
             console.log(">>> Manifest:", manifest);
             await deployProject(manifest);
         }
+    }
+
+    try {
+        // Save deployment information with the new structure
+        syncDeployInfo(packages, deployments);
+    } catch (error) {
+        console.error("Error saving deployment information:", error);
     }
 }

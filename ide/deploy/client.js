@@ -18,11 +18,26 @@
 import {readFile} from 'fs/promises';
 import {resolve} from 'path';
 import process from 'process';
-import {createInterface} from 'readline';
-import {globalWatcher} from './watch';
-import {expandEnv} from './env_utils';
+import {globalWatcher} from './watch.js';
+import {expandEnv} from './env_utils.js';
 const { parse } = await import('shell-quote');
 export let globalProc = undefined;
+
+async function signalHandler() {
+    if (globalProc) {
+        console.log(`🔥Killing process pid ${globalProc.pid}`);
+        globalProc.kill();
+    }
+    if (globalWatcher) {
+        console.log("☠️ Stopping watcher");
+        await globalWatcher.close();
+    }
+    process.exit(0);
+}
+
+// Register signal handlers once at module level
+process.on('SIGINT', signalHandler);
+process.on('SIGTERM', signalHandler);
 
 /**
  * Read a key from OpenServerless configuration added to a `package.json` file in the
@@ -44,20 +59,7 @@ export async function getOpenServerlessConfig(key, defaultValue) {
 }
 
 /**
- * This function creates a line-by-line interface over the provided input stream
- * and logs each line to the console as it is received.
- * @param {ReadableStream} inp - The input stream to read lines from.
- * @returns {void}
- */
-function readlines(inp) {
-    const rl = createInterface({input: inp, terminal: false});
-    rl.on('line', (line) => {
-        console.log(line);
-    });
-}
-
-/**
- * laungh a process with the command taken from OpenServerless Config
+ * launch a process with the command taken from OpenServerless Config
  * (see `getOpenServerlessConfig`)
  * @param key
  * @param defaultValue
@@ -65,7 +67,7 @@ function readlines(inp) {
 export async function launch(key, defaultValue) {
     const cmd = await getOpenServerlessConfig(key, defaultValue);
     const cmdArgs = parse(cmd).filter(arg => typeof arg === "string");
-    const proc = Bun.spawn(cmdArgs, {
+    Bun.spawn(cmdArgs, {
         shell: true,
         env: process.env,
         cwd: process.env.OPS_PWD,
@@ -78,7 +80,7 @@ export async function launch(key, defaultValue) {
  * through `getOpenServerlessConfig` mechanism
  */
 export async function serve() {
-    await launch('devel', 'ops ide serve');
+    launch('devel', 'ops ide serve');    
 }
 
 /**
@@ -86,17 +88,7 @@ export async function serve() {
  * through `getOpenServerlessConfig` mechanism
  */
 export async function logs() {
-    await launch('logs', 'ops activation poll');
-}
-
-async function signalHandler() {
-    console.log(`🔥Killing process pid ${globalProc.pid}`);
-    if (globalWatcher) {
-        console.log("☠️ Stopping watcher");
-        await globalWatcher.close();
-    }
-    globalProc.kill();
-    process.exit(0);
+    launch('logs', 'ops activation poll');
 }
 
 /**
@@ -121,10 +113,6 @@ export async function build() {
     });
 
     console.log(`✈️ Deploy Child process: ${deploy} has PID: ${globalProc.pid}`);
-
-    // Register signal handlers
-    process.on('SIGINT', signalHandler);
-    process.on('SIGTERM', signalHandler);
 
     // Await its completion
     try {

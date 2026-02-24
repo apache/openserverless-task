@@ -1,4 +1,3 @@
-#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,19 +14,28 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+#
+# =========================
+# Worker OCI (rootlesskit)
+# =========================
+[worker.oci]
+  enabled = true
+  rootless = true
+  no-process-sandbox = true
+  snapshotter = "overlayfs"   # usa overlayfs se il kernel lo consente
 
-DIR="${1:?directory}"
-ZIP="${2:?zip file}"
-cd "$DIR"
-if ! test -d virtualenv
-then uv venv virtualenv --python=/usr/bin/python3
-fi
-uv pip install --python=virtualenv/bin/python -r requirements.txt
-if test -f "$ZIP"
-  then rm "$ZIP"
-fi
-7zz a "$ZIP" -tzip virtualenv >/dev/null
-ls -l $ZIP
-date >virtualenv/date
+[worker.containerd]
+  enabled = false
 
+# =========================
+# Registry HTTP insicuro
+# =========================
+[registry."nuvolaris-registry-svc:5000"]
+  #insecure = true
+  http = true
 
+# =========================
+# Logging
+# =========================
+[log]
+  level = "trace"

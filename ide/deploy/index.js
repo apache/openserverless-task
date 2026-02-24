@@ -22,6 +22,7 @@ import {program} from 'commander';
 import {scan} from './scan.js';
 import {watchAndDeploy, globalWatcher} from './watch.js';
 import {setDryRun, deploy} from './deploy.js';
+import {undeploy, setDryRun as setUndeployDryRun} from './undeploy.js';
 import {build} from './client.js';
 
 
@@ -34,8 +35,11 @@ async function signalHandler() {
         await globalWatcher.close();
     }
 
-    unlinkSync(expanduser('~/.ops/tmp/deploy.pid'));
-    process.kill(process.getpgrp(), 'SIGKILL');
+    const pidPath = expanduser('~/.ops/tmp/deploy.pid');
+    if (existsSync(pidPath)) {
+        unlinkSync(pidPath);
+    }
+    process.kill(process.pid, 'SIGTERM');
     process.exit(0); // should not be reached but just in case...
 }
 
@@ -44,7 +48,7 @@ function checkPort() {
     server.listen(8080, '127.0.0.1');
     server.on('error', () => {
         console.log('deployment mode already active (or something listening in 127.0.0.1:8080)');
-        server.close();
+        server.close();        
     });
     server.on('listening', () => server.close());
 }
@@ -59,7 +63,6 @@ async function main() {
 
 
     process.on('SIGTERM', signalHandler);
-    process.on('SIGKILL', signalHandler);
     const pidfile = expanduser('~/.ops/tmp/deploy.pid');
     console.log('PID', pid);
 
@@ -74,15 +77,52 @@ async function main() {
         .option('-d, --deploy', 'Deploy')
         .option('-w, --watch', 'Watch for changes')
         .option('-s, --single <string>', 'Deploy a single action, either a single file or a directory.', '')
+        .option('-u, --undeploy', 'Undeploy actions and packages from the current project')
         .parse(process.argv);
 
     const options = program.opts();
     const directory = program.args[0];
 
     setDryRun(options.dryRun);
+    setUndeployDryRun(options.dryRun);
+
+    if (!existsSync(directory)) {
+        console.error(`❌ Error: Directory ${directory} does not exist`);
+        process.exit(1);
+    }
     process.chdir(directory);
 
-    if (options.watch) {
+    if (options.undeploy) {
+        // Undeploy actions and packages from the current project
+        let success;
+
+        if (options.single !== '') {
+            // If a single action is specified, undeploy just that action
+            let action = options.single;
+            if (!action.startsWith('packages/')) {
+                action = `packages/${action}`;
+            }
+
+            // Extract the package and action name
+            const parts = action.split('/');
+            if (parts.length >= 3) {
+                const pkg = parts[1];
+                const actionName = parts[2].split('.')[0]; // Remove file extension if present
+                success = undeploy(`${pkg}/${actionName}`);
+            } else {
+                // If the format is already package/action
+                success = undeploy(action);
+            }
+        } else {
+            // Otherwise, undeploy all actions and packages from the current project
+            success = undeploy();
+        }
+
+        if (!success) {
+            process.exit(1);
+        }
+        process.exit(0);
+    } else if (options.watch) {
         checkPort();
         if (!options.fast) {
             await scan();
@@ -92,7 +132,7 @@ async function main() {
 
     } else if (options.deploy) {
         await scan();
-        await build()
+        await build();
         process.exit(0);
     } else if (options.single !== '') {
         let action = options.single;
@@ -115,5 +155,3 @@ main().catch(err => {
     console.error(err);
     process.exit(1);
 });
-
-setInterval(() => {}, 1000);

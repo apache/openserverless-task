@@ -24,6 +24,7 @@ OpenServerless Utilities
 
 ```text
 Usage:
+  util apihost
   util system
   util update-cli
   util check-operator-version <version>
@@ -33,6 +34,7 @@ Usage:
   util no-user-secrets <username>
   util kubectl <args>...
   util kubeconfig
+  util kubeget <object> <jsonpath>
   util config <configjson> [--override] [--showhelp]
   util clean
   util upload [<folder>] [--batchsize=<batchsize>] [--verbose] [--clean]
@@ -42,21 +44,22 @@ Usage:
   util ingress-type
   util edit [<plugin>]
   util link-plugin <plugin>
-  util docker-proxy [<port>] [<host>] [--remove]
 ```
 
 ## Commands
 
 ```
+-  apihost                 current apihost
 -  system                  system info (<os>-<arch> in Go format)
 -  update-cli              update the cli downloading the binary
 -  check-operator-version  check if you need to update the operator
--  secrets                 generate system secrets 
+-  secrets                 generate system secrets
 -  nosecrets               remove system secrets
 -  user-secrets            generate user secrets for the given user
 -  no-user-secrets         remove user secrets for the given user
 -  kubectl                 execute kubectl on current kubeconfig
 -  kubeconfig              export OVERWRITING current kubeconfig to ~/.kube/config
+-  kubeget                 extract info from an object with a jsonpath
 -  config                  update configuration file interactively
 -  clean                   clean up the web bucket
 -  upload                  uploads a folder to the web bucket in OpenServerless.
@@ -66,7 +69,6 @@ Usage:
 -  ingress-type            return the ingress type
 -  edit                    edit (with vscode) the current tasks or a plugin
 -  link-plugin             link the <plugin> in current directory to the global list
--  docker-proxy            launch (or remove) in docker a proxy listening in public <port> (default 8080) to the <host> (default devel.miniops.me)
 ```
 
 ## Options

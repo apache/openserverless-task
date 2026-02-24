@@ -24,13 +24,14 @@ Configure OpenServerless
 
 ```text
 Usage:
-  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry]
+  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
-  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongodbvol=<mongodb>] [--etcdvol=<etcd>] [--mvvol=<milvus>] [--mvzookvol=<milvuszook>] [--pulsarjournalvol=<pulsarjournal>] [--pulsarledgelvol=<pulsarledge>]  
+  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongodbvol=<mongodb>] [--etcdvol=<etcd>] [--mvvol=<milvus>] [--mvzookvol=<milvuszook>] [--pulsarjournalvol=<pulsarjournal>] [--pulsarledgelvol=<pulsarledge>] [--seaweedfsvol=<seaweedfsvol>]  
   config controller [--javaopts=<javaopts>] [--loglevel=<loglevel>] [--replicas=<replicas>]
+  config ingress [--class=<auto|nginx|traefik|public>]
   config invoker [--javaopts=<javaopts>] [--poolmemory=<poolmemory>] [--timeoutsrun=<timeoutsrun>] [--timeoutslogs=<timeoutslogs>] [--loglevel=<loglevel>] [--replicas=<replicas>]
   config limits [--time=<time>] [--memory=<memory>] [--sequencelength=<sequencelength>] [--perminute=<perminute>] [--concurrent=<concurrent>] [--triggerperminute=<triggerperminute>] [--activation_max_payload=<activation_max_payload>] [--blackbox_fraction=<blackbox_fraction>]
   config storage [--class=<storage_class>] [--provisioner=<storage_provisioner>]
@@ -45,7 +46,8 @@ Usage:
   config azcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]
   config aks [--project=<project>] [--name=<name>] [--region=<region>] [--count=<count>]  [--vm=<vm>] [--disk=<disk>] [--key=<key>]
   config externalregistry [--regurl=<regurl>] [--reguser=<reguser>] [--regpassword=<regpassword>]
-  config registry [--disk=<disk>] [--ingress] 
+  config registry [--disk=<disk>] [--ingress]
+  config seaweedfs [--s3] [--console]
   config (status|export|reset)
   config use [<n>] [--delete] [--rename=<rename>]
   config minimal
@@ -63,6 +65,7 @@ Usage:
   config mail             configure Alert Manager over a gmail account
   config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, minio storage, alerting, milvus)
   config controller       configure Openwhisk enterprise controller java options
+  config ingress          configure OpenServerless ingress class
   config invoker          configure Openwhisk enterprise invoker options
   config limits           configure Openwhisk actions limits
   config storage          allows to customize storage persistence class and provider
@@ -120,4 +123,6 @@ Usage:
   --quota               select quota checker module
   --milvus              select MILVUS vector database
   --registry            activate the support for a private image registry for custom actions (by default it will install one)
+  --class               specify the ingress class. It can be auto, traefik, nginx. On microk8s it should be public.
+  --seaweedfs           activate the support of SEAWEEDFS as S3 api and buckets provider
 ```

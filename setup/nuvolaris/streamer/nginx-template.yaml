@@ -21,10 +21,21 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
   name: nuvolaris-streamer-api-ingress
   namespace: nuvolaris
+
 spec:
   ingressClassName: nginx
+
+$T  tls:
+$T  - hosts:
+$T      - stream.${STREAMER_API_HOSTNAME:-localhost}
+$T    secretName: streamer-api-tls
+
   rules:
   - host: stream.${STREAMER_API_HOSTNAME:-localhost}    
     http:

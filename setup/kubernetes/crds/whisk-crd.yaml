@@ -149,7 +149,10 @@ spec:
                       type: boolean
                     registry:
                       description: deploys a private registry to load on the fly generated action runtimes (false by default)
-                      type: boolean                                              
+                      type: boolean
+                    seaweedfs:
+                      description: deploys an S3 compatible layer using a standalone deployment of seaweedfs
+                      type: boolean                                                                     
                   required:
                     - openwhisk
                     - couchdb
@@ -835,7 +838,50 @@ spec:
                   - mode
                   - volume-size
                   - auth
-                  - hostname                                         
+                  - hostname
+                seaweedfs:
+                  description: used to configure the internal saweedfs data storage service
+                  type: object
+                  properties:
+                    volume-size:
+                      description: volume size in GB, default to 60GB
+                      type: integer
+                    default-bucket-quota:
+                      description: default bucket quota, default to 1024MB
+                      type: integer
+                    nuvolaris:
+                      description: used to configure the MINIO nuvolaris user used for non administrative purposes
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                        password:
+                          type: string
+                      required:
+                      - user
+                      - password
+                    ingress:
+                      description: configuration option for global minio ingresses exposure
+                      type: object
+                      properties:
+                        s3-enabled:
+                          description: boolean flag to activate SEAWEEDFS S3 compatible ingress. Default to false
+                          type: boolean
+                        s3-hostname:
+                          description: ingress hostname to be used if true (normally s3.<apihost>)
+                          type: string
+                        console-enabled:
+                          description: boolean flag to expose SEAWEEDFS Filer UI
+                          type: boolean
+                        console-hostname:
+                          description: ingress hostname to be used (nora=mally filer.<apihost>)
+                          type: string
+                      required:
+                      - s3-enabled
+                      - console-enabled                           
+                  required:
+                  - volume-size
+                  - nuvolaris                                                           
             status:
               x-kubernetes-preserve-unknown-fields: true
               # type: object
@@ -948,4 +994,9 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_create.registry
-          description: Registry                                                                                                              
+          description: Registry 
+        - name: Seaweedfs
+          type: string
+          priority: 0
+          jsonPath: .status.whisk_create.seaweedfs
+          description: Seaweedfs                                                                                                                        
