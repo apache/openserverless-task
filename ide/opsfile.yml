@@ -48,10 +48,6 @@ tasks:
             You can then use 'ops ide devel' and 'ops ide deploy'.
             You can also reopen the project with VSCode and use the command 'Reopen in Container'.
     cmds:
-      - test -e "/.dockerenv" || die "{{.MSG}}"
-      - test "$(python3 -V | awk -F. '{print $2}')" -ge 10 || die "python 3.10 or greater not available"
-      - test -x "$(which virtualenv)" || die "you need python virtualenv"
-      - test "$(node -v | awk -F. '{print substr($1,2) }')" -ge 18 || die "nodejs 18 or greater not available"
       - test "$(printf '%s\n' "$(bun -v)" "1.1.18" | sort -V | head -n 1)" = "1.1.18" || die "bun 1.1.18 or greater not available"
       - test -d "$OPS_PWD/packages" || die "no packages in current directory"
       - test -e ~/.wskprops || die "please run 'ops ide login' first"
@@ -141,7 +137,7 @@ tasks:
 
 
   login:
-    silent: true
+    silent: false
     desc: login in you OpenServerless host
     cmds:
       - |
@@ -196,6 +192,13 @@ tasks:
           config OPSDEV_USERNAME="$OPSDEV_USERNAME"
           config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
           source ~/.wskprops
+        fi
+        if {{.__pin}}
+        then
+          touch $OPS_PWD/.env
+          mv $OPS_PWD/.env $OPS_PWD/.env.$$
+          cat $OPS_PWD/.env.$$ | rg -v "AUTH_CHECK=" >$OPS_PWD/.env || true
+          echo "AUTH_CHECK=$AUTH" >>$OPS_PWD/.env
         fi
 
 

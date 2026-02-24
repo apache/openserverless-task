@@ -19,8 +19,7 @@
 DIR="${1:?directory}"
 ZIP="${2:?zip file}"
 cd "$DIR"
-npm install
-touch node_modules/.package-lock.json
+bun install
 if test -f "$ZIP"
 then rm "$ZIP"
 fi
