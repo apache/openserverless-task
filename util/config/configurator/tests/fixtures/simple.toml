@@ -1,0 +1,8 @@
+[components.redis]
+REDIS_HOST = { label = "Redis hostname", initialValue = "localhost", userInputValue = "redis.example.com" }
+REDIS_PORT = { label = "Redis port", initialValue = "6379", userInputValue = "" }
+REDIS_PASSWORD = { label = "Redis password", initialValue = "", userInputValue = "secret", isMandatory = true }
+
+[components.postgres]
+DB_HOST = { label = "Postgres hostname", initialValue = "127.0.0.1", userInputValue = "" }
+DB_NAME = "mydb"

@@ -1,0 +1,146 @@
+classDiagram
+    %% Core Domain Classes (types.ts)
+    class ConfigParameter {
+        -_key: string
+        -_label: string
+        -_initialValue: string
+        -_userInputValue: string
+        +getKey(): string
+        +getLabel(): string
+        +setLabel(label: string): void
+        +getInitialValue(): string
+        +getUserInputValue(): string
+        +setUserInputValue(value: string): void
+        +getValue(): string
+        +hasUserInput(): boolean
+    }
+
+    class ComponentConfig {
+        -_name: string
+        -_parameters: Map~string, ConfigParameter~
+        +getName(): string
+        +addParameter(parameter: ConfigParameter): void
+        +getParameter(key: string): ConfigParameter | undefined
+        +getAllParameters(): ConfigParameter[]
+        +getParameterKeys(): string[]
+        +hasParameter(key: string): boolean
+        +getParameterCount(): number
+    }
+
+    class OpsConfigFile {
+        -_components: Map~string, ComponentConfig~
+        +addComponent(component: ComponentConfig): void
+        +getComponent(name: string): ComponentConfig | undefined
+        +getAllComponents(): ComponentConfig[]
+        +getComponentNames(): string[]
+        +hasComponent(name: string): boolean
+        +getComponentCount(): number
+    }
+
+    class EditableConfigParameter {
+        -_previousUserInputValue: string
+        +getPreviousUserInputValue(): string
+        +setPreviousUserInputValue(value: string): void
+        +updateUserInputValue(value: string): void
+        +revertToPrevious(): boolean
+        +fromConfigParameter(param: ConfigParameter)$ EditableConfigParameter
+    }
+
+    class EditableComponentConfig {
+        +getAllParameters(): EditableConfigParameter[]
+        +getParameter(key: string): EditableConfigParameter | undefined
+    }
+
+    class EditableOpsConfigFile {
+        +getAllComponents(): EditableComponentConfig[]
+        +getComponent(name: string): EditableComponentConfig | undefined
+    }
+
+    %% Inheritance
+    ConfigParameter <|-- EditableConfigParameter
+    ComponentConfig <|-- EditableComponentConfig
+    OpsConfigFile <|-- EditableOpsConfigFile
+
+    %% Composition relationships
+    OpsConfigFile *-- ComponentConfig : contains
+    ComponentConfig *-- ConfigParameter : contains
+    EditableOpsConfigFile *-- EditableComponentConfig : contains
+    EditableComponentConfig *-- EditableConfigParameter : contains
+
+    %% Parser & Validator
+    class ConfigParser {
+        -_filePath: string
+        +load(): Promise~Result~OpsConfigFile, string~~
+        +extractComponents(rawData: unknown): OpsConfigFile
+        +parseComponentSection(sectionName: string, sectionData: unknown): ComponentConfig
+        +parseParameter(key: string, value: unknown): ConfigParameter
+    }
+
+    class ConfigValidator {
+        -_config: OpsConfigFile
+        -_managedComponents: string[]
+        -_errors: string[]
+        +validate(): ValidationResult
+        +getErrors(): string[]
+    }
+
+    ConfigParser ..> OpsConfigFile : creates
+    ConfigValidator ..> OpsConfigFile : validates
+
+    %% Configuration Management
+    class PartialConfigManager {
+        -_configFilePath: string
+        -_tmpFilePath: string
+        -_config: EditableOpsConfigFile
+        +load(): Promise~Result~EditableOpsConfigFile, string~~
+        +save(): Promise~Result~void, string~~
+        +clear(): Promise~Result~void, string~~
+        +getConfig(): EditableOpsConfigFile
+        +setParameter(componentName: string, key: string, value: string): Promise~Result~void, string~~
+        +revertParameter(componentName: string, key: string): Promise~Result~void, string~~
+        +hasModifications(): boolean
+        +getModifiedParameters(): Array
+    }
+
+    PartialConfigManager *-- EditableOpsConfigFile : manages
+
+    %% Interactive Components
+    class EditLoop {
+        -_configManager: PartialConfigManager
+        -_exitHandler: ExitHandler
+        -_running: boolean
+        +start(): Promise~Result~void, string~~
+        +stop(): void
+        +isRunning(): boolean
+    }
+
+    class ExitHandler {
+        -_configManager: PartialConfigManager
+        +handleExit(): Promise~Result~void, string~~
+    }
+
+    class ConfigDisplay {
+        +displayParameterTable(componentName: string, parameters: EditableConfigParameter[])$ void
+        +displayComponentSummary(components: Array)$ void
+        +displayParameterDetail(parameter: EditableConfigParameter)$ void
+        +displayModifications(modifications: Array)$ void
+        +clearScreen()$ void
+    }
+
+    EditLoop *-- ExitHandler : uses
+    EditLoop --> PartialConfigManager : uses
+    EditLoop --> ConfigDisplay : uses
+    ExitHandler --> PartialConfigManager : uses
+    ExitHandler --> ConfigDisplay : uses
+
+    %% Result Types
+    class Result~T, E~ {
+        +success: boolean
+        +data?: T
+        +error?: E
+    }
+
+    class ValidationResult {
+        +success: boolean
+        +errors: string[]
+    }

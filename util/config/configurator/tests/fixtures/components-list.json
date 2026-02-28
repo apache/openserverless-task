@@ -1,0 +1,59 @@
+{
+  "components" : {
+    "REDIS": {
+      "type": "component",
+      "label": "Redis server",
+      "enabled": {
+        "label": "Do you want to enable Redis?",
+        "type": "bool",
+        "initialValue=": true,
+        "userInputValue" :true
+      },
+      "parameters" : {
+        "REDIS_URL": {
+          "label": "Redis URL",
+          "initialValue=": "",
+          "userInputValue" : ""
+        },
+        "REDIS_SERVICE": {
+          "label": "Redis Service",
+          "initialValue=": "",
+          "userInputValue" : ""
+        },
+        "REDIS_PREFIX": {
+          "label": "Redis Prefix",
+          "initialValue=": "",
+          "userInputValue" : ""
+        },
+        "REDIS_PASSWORD": {
+          "label": "Redis password",
+          "initialValue=": "",
+          "userInputValue" : ""
+        }
+      }
+    }
+  },
+  "POSTGRESQL": {
+    "type": "component",
+    "label": "PostgreSql server",
+    "enabled": {
+      "label": "Do you want to enable PostgreSql?",
+      "type": "bool",
+      "initialValue=": true,
+      "userInputValue" :true
+    },
+    "parameters" : {
+      "POSTGRES_USERNAME": {
+        "label": "PostgreSql Username",
+        "initialValue=": "",
+        "userInputValue" : ""
+      },
+      "POSTGRES_DATABASE": {
+        "label": "PostgreSql database",
+        "initialValue=": "",
+        "userInputValue" : ""
+      },
+    }
+  }
+}
+}

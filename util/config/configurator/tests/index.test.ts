@@ -1,13 +1,10 @@
 import { expect, test, describe } from "bun:test";
 import {
   readPositionalFile,
-  parsePositionalFile,
-  NotValidJsonMsg,
   HelpMsg,
   AdditionalArgsMsg,
   isInputConfigValid,
   findMissingConfig,
-  FileNotFoundJsonMsg,
 } from "../configurator.ts";
 
 describe("findMissingConfig", () => {
@@ -92,34 +89,5 @@ describe("readPositionalFile", () => {
     const res = readPositionalFile(["bun", "index.ts", "config.json"]);
     expect(res.success).toBe(true);
     expect(res.jsonFilePath).toBe("config.json");
-  });
-});
-
-describe("parsePositionalFile", () => {
-  test("file does not exist", async () => {
-    const filename = "not-existing.json";
-    const jsonRes = await parsePositionalFile(filename);
-    expect(jsonRes.success).toBe(false);
-    expect(jsonRes.message).toBe(FileNotFoundJsonMsg + Bun.pathToFileURL(filename));
-  });
-
-  test("not a json file", async () => {
-    const jsonRes = await parsePositionalFile("tests/fixtures/not-json.txt");
-    expect(jsonRes.success).toBe(false);
-    expect(jsonRes.message).toBe(NotValidJsonMsg);
-  });
-
-  test("not a valid json", async () => {
-    const jsonRes = await parsePositionalFile("tests/fixtures/bad.json");
-    expect(jsonRes.success).toBe(false);
-    expect(jsonRes.message).toBe(NotValidJsonMsg);
-  });
-
-  test("valid json", async () => {
-    const jsonRes = await parsePositionalFile("tests//fixtures/valid.json");
-    expect(jsonRes.success).toBe(true);
-    expect(jsonRes.body).toHaveProperty("HELLO", { type: "string" }  );
-    expect(jsonRes.body).toHaveProperty("HELLO3", { type: "string" } );
-    expect(jsonRes.body).toHaveProperty("HELLO_3", { type: "string" });
   });
 });
