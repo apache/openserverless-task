@@ -31,6 +31,12 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true,nuvolaris.io/kube=kind"
+  - |
+    kind: ClusterConfiguration
+    controlPlaneEndpoint: "nuvolaris-control-plane:6443"
+    apiServer:
+      certSANs:
+      - "nuvolaris-control-plane"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
