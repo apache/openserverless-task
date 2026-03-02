@@ -37,6 +37,8 @@ nodes:
     apiServer:
       certSANs:
       - "nuvolaris-control-plane"
+      - "localhost"
+      - "127.0.0.1"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
