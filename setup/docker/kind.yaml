@@ -70,5 +70,5 @@ nodes:
     containerPath: /zookeeper/log
   - hostPath: "$DATADIR/kafka"
     containerPath: /kafka
-  - hostPath: "$OPS_HOME/workspace"
+  - hostPath: "$WORKSPACE"
     containerPath: /workspace

@@ -19,12 +19,14 @@ version: '3'
 vars:
   CLUSTER: nuvolaris
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
+  HOMEDIR:
+    sh: echo ~
 
 env:
   DATADIR:
     sh: echo "$OPS_TMP/kind"
   WORKSPACE:
-    sh: echo "$OPS_HOME/workspace"
+    sh: echo "$HOMEDIR/.ops-workspace"
   KUBECONFIG:
     sh: |-
         if test -e "$OPS_TMP/kubeconfig"
@@ -62,7 +64,7 @@ tasks:
   cluster:
     silent: true
     cmds:
-    - mkdir -p "$DATADIR" "$OPS_HOME/workspace"
+    - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
     - >
       kind create cluster
