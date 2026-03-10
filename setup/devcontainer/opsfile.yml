@@ -43,7 +43,7 @@ tasks:
       then  echo Adding miniops entry in ssh config
         echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User devel\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n  IdentityFile ~/.ssh/id_miniops\n" >> ~/.ssh/config
       else
-        echo Found miniops entry in sh config
+        echo Found miniops entry in ssh config
       fi
     - |
       if rg "miniops key"  "{{.SSHDIR}}/authorized_keys" 2>/dev/null >/dev/null
@@ -109,5 +109,52 @@ tasks:
         -p 2223:2222
         {{.EXTRA}}
         {{.IMAGES_DEVCONTAINER}}
+
+  connect:
+    silent: true
+    desc: specify U=<user> and H=<host> to connect a remote devcontainer
+    requires:
+      vars: [H,U]
+    cmds:
+    - echo Connecting to {{.U}}@{{.H}}
+    - |
+      if ! test -e "{{.SSHKEY}}.pub"
+      then scp "{{.U}}@{{.H}}:.ssh/id_miniops" "{{.SSHKEY}}" && ssh-keygen -f "{{.SSHKEY}}" -y >"{{.SSHKEY}}.pub"
+      fi
+      if test -e "{{.SSHKEY}}.pub"
+      then echo Found "{{.SSHKEY}}"
+      else echo "Remote user has not a miniops configured" ; exit 1
+      fi
+    - |
+      if ! rg '^Host remote-miniops$' "{{.SSHDIR}}/config" >/dev/null
+      then cat <<EOF >>"{{.SSHDIR}}/config"
+
+      Host remote-miniops
+        Hostname {{.H}}
+        User {{.U}}
+        IdentityFile ~/.ssh/id_miniops
+      EOF
+          echo Added ssh config remote-miniops
+      else
+          echo Found ssh config remote-miniops
+      fi
+
+    - |
+      if ! rg '^Host miniops$' "{{.SSHDIR}}/config" >/dev/null
+      then cat <<EOF >>"{{.SSHDIR}}/config"
+
+      Host miniops
+        ProxyJump remote-miniops
+        HostName localhost
+        Port 2222
+        User devel
+        IdentityFile ~/.ssh/id_miniops
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+      EOF
+      else
+        echo Found ssh config miniops
+      fi
+    - echo "You can now reach devcontainer with ssh miniops"
 
 
