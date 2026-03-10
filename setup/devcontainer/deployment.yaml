@@ -38,6 +38,12 @@ spec:
         - name: workspace
           mountPath: /home/workspace
         env:
+        - name: OPS_USER
+          value: $OPS_USER
+        - name: OPS_PASSWORD
+          value: $OPS_PASSWORD
+        - name: OPS_APIHOST
+          value: $OPS_APIHOST
         - name: DEBIAN_FRONTEND
           value: noninteractive
         - name: SSHKEY

@@ -59,6 +59,11 @@ tasks:
   deploy:
     silent: true
     desc: deploy the devcontainer in kubernetes
+    env:
+      OPS_APIHOST: http://miniops.me
+      OPS_USER: devel
+      OPS_PASSWORD:
+        sh: cat ~/.ops/devel.password
     cmds:
       - ops util apihost | rg miniops.me || die "devcontainer requires miniops.me"
       - task: gen-key
