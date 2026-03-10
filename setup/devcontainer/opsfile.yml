@@ -126,20 +126,6 @@ tasks:
       else echo "Remote user has not a miniops configured" ; exit 1
       fi
     - |
-      if ! rg '^Host remote-miniops$' "{{.SSHDIR}}/config" >/dev/null
-      then cat <<EOF >>"{{.SSHDIR}}/config"
-
-      Host remote-miniops
-        Hostname {{.H}}
-        User {{.U}}
-        IdentityFile ~/.ssh/id_miniops
-      EOF
-          echo Added ssh config remote-miniops
-      else
-          echo Found ssh config remote-miniops
-      fi
-
-    - |
       if ! rg '^Host miniops$' "{{.SSHDIR}}/config" >/dev/null
       then cat <<EOF >>"{{.SSHDIR}}/config"
 
@@ -155,6 +141,20 @@ tasks:
       else
         echo Found ssh config miniops
       fi
+    - |
+      if ! rg '^Host remote-miniops$' "{{.SSHDIR}}/config" >/dev/null
+      then cat <<EOF >>"{{.SSHDIR}}/config"
+
+      Host remote-miniops
+        Hostname {{.H}}
+        User {{.U}}
+        IdentityFile ~/.ssh/id_miniops
+      EOF
+          echo Added ssh config remote-miniops
+      else
+          echo Found ssh config remote-miniops
+      fi
+
     - echo "You can now reach devcontainer with ssh miniops"
 
 
