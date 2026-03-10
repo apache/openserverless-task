@@ -32,18 +32,28 @@ tasks:
     - |
       if ! test -e "{{.SSHKEY}}"
       then mkdir -p "{{.SSHDIR}}"
-           echo Generating key {{.SSHKEY}}
-           ssh-keygen -q -a 100 -t ed25519 -a 100 -N '' -f "{{.SSHKEY}}" -C "miniops key"
+        echo Generating key {{.SSHKEY}}
+        ssh-keygen -q -a 100 -t ed25519 -a 100 -N '' -f "{{.SSHKEY}}" -C "miniops key"
       else
-          echo Using {{.SSHKEY}}
+        echo Using {{.SSHKEY}}
       fi
     - |
       touch "{{.SSHDIR}}/config"
       if ! rg "Host miniops" ~/.ssh/config >/dev/null
       then  echo Adding miniops entry in ssh config
-            echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User devel\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n  IdentityFile ~/.ssh/id_miniops\n" >> ~/.ssh/config
+        echo -e "\nHost miniops\n  Hostname localhost\n  Port 2222\n  User devel\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n  IdentityFile ~/.ssh/id_miniops\n" >> ~/.ssh/config
       else
-            echo Found miniops entry in sh config
+        echo Found miniops entry in sh config
+      fi
+    - |
+      if rg "miniops key"  "{{.SSHDIR}}/authorized_keys" 2>/dev/null >/dev/null
+      then
+        echo Access already added
+      else
+        cat "{{.SSHKEY}}.pub" >>"{{.SSHDIR}}/authorized_keys"
+        echo Added key for external Access
+        chmod 0700 "{{.SSHDIR}}"
+        chmod 0600 "{{.SSHDIR}}/authorized_keys"
       fi
 
   deploy:
@@ -99,6 +109,5 @@ tasks:
         -p 2223:2222
         {{.EXTRA}}
         {{.IMAGES_DEVCONTAINER}}
-
 
 
