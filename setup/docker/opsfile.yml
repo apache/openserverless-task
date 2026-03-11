@@ -20,11 +20,11 @@ vars:
   CLUSTER: nuvolaris
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
   HOMEDIR:
-    sh: echo ~
+    sh: echo ~ | replace --stdin -s \\ -r /
 
 env:
   DATADIR:
-    sh: echo "$OPS_TMP/kind"
+    sh: echo "$OPS_TMP/kind" | replace --stdin -s \\ -r /
   WORKSPACE:
     sh: echo "{{.HOMEDIR}}/.ops-workspace"
   KUBECONFIG:
