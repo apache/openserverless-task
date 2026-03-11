@@ -66,6 +66,7 @@ tasks:
     cmds:
     - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
+    - ops util stdtext $PWD/_kind.yaml
     - >
       kind create cluster
       --wait=2m --name=nuvolaris

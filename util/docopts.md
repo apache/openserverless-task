@@ -44,6 +44,7 @@ Usage:
   util ingress-type
   util edit [<plugin>]
   util link-plugin <plugin>
+  util stdtext <text>
 ```
 
 ## Commands
@@ -69,6 +70,7 @@ Usage:
 -  ingress-type            return the ingress type
 -  edit                    edit (with vscode) the current tasks or a plugin
 -  link-plugin             link the <plugin> in current directory to the global list
+-  stdtext                  standardize the text to the text convetions of the underlying platform (windows/unix)
 ```
 
 ## Options

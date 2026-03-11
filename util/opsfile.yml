@@ -282,3 +282,9 @@ tasks:
   freeze:
     desc: freeze util
 
+  stdtext:
+    desc: standardize text to the convetion of the platfom
+    silent: true
+    cmds:
+      - bun stdtext.js {{OS}} "{{._text_}}"
+
