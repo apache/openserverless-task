@@ -26,7 +26,7 @@ env:
   DATADIR:
     sh: echo "$OPS_TMP/kind"
   WORKSPACE:
-    sh: echo "$HOMEDIR/.ops-workspace"
+    sh: echo "{{.HOMEDIR}}/.ops-workspace"
   KUBECONFIG:
     sh: |-
         if test -e "$OPS_TMP/kubeconfig"
@@ -62,7 +62,7 @@ tasks:
       fi
 
   cluster:
-    silent: true
+    silent: false
     cmds:
     - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
