@@ -33,6 +33,8 @@ env:
         then echo "$OPS_TMP/kubeconfig"
         else echo ~/.kube/config
         fi
+  OPS_TMP:
+    sh: echo "{{.OPS_TMP}}" | replace --stdin -s \\ -r /
 
 tasks:
   status:
@@ -66,7 +68,6 @@ tasks:
     cmds:
     - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
-    - ops util stdtext $PWD/_kind.yaml
     - >
       kind create cluster
       --wait=2m --name=nuvolaris
@@ -122,6 +123,7 @@ tasks:
            ops util freeze docker-load
            ops setup docker cluster
            ops util freeze kind-load
+           ops util kind-preload
            ops setup docker ingress
         fi
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
