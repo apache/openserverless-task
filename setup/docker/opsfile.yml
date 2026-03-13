@@ -129,8 +129,8 @@ tasks:
         then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
         else
            ops util freeze docker-load
-           ops setup docker cluster
            ops util freeze kind-preload
+           ops setup docker cluster
            ops util freeze kind-load
            ops setup docker ingress
         fi
