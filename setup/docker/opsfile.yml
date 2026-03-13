@@ -33,8 +33,6 @@ env:
         then echo "$OPS_TMP/kubeconfig"
         else echo ~/.kube/config
         fi
-  OPS_TMP:
-    sh: echo "{{.OPS_TMP}}" | replace --stdin -s \\ -r /
 
 tasks:
   status:
@@ -83,9 +81,19 @@ tasks:
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
       kind export kubeconfig -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
-      echo "waiting for kind ready..."
-      retry -t 100 -m 600 test -e $OPS_TMP/kubeconfig
-      retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
+    - task: wait-kube
+
+  wait-kube:
+    silent: true
+    desc: wait kubeconfig
+    cmds:
+    - |
+      while ! test -e $OPS_TMP/kubeconfig
+      do echo waiting  kubeconfig
+         sleep 1
+      done
+    - retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
+      
 
   ingress:
     silent: true
