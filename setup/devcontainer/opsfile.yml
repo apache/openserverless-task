@@ -6,7 +6,7 @@ vars:
   GID:
     sh: 'echo {{ if eq OS "windows" }}1000{{ else }}$(id -g){{ end }}'
   SSHDIR:
-    sh: echo ~/.ssh
+    sh: echo ~/.ssh | replace -s \\ -r / --stdin
   SSHKEY:
      sh: echo {{.SSHDIR}}/id_miniops
   DRY: ""
@@ -52,8 +52,10 @@ tasks:
       else
         cat "{{.SSHKEY}}.pub" >>"{{.SSHDIR}}/authorized_keys"
         echo Added key for external Access
+        {{if ne OS "windows"}}
         chmod 0700 "{{.SSHDIR}}"
         chmod 0600 "{{.SSHDIR}}/authorized_keys"
+        {{end}}
       fi
 
   deploy:
