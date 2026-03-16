@@ -282,3 +282,19 @@ tasks:
   freeze:
     desc: freeze util
 
+  stdtext:
+    desc: standardize text to the convetion of the platfom
+    silent: true
+    cmds:
+      - bun stdtext.js {{OS}} "{{._text_}}"
+
+
+  kind-preload:
+    desc: preload the known images in kind from docker
+    silent: true
+    env:
+      KIND_CLUSTER: nuvolaris
+      IMAGE_DIR:
+          sh: echo $OPS_HOME/{{.OS}}-{{.ARCH}}/images/kind | replace --stdin -s \\ -r /
+    cmds:
+    - bun preload.js {{.__dry}}

@@ -41,7 +41,10 @@ async function exec(cmd) {
     cwd: process.env.OPS_PWD,
     stdio: ["inherit", "inherit", "inherit"],
   });
-  await proc.exited;
+  const code = await proc.exited;
+  if (code !== 0) {
+    throw new Error(`command failed (${code}): ${cmd}`);
+  }
 }
 
 async function extractArgs(files) {

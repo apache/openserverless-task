@@ -4,7 +4,7 @@ vars:
   CLUSTER: nuvolaris
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
   BASE:
-    sh: echo ~/.ops
+    sh: echo ~/.ops | replace -s \\ -r / --stdin
   IMAGES:
      sh: >
         echo {{.BASE}}/{{OS}}-{{ARCH}}/images
@@ -67,6 +67,19 @@ tasks:
       docker exec -it "$CLU" crictl images 2>/dev/null
       | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
       >> _kind.lst
+    - task: _kind-get-images
+
+  kind-preload:
+    desc: preload docker images
+    silent: true
+    env:
+      IMAGE_DIR: "{{.IMAGES}}/kind"
+    cmds:
+    - bun findimages.js >_kind.lst
+    - task: _kind-get-images
+
+  _kind-get-images:
+    cmds:
     - mkdir -p {{.IMAGES}}/kind
     - |
       cat _kind.lst | while read img
