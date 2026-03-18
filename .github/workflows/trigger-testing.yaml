@@ -1,0 +1,87 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+name: Trigger Testing
+run-name: Dispatch task PR test for PR #${{ github.event.pull_request.number }}
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize, reopened]
+
+jobs:
+  dispatch:
+    name: Dispatch task-pr-test
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Parse trigger
+        id: parse
+        run: |
+          SELECTOR="$(jq -r '
+            .pull_request.labels
+            | map(.name)
+            | map(select(test("^(kind|k3s|k8s|mk8s|eks|aks|gke|osh)-(amd|arm)$")))
+            | first // empty
+          ' "$GITHUB_EVENT_PATH")"
+          echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          echo "selector=${SELECTOR}" >> "$GITHUB_OUTPUT"
+          if [[ -n "$SELECTOR" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip when no testing selector is present
+        if: steps.parse.outputs.enabled != 'true'
+        run: echo "No <platform>-<architecture> selector found on PR labels."
+
+      - name: Validate selector
+        if: steps.parse.outputs.enabled == 'true'
+        run: |
+          case "${{ steps.parse.outputs.selector }}" in
+            kind-amd|kind-arm|k3s-amd|k3s-arm|k8s-amd|k8s-arm|mk8s-amd|mk8s-arm|eks-amd|eks-arm|aks-amd|aks-arm|gke-amd|gke-arm|osh-amd|osh-arm)
+              ;;
+            *)
+              echo "Unsupported selector: ${{ steps.parse.outputs.selector }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Get PR details
+        id: pr
+        if: steps.parse.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ steps.parse.outputs.pr_number }})
+          echo "ref=$(echo "$PR_JSON" | jq -r '.head.ref')" >> "$GITHUB_OUTPUT"
+          echo "repo=$(echo "$PR_JSON" | jq -r '.head.repo.full_name')" >> "$GITHUB_OUTPUT"
+          echo "sha=$(echo "$PR_JSON" | jq -r '.head.sha')" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch to testing repo
+        if: steps.parse.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.OPENSERVERLESS_TESTING_PAT }}
+        run: |
+          gh api repos/${{ github.repository_owner }}/openserverless-testing/dispatches \
+            -X POST \
+            -f event_type=task-pr-test \
+            -f 'client_payload[pr_number]=${{ steps.parse.outputs.pr_number }}' \
+            -f 'client_payload[pr_ref]=${{ steps.pr.outputs.ref }}' \
+            -f 'client_payload[pr_sha]=${{ steps.pr.outputs.sha }}' \
+            -f 'client_payload[task_repo]=${{ steps.pr.outputs.repo }}' \
+            -f 'client_payload[platform]=${{ steps.parse.outputs.selector }}' \
+            -f 'client_payload[selector]=${{ steps.parse.outputs.selector }}'
