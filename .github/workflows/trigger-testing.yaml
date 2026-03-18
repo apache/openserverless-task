@@ -27,49 +27,55 @@ jobs:
     name: Dispatch task-pr-test
     runs-on: ubuntu-22.04
     steps:
-      - name: Parse trigger
+      - name: Parse testing tag
         id: parse
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_REF: ${{ github.event.pull_request.head.ref }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
-          SELECTOR="$(jq -r '
-            .pull_request.labels
-            | map(.name)
-            | map(select(test("^(kind|k3s|k8s|mk8s|eks|aks|gke|osh)-(amd|arm)$")))
-            | first // empty
-          ' "$GITHUB_EVENT_PATH")"
-          echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-          echo "selector=${SELECTOR}" >> "$GITHUB_OUTPUT"
-          if [[ -n "$SELECTOR" ]]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          VALID_TEST_RE='^(kind|k3s|k3sarm|k8s|k8sarm|mk8s|mk8sarm|eks|eksarm|aks|aksarm|gke|gkearm|osh|osharm)-([0-9a-f]{7,40})$'
+          MATCHING_TAGS=()
+
+          while IFS= read -r label; do
+            [[ -n "$label" ]] || continue
+            if [[ "$label" =~ $VALID_TEST_RE ]]; then
+              label_hash="${BASH_REMATCH[2]}"
+              if [[ "$PR_SHA" == "$label_hash"* ]]; then
+                MATCHING_TAGS+=("$label")
+              fi
+            fi
+          done < <(jq -r '.pull_request.labels[]?.name // empty' "$GITHUB_EVENT_PATH")
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr_ref=$PR_REF" >> "$GITHUB_OUTPUT"
+          echo "pr_sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+          echo "repo=$PR_REPO" >> "$GITHUB_OUTPUT"
+
+          if [[ "${#MATCHING_TAGS[@]}" -gt 1 ]]; then
+            echo "Found multiple matching <test>-<hash> tags for PR SHA $PR_SHA:" >&2
+            printf ' - %s\n' "${MATCHING_TAGS[@]}" >&2
+            exit 1
           fi
 
-      - name: Skip when no testing selector is present
+          if [[ "${#MATCHING_TAGS[@]}" -eq 1 ]]; then
+            TEST_TAG="${MATCHING_TAGS[0]}"
+            TEST_NAME="${TEST_TAG%-*}"
+            TEST_HASH="${TEST_TAG##*-}"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "test_tag=$TEST_TAG" >> "$GITHUB_OUTPUT"
+            echo "test_name=$TEST_NAME" >> "$GITHUB_OUTPUT"
+            echo "test_hash=$TEST_HASH" >> "$GITHUB_OUTPUT"
+            echo "reason=Matched testing tag $TEST_TAG for PR SHA $PR_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "reason=No <test>-<hash> tag found on PR labels for current SHA $PR_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip when no matching testing tag is present
         if: steps.parse.outputs.enabled != 'true'
-        run: echo "No <platform>-<architecture> selector found on PR labels."
-
-      - name: Validate selector
-        if: steps.parse.outputs.enabled == 'true'
-        run: |
-          case "${{ steps.parse.outputs.selector }}" in
-            kind-amd|kind-arm|k3s-amd|k3s-arm|k8s-amd|k8s-arm|mk8s-amd|mk8s-arm|eks-amd|eks-arm|aks-amd|aks-arm|gke-amd|gke-arm|osh-amd|osh-arm)
-              ;;
-            *)
-              echo "Unsupported selector: ${{ steps.parse.outputs.selector }}"
-              exit 1
-              ;;
-          esac
-
-      - name: Get PR details
-        id: pr
-        if: steps.parse.outputs.enabled == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ steps.parse.outputs.pr_number }})
-          echo "ref=$(echo "$PR_JSON" | jq -r '.head.ref')" >> "$GITHUB_OUTPUT"
-          echo "repo=$(echo "$PR_JSON" | jq -r '.head.repo.full_name')" >> "$GITHUB_OUTPUT"
-          echo "sha=$(echo "$PR_JSON" | jq -r '.head.sha')" >> "$GITHUB_OUTPUT"
+        run: echo "${{ steps.parse.outputs.reason }}"
 
       - name: Dispatch to testing repo
         if: steps.parse.outputs.enabled == 'true'
@@ -80,8 +86,9 @@ jobs:
             -X POST \
             -f event_type=task-pr-test \
             -f 'client_payload[pr_number]=${{ steps.parse.outputs.pr_number }}' \
-            -f 'client_payload[pr_ref]=${{ steps.pr.outputs.ref }}' \
-            -f 'client_payload[pr_sha]=${{ steps.pr.outputs.sha }}' \
-            -f 'client_payload[task_repo]=${{ steps.pr.outputs.repo }}' \
-            -f 'client_payload[platform]=${{ steps.parse.outputs.selector }}' \
-            -f 'client_payload[selector]=${{ steps.parse.outputs.selector }}'
+            -f 'client_payload[pr_ref]=${{ steps.parse.outputs.pr_ref }}' \
+            -f 'client_payload[pr_sha]=${{ steps.parse.outputs.pr_sha }}' \
+            -f 'client_payload[task_repo]=${{ steps.parse.outputs.repo }}' \
+            -f 'client_payload[test_tag]=${{ steps.parse.outputs.test_tag }}' \
+            -f 'client_payload[test_name]=${{ steps.parse.outputs.test_name }}' \
+            -f 'client_payload[test_hash]=${{ steps.parse.outputs.test_hash }}'
