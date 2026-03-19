@@ -81,6 +81,11 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["./run.sh"]
           args: ["--verbose"]
+          env:
+          - name: OPERATOR_IMAGE
+            value: ${OPERATOR_IMAGE}
+          - name: OPERATOR_TAG
+            value: ${OPERATOR_TAG}
           securityContext:
              capabilities:
                 drop:

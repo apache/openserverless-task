@@ -245,7 +245,11 @@ tasks:
     cmds:
       - |
         eval $(task storageclass-env)
+        OPERATOR_IMAGE="${IMAGES_OPERATOR%:*}"
+        OPERATOR_TAG="${IMAGES_OPERATOR##*:}"
+        export OPERATOR_IMAGE OPERATOR_TAG
         echo "Operator storage class is $OPERATOR_VOLUME_STORAGE_CLASS"
+        echo "Operator runtime image is ${OPERATOR_IMAGE}:${OPERATOR_TAG}"
         envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
         envsubst -i operator.yaml -o _operator.yaml
       - "kubectl apply -f _operator-pvc.yaml -f _operator.yaml"
