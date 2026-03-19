@@ -264,6 +264,7 @@ tasks:
         fi
         code "$DIR"
 
+
   link-plugin:
     desc: link a plugin
     silent: true
@@ -288,13 +289,3 @@ tasks:
     cmds:
       - bun stdtext.js {{OS}} "{{._text_}}"
 
-
-  kind-preload:
-    desc: preload the known images in kind from docker
-    silent: true
-    env:
-      KIND_CLUSTER: nuvolaris
-      IMAGE_DIR:
-          sh: echo $OPS_HOME/{{.OS}}-{{.ARCH}}/images/kind | replace --stdin -s \\ -r /
-    cmds:
-    - bun preload.js {{.__dry}}
