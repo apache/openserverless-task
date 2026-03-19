@@ -18,8 +18,8 @@
 version: "3"
 
 vars:
-  # temporary....
-  K3S_VERSION: "v1.27.7-rc1+k3s2"
+  # Leave empty to let k3sup install its current stable default.
+  K3S_VERSION: ""
   SSH: "ssh -oStrictHostKeyChecking=no"
   CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
@@ -43,10 +43,16 @@ tasks:
       INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{._server_}}" || die "required <server> ip or hostname"
-      - >
-        k3sup install --k3s-version="{{.K3S_VERSION}}"
-        --host="{{._server_}}" --user="{{.INSTALL_USER}}"
-        --local-path=$OPS_TMP/kubeconfig
+      - |
+        K3S_VERSION_FLAG=""
+        if test -n "{{.K3S_VERSION}}"
+        then
+          K3S_VERSION_FLAG="--k3s-version={{.K3S_VERSION}}"
+        fi
+        k3sup install $K3S_VERSION_FLAG \
+          --host="{{._server_}}" \
+          --user="{{.INSTALL_USER}}" \
+          --local-path="$OPS_TMP/kubeconfig"
     
 
   cert-manager:
@@ -92,15 +98,67 @@ tasks:
       - echo SERVER_HOST="$SERVER_HOST"
       - echo SERVER_USERNAME="$SERVER_USERNAME"
 
+  tunnel-start:
+    silent: true
+    desc: start a local tunnel to the remote k3s apiserver when K3S_AUTOSSH=1
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
+    cmds:
+      - test -n "{{._server_}}" || die "please use <server>"
+      - |
+        if test "${K3S_AUTOSSH:-0}" != "1"
+        then
+          exit 0
+        fi
+
+        SSH_HOST="${K3S_SSH_HOST:-{{._server_}}}"
+        LOCAL_PORT="${K3S_AUTOSSH_LOCAL_PORT:-16443}"
+        REMOTE_PORT="${K3S_AUTOSSH_REMOTE_PORT:-6443}"
+        TUNNEL_BIN="autossh"
+        TUNNEL_ARGS="-M 0"
+
+        if command -v nc >/dev/null 2>&1 && nc -z 127.0.0.1 "$LOCAL_PORT" >/dev/null 2>&1
+        then
+          echo "k3s apiserver tunnel already listening on 127.0.0.1:$LOCAL_PORT"
+          exit 0
+        fi
+
+        if ! command -v autossh >/dev/null 2>&1
+        then
+          echo "WARNING: autossh not available, falling back to ssh tunnel"
+          TUNNEL_BIN="ssh"
+          TUNNEL_ARGS=""
+        fi
+
+        $TUNNEL_BIN $TUNNEL_ARGS -f -N \
+          -oExitOnForwardFailure=yes \
+          -oServerAliveInterval=30 \
+          -oServerAliveCountMax=3 \
+          -oStrictHostKeyChecking=no \
+          -L "${LOCAL_PORT}:127.0.0.1:${REMOTE_PORT}" \
+          "{{.INSTALL_USER}}@${SSH_HOST}"
+
   kubeconfig:
     desc: recover the kubeconfig from a K3S server <server> with user <user>
     vars:
       INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
-      - >
-        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' 
-        sudo cat /etc/rancher/k3s/k3s.yaml 
-        | replace --stdin -s '127.0.0.1' -r '{{._server_}}'
-        >"$OPS_TMP/kubeconfig"
+      - task: tunnel-start
+        vars:
+          _server_: '{{._server_}}'
+          _user_: '{{.INSTALL_USER}}'
+      - |
+        SSH_HOST="${K3S_SSH_HOST:-{{._server_}}}"
+        if test "${K3S_AUTOSSH:-0}" = "1"
+        then
+          LOCAL_PORT="${K3S_AUTOSSH_LOCAL_PORT:-16443}"
+          {{.SSH}} "{{.INSTALL_USER}}@${SSH_HOST}" sudo cat /etc/rancher/k3s/k3s.yaml \
+            | awk '/server:/ {$0="    server: https://127.0.0.1:'"$LOCAL_PORT"'"} 1' \
+            >"$OPS_TMP/kubeconfig"
+        else
+          {{.SSH}} "{{.INSTALL_USER}}@${SSH_HOST}" sudo cat /etc/rancher/k3s/k3s.yaml \
+            | replace --stdin -s '127.0.0.1' -r "$SSH_HOST" \
+            >"$OPS_TMP/kubeconfig"
+        fi
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
