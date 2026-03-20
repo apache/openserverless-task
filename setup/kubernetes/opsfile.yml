@@ -21,6 +21,7 @@ vars:
   RETRY: 100
   TIMEOUT: 10s
   CONTEXT: ""
+  COMMAND: "./run.sh"
 
 env:
   KUBECONFIG:
@@ -90,9 +91,6 @@ env:
 
 tasks:
 
-  streamer:
-    desc: deploy streamer
-
   status:
     desc: show nuvolaris cluster status
     silent: true
@@ -114,14 +112,13 @@ tasks:
         kubectl version
 
   crd:
-    #desc get crd
+    desc: get crd
     silent: true
     cmds:
       - kubectl get wsk/controller -n nuvolaris -o yaml
 
-
   wait:
-    #desc: wait for an object to reach a condition
+    desc: wait for an object to reach a condition
     silent: true
     status:
       - test "{{.COND}}" != "true"
@@ -156,7 +153,7 @@ tasks:
         $RES
 
   wait-pod:
-    #desc: wait for a pod to be available - leave the result in FILE
+    desc: wait for a pod to be available - leave the result in FILE
     silent: true
     status:
       - test "{{.COND}}" != "true"
@@ -221,7 +218,7 @@ tasks:
           fi
 
   prepare:
-    #desc: prepare the environment
+    desc: prepare the environment
     ignore_error: true
     silent: true
     cmds:
@@ -237,8 +234,9 @@ tasks:
     cmds:
       - echo "export OPERATOR_VOLUME_STORAGE_CLASS={{.OP_VOL_STORAGE_CLASS}}"
 
+
   operator:
-    #desc: deploy operator
+    desc: deploy operator (use  COMMAND=your-start-command to change default ./run.sh)
     silent: true
     status:
       - config SKIP_OPERATOR_LAUNCH
@@ -246,6 +244,7 @@ tasks:
       - |
         eval $(task storageclass-env)
         echo "Operator storage class is $OPERATOR_VOLUME_STORAGE_CLASS"
+        export COMMAND="{{.COMMAND}}"
         envsubst -i operator-pvc.yaml -o _operator-pvc.yaml
         envsubst -i operator.yaml -o _operator.yaml
       - "kubectl apply -f _operator-pvc.yaml -f _operator.yaml"
@@ -274,7 +273,7 @@ tasks:
 
   wait-openwhisk:
     silent: true
-    #desc: wait for openwhisk start
+    desc: wait for openwhisk start
     status:
       - config SKIP_OPERATOR_LAUNCH
     cmds:
@@ -291,7 +290,7 @@ tasks:
 
   wait-services:
     silent: true
-    #desc: wait for active services
+    desc: wait for active services
     status:
       - config SKIP_OPERATOR_LAUNCH
     cmds:
@@ -370,17 +369,29 @@ tasks:
     - task: create
     - config -r SKIP_OPERATOR_LAUNCH
 
-  deploy:
+
+  pre-deploy:
     silent: true
-    desc: deploy in namespace (use namespace admin)
+    desc: prepare deploy
     cmds:
       - task: context
       - task: secrets
       - task: runtimes
-      - task: operator
-      - task: instance
+
+  post-deploy:
+    desc: wait results
+    cmds:
       - task: wait-openwhisk
       - task: wait-services
+
+  deploy:
+    silent: true
+    desc: deploy in namespace (use namespace admin)
+    cmds:
+      - task: pre-deploy
+      - task: operator
+      - task: instance
+      - task: post-deploy
 
   delete:
     silent: true
