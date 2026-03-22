@@ -24,7 +24,7 @@ OpenServerless Ide Development Utilities.
 
 ```text
 Usage:
-    ide login [<username>] [<apihost>] [--pin]
+    ide login [<username>] [<apihost>] [--pin] [--mode=<mode>]
     ide devel [--fast] [--dry-run]
     ide deploy [<action>|--packages|--web] [--dry-run]
     ide undeploy [<action>] [--dry-run]
@@ -65,4 +65,5 @@ Usage:
 --web           Only deploy web folder, skip packages
 --fast          Skip the initial deployment step and go in incremental update mode
 --pin           Pin the current auth in the .env to check you are not deploying on the wrong user
+--mode          this will load from .env.<mode> after .env
 ```

@@ -43,7 +43,7 @@ tasks:
     silent: true
     vars:
       MSG: |
-            This command must be run inside a devcontainer.
+            This command on windows requires a devcontainr
             Please use 'ops ide devcontainer' to create a configuration and enter in a devcontainer.
             You can then use 'ops ide devel' and 'ops ide deploy'.
             You can also reopen the project with VSCode and use the command 'Reopen in Container'.
@@ -145,6 +145,11 @@ tasks:
         if test -e "$OPS_PWD/.env"
         then source "$OPS_PWD/.env"
         fi
+        if [ -n "{{.__mode}}" ] && [ -e "$OPS_PWD/.env.{{.__mode}}" ]
+        then
+          echo "Loading .env.{{.__mode}}"
+          source "$OPS_PWD/.env.{{.__mode}}"
+        fi
         if test -n "$OPS_USERNAME"
         then echo "Please use OPS_USER, OPS_USERNAME is deprecated"
         fi
@@ -164,10 +169,8 @@ tasks:
             fi
         else
             export OPSDEV_USERNAME="{{._username_}}"
-            if test -e "$OPS_PWD/.env.{{._username_}}"
-            then source "$OPS_PWD/.env.{{._username_}}"
-            fi
         fi
+
         if test -z "{{._apihost_}}"
         then
             if test -z "$OPS_APIHOST"
@@ -206,8 +209,9 @@ tasks:
         then
           touch $OPS_PWD/.env
           mv $OPS_PWD/.env $OPS_PWD/.env.$$
-          cat $OPS_PWD/.env.$$ | rg -v "AUTH_CHECK=" >$OPS_PWD/.env || true
+          rg -v "AUTH_CHECK=" >$OPS_PWD/.env $OPS_PWD/.env.$$
           echo "AUTH_CHECK=$AUTH" >>$OPS_PWD/.env
+          rm $OPS_PWD/.env.$$
         fi
 
   poll:
