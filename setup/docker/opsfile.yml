@@ -62,7 +62,7 @@ tasks:
       fi
 
   cluster:
-    silent: false
+    silent: true
     cmds:
     - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
