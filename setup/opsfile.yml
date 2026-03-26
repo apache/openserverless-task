@@ -124,9 +124,9 @@ tasks:
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
       - ops setup devcluster
+      - ops setup nuvolaris add-user
       - ops setup nuvolaris streamer deploy
       - ops setup nuvolaris system-api deploy
-      - ops setup nuvolaris add-user
 
   devcluster:
     vars:

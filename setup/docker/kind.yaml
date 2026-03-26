@@ -31,6 +31,14 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true,nuvolaris.io/kube=kind"
+  - |
+    kind: ClusterConfiguration
+    controlPlaneEndpoint: "nuvolaris-control-plane:6443"
+    apiServer:
+      certSANs:
+      - "nuvolaris-control-plane"
+      - "localhost"
+      - "127.0.0.1"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
@@ -62,5 +70,5 @@ nodes:
     containerPath: /zookeeper/log
   - hostPath: "$DATADIR/kafka"
     containerPath: /kafka
-  - hostPath: "$OPS_HOME/workspace"
+  - hostPath: "$WORKSPACE"
     containerPath: /workspace

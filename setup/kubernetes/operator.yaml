@@ -78,8 +78,11 @@ spec:
       containers:
         - name: nuvolaris-operator
           image: ${IMAGES_OPERATOR}
+          command:
+          - bash
+          - -c
+          - ${COMMAND}
           imagePullPolicy: IfNotPresent
-          command: ["./run.sh"]
           args: ["--verbose"]
           securityContext:
              capabilities:

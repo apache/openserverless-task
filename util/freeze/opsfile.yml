@@ -4,7 +4,7 @@ vars:
   CLUSTER: nuvolaris
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
   BASE:
-    sh: echo ~/.ops
+    sh: echo ~/.ops | replace -s \\ -r / --stdin
   IMAGES:
      sh: >
         echo {{.BASE}}/{{OS}}-{{ARCH}}/images
@@ -44,15 +44,15 @@ tasks:
         file={{.IMAGES}}/docker/$(base64 -e "$img")
         if test -e "$file"
         then echo "already saved $img.{{ARCH}} "
-        else echo ">>> Saving: $img"
-             if docker pull --platform linux/{{ARCH}} "$img"
-             then echo "OK: save $file"
-             else echo "*** FAIL: pull $img"
-             fi
-             if docker save "$img" -o "$file"
-             then echo "OK: save $file"
-             else echo "*** FAIL: save $file"
-             fi
+        else  echo ">>> Saving: $img"
+              if docker pull --platform linux/{{ARCH}} "$img"
+              then echo "OK: save $file"
+              else echo "*** FAIL: pull $img"
+              fi
+              if docker save "$img" -o "$file"
+              then echo "OK: save $file"
+              else echo "*** FAIL: save $file"
+              fi
         fi
       done
 
@@ -67,6 +67,20 @@ tasks:
       docker exec -it "$CLU" crictl images 2>/dev/null
       | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
       >> _kind.lst
+    - task: _kind-get-images
+
+  kind-preload:
+    desc: preload docker images from config
+    silent: true
+    env:
+      IMAGE_DIR: "{{.IMAGES}}/kind"
+    cmds:
+    - bun findimages.js >_kind.lst
+    - task: _kind-get-images
+
+  _kind-get-images:
+    silent: true
+    cmds:
     - mkdir -p {{.IMAGES}}/kind
     - |
       cat _kind.lst | while read img
@@ -84,6 +98,14 @@ tasks:
             echo "OK: save $file"
         fi
       done
+
+  kind-preload-one:
+    silent: true
+    desc: preload one specified image
+    cmds:
+    - test -n "{{.CLI_ARGS}}" || die "specify the image to preload"
+    - echo "{{.CLI_ARGS}}" >_kind.lst
+    - task: _kind-get-images
 
   image-save:
     desc: save images

@@ -19,12 +19,14 @@ version: '3'
 vars:
   CLUSTER: nuvolaris
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
+  HOMEDIR:
+    sh: echo ~ | replace --stdin -s \\ -r /
 
 env:
   DATADIR:
-    sh: echo "$OPS_TMP/kind"
+    sh: echo "$OPS_TMP/kind" | replace --stdin -s \\ -r /
   WORKSPACE:
-    sh: echo "$OPS_HOME/workspace"
+    sh: echo "{{.HOMEDIR}}/.ops-workspace"
   KUBECONFIG:
     sh: |-
         if test -e "$OPS_TMP/kubeconfig"
@@ -62,7 +64,7 @@ tasks:
   cluster:
     silent: true
     cmds:
-    - mkdir -p "$DATADIR" "$OPS_HOME/workspace"
+    - mkdir -p "$DATADIR" "$WORKSPACE"
     - envsubst -i kind.yaml -o _kind.yaml
     - >
       kind create cluster
@@ -79,9 +81,19 @@ tasks:
       EOF'
       docker exec nuvolaris-control-plane systemctl restart containerd
       kind export kubeconfig -n nuvolaris --kubeconfig "$OPS_TMP/kubeconfig"
-      echo "waiting for kind ready..."
-      retry -t 100 -m 600 test -e $OPS_TMP/kubeconfig
-      retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
+    - task: wait-kube
+
+  wait-kube:
+    silent: true
+    desc: wait kubeconfig
+    cmds:
+    - |
+      while ! test -e $OPS_TMP/kubeconfig
+      do echo waiting  kubeconfig
+         sleep 1
+      done
+    - retry kubectl --kubeconfig $OPS_TMP/kubeconfig cluster-info
+
 
   ingress:
     silent: true
@@ -117,6 +129,7 @@ tasks:
         then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
         else
            ops util freeze docker-load
+           ops util freeze kind-preload
            ops setup docker cluster
            ops util freeze kind-load
            ops setup docker ingress
