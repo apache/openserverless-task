@@ -61,10 +61,18 @@ tasks:
             kubectl get nodes
       fi
 
+
+  mkdir:
+    silent: true
+    cmds:
+    - echo "Creating data dir $DATADIR"
+    - echo "Creating workspace dir $WORKSPACE"
+    - mkdir -p "$DATADIR" "$WORKSPACE"
+
   cluster:
     silent: true
     cmds:
-    - mkdir -p "$DATADIR" "$WORKSPACE"
+    - task: mkdir
     - envsubst -i kind.yaml -o _kind.yaml
     - >
       kind create cluster
