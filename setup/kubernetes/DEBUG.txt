@@ -1,0 +1,25 @@
+# check pod status
+ops debug kube pod
+
+# delete a kuberenetes cluster
+ops setup kubernetes delete
+
+
+# create the entire cluster in the default kubernetes
+# kubeconfig shold be in ~/.ops/tmp/kubeconfig or in ~/.kube/config
+ops setup kubernetes create
+
+# watch what is happening in another terminal
+ops debug watch
+
+# step by step operator launch with standby
+ops setup kubernetes permission
+ops setup kubernetes pre-deploy
+ops setup kubernetes operator COMMAND="tail -f /dev/null"
+
+ops debug kube pod
+
+# enter
+ops util kubeconfig
+kubectl exec -ti -n nuvolaris nuvolaris-operator-0 -- bash
+
