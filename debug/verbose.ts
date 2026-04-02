@@ -15,13 +15,14 @@ async function confirm(prompt: string): Promise<boolean> {
   return false;
 }
 
-// parse args: <no> <reset> <plugindir> <cmds>...
+// parse args: <no> <reset> <cmds>...
 const args = process.argv.slice(2);
-if (args.length < 4) {
-  die("Usage: verbose <no> <reset> <plugindir> <cmds>...");
+if (args.length < 3) {
+  console.log("Provide a command.");
+  process.exit(0);
 }
 
-const [noArg, resetArg, plugindirArg, ...cmds] = args;
+const [noArg, resetArg, ...cmds] = args;
 
 // validate booleans
 function parseBool(val: string, name: string): boolean {
@@ -33,38 +34,49 @@ function parseBool(val: string, name: string): boolean {
 const no = parseBool(noArg, "no");
 const reset = parseBool(resetArg, "reset");
 
-// determine plugin root
-const { existsSync } = await import("fs");
-
-function resolvePluginRoot(): string {
-  if (plugindirArg && plugindirArg !== "") return plugindirArg;
-  if (process.env.OPS_ROOT) return process.env.OPS_ROOT;
-  if (existsSync("olaris")) return "olaris";
-  die("Missing plugin root directory. Provide <plugindir> or set OPS_ROOT.");
-}
-
-const pluginRoot = resolvePluginRoot();
-
-if (!pluginRoot) {
-  die("Missing plugin root directory. Provide <plugindir> or set OPS_ROOT.");
-}
-
-// check plugin root exists
-if (!existsSync(pluginRoot)) {
-  die(`Plugin root directory does not exist: ${pluginRoot}`);
-}
-
-// cmds: all except last are dir segments, last is task name
 if (cmds.length < 1) {
   die("At least one <cmd> argument (the task name) is required.");
 }
 
-const dirParts = cmds.slice(0, -1);
-const taskName = cmds[cmds.length - 1];
+const { existsSync } = await import("fs");
+const { join } = await import("path");
+
+// resolve root directory based on first cmd
+const firstCmd = cmds[0];
+let root: string;
+let remainingCmds: string[];
+
+const opsRootPlugin = process.env.OPS_ROOT_PLUGIN ?? "";
+const pluginDir = opsRootPlugin ? join(opsRootPlugin, `olaris-${firstCmd}`) : "";
+
+if (pluginDir && existsSync(pluginDir)) {
+  // first cmd matches a plugin: olaris-<first> exists
+  root = pluginDir;
+  remainingCmds = cmds.slice(1);
+} else {
+  // use OPS_ROOT as root, keep all cmds
+  const opsRoot = process.env.OPS_ROOT ?? "";
+  if (!opsRoot) {
+    die("OPS_ROOT is not set.");
+  }
+  root = opsRoot;
+  remainingCmds = cmds;
+}
+
+if (!existsSync(root)) {
+  die(`Root directory does not exist: ${root}`);
+}
+
+// split remaining cmds: all except last are dir segments, last is task name
+if (remainingCmds.length < 1) {
+  die("At least one <cmd> argument (the task name) is required.");
+}
+
+const dirParts = remainingCmds.slice(0, -1);
+const taskName = remainingCmds[remainingCmds.length - 1];
 
 // resolve target directory
-const { join } = await import("path");
-const targetDir = join(pluginRoot, ...dirParts);
+const targetDir = dirParts.length > 0 ? join(root, ...dirParts) : root;
 if (!existsSync(targetDir)) {
   die(`Target directory does not exist: ${dirParts.join("/")}`);
 }

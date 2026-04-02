@@ -118,6 +118,6 @@ tasks:
 
 
   verbose:
-    desc: enable verbose
+    desc: enable/disable verbose for tasks
     cmds:
-    - CMDS={{._cmds_}} ; echo bun verbose.ts {{.__reset}} {{.__off}} ${CMDS[@]}
+    - CMDS={{._cmds_}} ; bun verbose.ts  {{.__no}} {{.__reset}} ${CMDS[@]}

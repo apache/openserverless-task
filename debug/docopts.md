@@ -36,7 +36,7 @@ Usage:
     debug status
     debug watch
     debug operator:version
-    debug verbose [--no] [--plugin=<dir>] [--reset]  [<cmds>...]
+    debug verbose [--no] [--reset] [<cmds>...]
 ```
 
 ## Commands
@@ -55,4 +55,5 @@ Usage:
     status            show deployment status
     watch             watch nodes and pod deployment
     operator:version  show operator versions
+    verbose           enable/disable verbose for tasks
 ```
