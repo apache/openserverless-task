@@ -23,19 +23,20 @@ Debugging various parts of OpenServerless
 ## Synopsis
 ```text
 Usage:
-    debug apihost           
-    debug certs             
-    debug config            
-    debug images            
-    debug ingress           
-    debug kube              
-    debug lb                
-    debug log               
-    debug route             
-    debug runtimes          
-    debug status            
-    debug watch             
-    debug operator:version  
+    debug apihost
+    debug certs
+    debug config
+    debug images
+    debug ingress
+    debug kube
+    debug lb
+    debug log
+    debug route
+    debug runtimes
+    debug status
+    debug watch
+    debug operator:version
+    debug verbose [--no] [--plugin=<dir>] [--reset]  [<cmds>...]
 ```
 
 ## Commands

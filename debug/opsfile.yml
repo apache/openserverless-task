@@ -55,12 +55,12 @@ tasks:
   ingress:
     desc: show ingresses
     cmds:
-      - kubectl -n nuvolaris get ingress 
+      - kubectl -n nuvolaris get ingress
 
   route:
     desc: show openshift route
     cmds:
-      - kubectl -n nuvolaris get route        
+      - kubectl -n nuvolaris get route
 
   status:
     desc: show deployment status
@@ -97,7 +97,7 @@ tasks:
           echo "===" $(date +%T) "==="
           kubectl -n nuvolaris get po,deploy,sts
           sleep 5
-        done  
+        done
 
   info:
     - wsk property get
@@ -107,12 +107,17 @@ tasks:
 
   definalize:
   - >
-    kubectl -n nuvolaris patch wsk/controller 
+    kubectl -n nuvolaris patch wsk/controller
     --type=merge --patch '{"metadata": {"finalizers":[] } }'
 
   operator:version:
     desc: show operator versions
     silent: true
     cmds:
-      - kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.nuvolaris-operator_version}'    
+      - kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.nuvolaris-operator_version}'
 
+
+  verbose:
+    desc: enable verbose
+    cmds:
+    - CMDS={{._cmds_}} ; echo bun verbose.ts {{.__reset}} {{.__off}} ${CMDS[@]}
