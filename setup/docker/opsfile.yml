@@ -112,9 +112,11 @@ tasks:
 
   check-space:
     silent: true
+    env:
+      REQUIRED_SPACE: 60
     desc: check if the user has the minimum required disk space
     cmds:
-      - uv run space.py
+      - bun run space.ts
 
   clean-all:
     silent: true
