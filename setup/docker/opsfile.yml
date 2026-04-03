@@ -113,7 +113,9 @@ tasks:
   check-space:
     silent: true
     env:
-      REQUIRED_SPACE: 60
+      REQUIRED_CPU: 4
+      REQUIRED_MEM: 14
+      REQUIRED_DISK: 60
     desc: check if the user has the minimum required disk space
     cmds:
       - bun run space.ts
