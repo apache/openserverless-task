@@ -23,19 +23,20 @@ Debugging various parts of OpenServerless
 ## Synopsis
 ```text
 Usage:
-    debug apihost           
-    debug certs             
-    debug config            
-    debug images            
-    debug ingress           
-    debug kube              
-    debug lb                
-    debug log               
-    debug route             
-    debug runtimes          
-    debug status            
-    debug watch             
-    debug operator:version  
+    debug apihost
+    debug certs
+    debug config
+    debug images
+    debug ingress
+    debug kube
+    debug lb
+    debug log
+    debug route
+    debug runtimes
+    debug status
+    debug watch
+    debug operator:version
+    debug verbose [--no] [--reset] [<cmds>...]
 ```
 
 ## Commands
@@ -54,4 +55,5 @@ Usage:
     status            show deployment status
     watch             watch nodes and pod deployment
     operator:version  show operator versions
+    verbose           enable/disable verbose for tasks
 ```

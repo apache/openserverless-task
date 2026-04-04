@@ -381,3 +381,18 @@ tasks:
 
   nodejs:
     desc: nodejs subcommand
+
+
+  init:
+    desc: setup the package invoking all the setup actions
+    silent: true
+    cmds:
+    - |
+      if ops action list init 2>/dev/null >_init
+      then
+          cat _init | awk 'NR>1{print $1}' | while read action
+          do  echo $action >&2
+              ops action invoke -r "$action" | jq -M -c .
+          done
+      else echo "nothing to do" >&2
+      fi

@@ -37,6 +37,7 @@ Usage:
     ide python
     ide nodejs
     ide devcontainer
+    ide init
 ```
 
 ## Commands
@@ -55,6 +56,7 @@ Usage:
     ide devcontainer        add a devcontainer configuration
     ide python              python subcommands
     ide nodejs              nodejs subcommands
+    ide init                initialize executing all actions in the init package
 ```
 
 ## Options
