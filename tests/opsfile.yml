@@ -17,7 +17,7 @@ tasks:
     silent: true
     desc: 7zz test
     cmds:
-    - 7zz | rg 24.07
+    - 7zz | rg 26.00
 
   coreutils:
     silent: true

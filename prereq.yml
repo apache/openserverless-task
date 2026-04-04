@@ -33,7 +33,8 @@ tasks:
   7zz:
     desc: download 7zz
     vars:
-      VERSION: "2407"
+      RELEASE_TAG: "26.00"
+      VERSION: "2600"
       SUFFIX:
          sh: |
              case "{{.OS}}-{{.ARCH}}" in
@@ -43,7 +44,7 @@ tasks:
               windows-*) echo "7zr.exe" ;;
               *) echo "unknown" ;;
              esac
-      URL: "https://7-zip.org/a/{{.SUFFIX}}"
+      URL: "https://github.com/ip7z/7zip/releases/download/{{.RELEASE_TAG}}/{{.SUFFIX}}"
       FILE: "{{base .URL}}"
     cmds:
     - curl -sL "{{.URL}}"  -o "{{.FILE}}"
@@ -366,4 +367,3 @@ tasks:
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
-
