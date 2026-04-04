@@ -65,6 +65,31 @@ async function getFreeDiskGB(): Promise<number> {
   return (parseInt(cols[3], 10) * 1024) / GB;
 }
 
+// Check DNS resolution
+async function checkDns(hostname: string): Promise<boolean> {
+  try {
+    const addrs = await Bun.dns.lookup(hostname, { family: 4 });
+    const resolved = addrs[0]?.address;
+    if (resolved !== "127.0.0.1") {
+      console.error(`DNS check failed: ${hostname} resolves to ${resolved} instead of 127.0.0.1`);
+      console.error(`Your DNS is interfering. Configure your system to use DNS 1.1.1.1 or 8.8.8.8`);
+      return false;
+    }
+    console.log(`DNS OK: ${hostname} resolves to 127.0.0.1`);
+    return true;
+  } catch (e) {
+    console.error(`DNS check failed: cannot resolve ${hostname}`);
+    console.error(`Your DNS is interfering. Configure your system to use DNS 1.1.1.1 or 8.8.8.8`);
+    return false;
+  }
+}
+
+const dns1 = await checkDns("miniops.me");
+const dns2 = await checkDns("trustable.miniops.me");
+if (!dns1 || !dns2) {
+  process.exit(1);
+}
+
 const freeGB = Math.round((await getFreeDiskGB()) * 100) / 100;
 console.log(`Checking disk space, required: ${REQUIRED_DISK}GB, available: ${freeGB}GB`);
 if (freeGB < REQUIRED_DISK) {
