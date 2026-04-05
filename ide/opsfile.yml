@@ -126,24 +126,16 @@ tasks:
         while ! test -e ~/.wskprops
         do $OPS ide login
         done
-      - |
-        echo "**************************************************************************************"
-        echo "*** Available Commands on Terminal:"
-        echo "*** 'deploy' (alias for 'ops ide deploy') to deploy your app to {{.API_HOST}}"
-        echo "*** 'devel'  (alias for 'ops ide devel') to start incremental development mode"
-        echo "*** 'login'  (alias for 'ops ide login')  to login as a different user"
-        echo "*** 'ops ide' for more informations"
-        echo "*** https://openserverless.apache.org/ for online documentation"
-        echo "**************************************************************************************"
 
 
   login:
     silent: true
     desc: login in you OpenServerless host
     dotenv:
-      - "{{.OPS_PWD}}/.env"
       - "{{.OPS_PWD}}/.env.{{.__mode}}"
+      - "{{.OPS_PWD}}/.env"
     cmds:
+      - echo "{{.OPS_PWD}}/.env"  "{{.OPS_PWD}}/.env.{{.__mode}}"
       - |
         if test -n "$OPS_USERNAME"
         then echo "Please use OPS_USER, OPS_USERNAME is deprecated"
