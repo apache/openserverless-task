@@ -48,6 +48,7 @@ tasks:
             You can then use 'ops ide devel' and 'ops ide deploy'.
             You can also reopen the project with VSCode and use the command 'Reopen in Container'.
     cmds:
+      - test {{OS}} != "windows" || die '{{.MSG}}'
       - test "$(printf '%s\n' "$(bun -v)" "1.1.18" | sort -V | head -n 1)" = "1.1.18" || die "bun 1.1.18 or greater not available"
       - test -d "$OPS_PWD/packages" || die "no packages in current directory"
       - test -e ~/.wskprops || die "please run 'ops ide login' first"

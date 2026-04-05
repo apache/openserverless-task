@@ -54,7 +54,7 @@ tasks:
   cli:
     silent: true
     desc: python cli
-    env:
+    dotenv:
       - "{{.OPS_PWD}}/.env"
     cmds:
     - |
