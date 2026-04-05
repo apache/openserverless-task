@@ -139,17 +139,11 @@ tasks:
   login:
     silent: true
     desc: login in you OpenServerless host
+    dotenv:
+      - "{{.OPS_PWD}}/.env"
+      - "{{.OPS_PWD}}/.env.{{.__mode}}"
     cmds:
       - |
-        set -a
-        if test -e "$OPS_PWD/.env"
-        then source "$OPS_PWD/.env"
-        fi
-        if [ -n "{{.__mode}}" ] && [ -e "$OPS_PWD/.env.{{.__mode}}" ]
-        then
-          echo "Loading .env.{{.__mode}}"
-          source "$OPS_PWD/.env.{{.__mode}}"
-        fi
         if test -n "$OPS_USERNAME"
         then echo "Please use OPS_USER, OPS_USERNAME is deprecated"
         fi
@@ -234,16 +228,12 @@ tasks:
     silent: true
     interactive: true
     desc: deploy a project or a single action (with _action_=<dir-or-file>)
+    dotenv:
+      - "{{.OPS_PWD}}/.env"
+      - "{{.OPS_PWD}}/packages/.env"
     cmds:
       - task: prereq
       - |
-        set -a
-        if test -e $OPS_PWD/.env
-        then source $OPS_PWD/.env
-        fi
-        if test -e $OPS_PWD/packages/.env
-        then source $OPS_PWD/packages/.env
-        fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH"
              then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
@@ -329,16 +319,12 @@ tasks:
     interactive: true
     silent: true
     desc: start interactive development mode files
+    dotenv:
+      - "{{.OPS_PWD}/.env"
+      - "{{.OPS_PWD}/packages/.env"
     cmds:
       - task: prereq
       - |
-        set -a
-        if test -e $OPS_PWD/.env
-        then source $OPS_PWD/.env
-        fi
-        if test -e $OPS_PWD/packages/.env
-        then source $OPS_PWD/packages/.env
-        fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH"
              then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1
