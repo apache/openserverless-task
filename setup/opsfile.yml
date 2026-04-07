@@ -113,10 +113,11 @@ tasks:
               echo "*** You can can uninstall and restart with: ops setup docker delete"
               exit 1
             else
-              if ! kind get clusters | rg nuvolaris
-              then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
-                  exit 1
-              fi
+              # in WSL something answer in localhost to it is not an error
+              #if ! kind get clusters | rg nuvolaris
+              #then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
+              #    exit 1
+              #fi
             fi
           fi
         fi
