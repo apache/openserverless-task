@@ -140,11 +140,11 @@ tasks:
         if  kind get clusters | rg {{.CLUSTER}}
         then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
         else
-           ops util freeze docker-load
-           ops util freeze kind-preload
-           ops setup docker cluster
-           ops util freeze kind-load
-           ops setup docker ingress
+          ops util freeze docker-load
+          test -n "{{.NO_KIND_PRELOAD}}" || ops util freeze kind-preload
+          ops setup docker cluster
+          ops util freeze kind-load
+          ops setup docker ingress
         fi
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
