@@ -174,7 +174,10 @@ tasks:
         if test -n "$OPS_PASSWORD"
         then export "OPS_PASSWORD"
         fi
-        if $OPS -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
+        # TO FIX: workaround to a problem on ops that ignores the paratemer if OPS_USER is set
+        export OPS_USER="$OPSDEV_USERNAME"
+        export OPS_APIHOST="$OPSDEV_APIHOST"
+        if ops -login
         then
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
           OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
