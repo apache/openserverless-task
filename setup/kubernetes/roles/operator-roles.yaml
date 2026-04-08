@@ -82,6 +82,10 @@ rules:
   resources: ["middlewares"]
   verbs: ["get","patch","list","update","watch","create","delete"]
 
+- apiGroups: ["traefik.io"]
+  resources: ["middlewares"]
+  verbs: ["get","patch","list","update","watch","create","delete"]
+
 # required for kubegres
 - apiGroups: ["kubegres.reactive-tech.io"]
   resources: ["kubegres","kubegres/finalizers","kubegres/status"]
