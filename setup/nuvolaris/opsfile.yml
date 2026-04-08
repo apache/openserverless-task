@@ -281,6 +281,6 @@ tasks:
       retry ops ide login {{.USR}} "$APIHOST"
     - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
     - ops util upload "$(realpath web)"
-    - echo "Login with:" ops ide login {{.USR}} https://miniops.me
+    - echo "Login with:" ops ide login {{.USR}} "$APIHOST"
     - echo "Password is saved in:" ~/.ops/{{.USR}}.password
     - echo "Web URL is:" "$HOST"
