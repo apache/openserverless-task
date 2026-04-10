@@ -258,7 +258,7 @@ tasks:
     cmds:
       - |
         if test -z "$SECRET_OPENWHISK_NUVOLARIS"
-        then ops util secret
+        then ops -task -t "$OPS_ROOT/util/opsfile.yml" secrets
         else echo Reusing current secrets.
         fi
 
