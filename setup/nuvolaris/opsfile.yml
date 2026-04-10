@@ -126,7 +126,9 @@ tasks:
       echo Checking connection...
       retry -t 100 -m 600 ops -wsk {{.ETC}} --apihost "$OPSDEV_APIHOST" --auth "$AUTH" namespace list
       export OPS_PASSWORD=$(kubectl -n nuvolaris get wsk/controller -ojsonpath -ojsonpath='{.spec.nuvolaris.password}')
-      ops -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
+      export OPS_USER="$OPSDEV_USERNAME"
+      export OPS_APIHOST="$OPSDEV_APIHOST"
+      ops -login
       OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
       OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
       config OPSDEV_APIHOST="$OPSDEV_APIHOST"
