@@ -225,8 +225,9 @@ tasks:
     interactive: true
     desc: deploy a project or a single action (with _action_=<dir-or-file>)
     dotenv:
-      - "{{.OPS_PWD}}/.env"
+      - "{{.OPS_PWD}}/.env.{{.__mode}}"
       - "{{.OPS_PWD}}/packages/.env"
+      - "{{.OPS_PWD}}/.env"
     cmds:
       - task: prereq
       - |
