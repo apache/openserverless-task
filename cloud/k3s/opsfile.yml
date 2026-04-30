@@ -43,6 +43,24 @@ tasks:
       INSTALL_USER: '{{._user_ | default "root"}}'
     cmds:
       - test -n "{{._server_}}" || die "required <server> ip or hostname"
+      - |
+        traefik_http_nodeport="${K3S_TRAEFIK_HTTP_NODEPORT:-${TRAEFIK_HTTP_NODEPORT:-30080}}"
+        traefik_https_nodeport="${K3S_TRAEFIK_HTTPS_NODEPORT:-${TRAEFIK_HTTPS_NODEPORT:-30081}}"
+        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' "sudo mkdir -p /var/lib/rancher/k3s/server/manifests"
+        cat <<EOF | {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' "sudo tee /var/lib/rancher/k3s/server/manifests/traefik-config.yaml >/dev/null"
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChartConfig
+        metadata:
+          name: traefik
+          namespace: kube-system
+        spec:
+          valuesContent: |-
+            ports:
+              web:
+                nodePort: ${traefik_http_nodeport}
+              websecure:
+                nodePort: ${traefik_https_nodeport}
+        EOF
       - >
         k3sup install --k3s-version="{{.K3S_VERSION}}"
         --host="{{._server_}}" --user="{{.INSTALL_USER}}"

@@ -54,12 +54,11 @@ tasks:
   cli:
     silent: true
     desc: python cli
+    dotenv:
+      - "{{.OPS_PWD}}/.env"
     cmds:
     - |
       pip install ipython
       find "$OPS_PWD" -name requirements.txt -execdir pip install -r {} \;
-      if test -e "$OPS_PWD/.env"
-      then set -a ; source "$OPS_PWD/.env"
-      fi
       ipython -i init.ipy
 
