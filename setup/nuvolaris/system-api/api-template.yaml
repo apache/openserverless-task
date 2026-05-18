@@ -21,7 +21,7 @@ metadata:
   namespace: nuvolaris
   labels:
     app: nuvolaris-system-api
-spec:  
+spec:
   replicas: 1
   selector:
     matchLabels:
@@ -36,7 +36,7 @@ spec:
       containers:
         - name: nuvolaris-system-api
           image: ${IMAGES_SYSTEMAPI}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["./run.sh"]
           ports:
             - containerPort: 5000
@@ -45,11 +45,11 @@ spec:
           - name: "APIHOST"
             value: "${SYS_API_HOSTNAME:-localhost}"
           - name: "COUCHDB_SERVICE_PORT"
-            value: "5984" 
+            value: "5984"
           - name: "COUCHDB_SERVICE_HOST"
-            value: "couchdb" 
+            value: "couchdb"
           - name: "COUCHDB_ADMIN_USER"
-            value: "${SYS_API_CDB_USER}"  
+            value: "${SYS_API_CDB_USER}"
           - name: "COUCHDB_ADMIN_PASSWORD"
             value: "${SYS_API_CDB_PASSWORD}"
 ---
