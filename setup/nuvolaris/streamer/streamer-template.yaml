@@ -21,7 +21,7 @@ metadata:
   namespace: nuvolaris
   labels:
     app: nuvolaris-streamer-api
-spec:  
+spec:
   replicas: 1
   selector:
     matchLabels:
@@ -36,7 +36,7 @@ spec:
       containers:
         - name: nuvolaris-streamer-api
           image: ${IMAGES_STREAMER}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["/streamer"]
           ports:
             - containerPort: 8080
@@ -51,7 +51,7 @@ spec:
               fieldRef:
                 fieldPath: status.podIP
           - name: "CORS_ENABLED"
-            value: "1"                                                                                                                                                                                      
+            value: "1"
 ---
 apiVersion: v1
 kind: Service
