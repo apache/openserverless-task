@@ -29,3 +29,4 @@ attic.txt
 node_modules/
 .DS_Store
 ide/deploy/hash.lock
+opsroot.orig
