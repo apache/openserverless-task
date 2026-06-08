@@ -22,9 +22,10 @@ vars:
       else
         echo $AUTH
       fi
-  USERNAME:
-    sh: |
-      wsk property get --namespace | awk '{ print $3 }'
+  # unused
+  #USERNAME:
+  #  sh: |
+  #    wsk property get --namespace | awk '{ print $3 }'
 
 tasks:
   config:
