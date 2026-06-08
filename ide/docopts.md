@@ -25,8 +25,8 @@ OpenServerless Ide Development Utilities.
 ```text
 Usage:
     ide login [<username>] [<apihost>] [--pin] [--mode=<mode>]
+    ide deploy [<action>|--packages|--web] [--dry-run] [--mode=<mode>]
     ide devel [--fast] [--dry-run]
-    ide deploy [<action>|--packages|--web] [--dry-run]
     ide undeploy [<action>] [--dry-run]
     ide clean
     ide setup

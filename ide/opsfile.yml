@@ -48,6 +48,7 @@ tasks:
             You can then use 'ops ide devel' and 'ops ide deploy'.
             You can also reopen the project with VSCode and use the command 'Reopen in Container'.
     cmds:
+      - test {{OS}} != "windows" || die '{{.MSG}}'
       - test "$(printf '%s\n' "$(bun -v)" "1.1.18" | sort -V | head -n 1)" = "1.1.18" || die "bun 1.1.18 or greater not available"
       - test -d "$OPS_PWD/packages" || die "no packages in current directory"
       - test -e ~/.wskprops || die "please run 'ops ide login' first"
@@ -125,31 +126,17 @@ tasks:
         while ! test -e ~/.wskprops
         do $OPS ide login
         done
-      - |
-        echo "**************************************************************************************"
-        echo "*** Available Commands on Terminal:"
-        echo "*** 'deploy' (alias for 'ops ide deploy') to deploy your app to {{.API_HOST}}"
-        echo "*** 'devel'  (alias for 'ops ide devel') to start incremental development mode"
-        echo "*** 'login'  (alias for 'ops ide login')  to login as a different user"
-        echo "*** 'ops ide' for more informations"
-        echo "*** https://openserverless.apache.org/ for online documentation"
-        echo "**************************************************************************************"
 
 
   login:
     silent: true
     desc: login in you OpenServerless host
+    dotenv:
+      - "{{.OPS_PWD}}/.env.{{.__mode}}"
+      - "{{.OPS_PWD}}/.env"
     cmds:
+      - echo "{{.OPS_PWD}}/.env"  "{{.OPS_PWD}}/.env.{{.__mode}}"
       - |
-        set -a
-        if test -e "$OPS_PWD/.env"
-        then source "$OPS_PWD/.env"
-        fi
-        if [ -n "{{.__mode}}" ] && [ -e "$OPS_PWD/.env.{{.__mode}}" ]
-        then
-          echo "Loading .env.{{.__mode}}"
-          source "$OPS_PWD/.env.{{.__mode}}"
-        fi
         if test -n "$OPS_USERNAME"
         then echo "Please use OPS_USER, OPS_USERNAME is deprecated"
         fi
@@ -187,7 +174,10 @@ tasks:
         if test -n "$OPS_PASSWORD"
         then export "OPS_PASSWORD"
         fi
-        if $OPS -login "$OPSDEV_APIHOST" "$OPSDEV_USERNAME"
+        # TO FIX: workaround to a problem on ops that ignores the paratemer if OPS_USER is set
+        export OPS_USER="$OPSDEV_USERNAME"
+        export OPS_APIHOST="$OPSDEV_APIHOST"
+        if ops -login
         then
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
           OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
@@ -234,16 +224,13 @@ tasks:
     silent: true
     interactive: true
     desc: deploy a project or a single action (with _action_=<dir-or-file>)
+    dotenv:
+      - "{{.OPS_PWD}}/.env.{{.__mode}}"
+      - "{{.OPS_PWD}}/packages/.env"
+      - "{{.OPS_PWD}}/.env"
     cmds:
       - task: prereq
       - |
-        set -a
-        if test -e $OPS_PWD/.env
-        then source $OPS_PWD/.env
-        fi
-        if test -e $OPS_PWD/packages/.env
-        then source $OPS_PWD/packages/.env
-        fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH"
              then echo "WARNING: wrong deploy! You are logged in a different user than your pinned one and configured in .env as AUTH_CHECK" ; exit 1
@@ -329,16 +316,12 @@ tasks:
     interactive: true
     silent: true
     desc: start interactive development mode files
+    dotenv:
+      - "{{.OPS_PWD}}/.env"
+      - "{{.OPS_PWD}}/packages/.env"
     cmds:
       - task: prereq
       - |
-        set -a
-        if test -e $OPS_PWD/.env
-        then source $OPS_PWD/.env
-        fi
-        if test -e $OPS_PWD/packages/.env
-        then source $OPS_PWD/packages/.env
-        fi
         if test -n "$AUTH_CHECK"
         then if test "$AUTH_CHECK" != "$AUTH"
              then echo "WARNING: wrong deploy! You are logged in a different user than your configured AUTH_CHECK" ; exit 1

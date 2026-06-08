@@ -113,9 +113,9 @@ tasks:
   check-space:
     silent: true
     env:
-      REQUIRED_CPU: 4
-      REQUIRED_MEM: 14
-      REQUIRED_DISK: 60
+      REQUIRED_CPU: '{{ or .REQUIRED_CPU "4" }}'
+      REQUIRED_MEM: '{{ or .REQUIRED_MEM "14" }}'
+      REQUIRED_DISK: '{{or .REQUIRED_DISK "60" }}'
     desc: check if the user has the minimum required disk space
     cmds:
       - bun run space.ts
@@ -140,11 +140,11 @@ tasks:
         if  kind get clusters | rg {{.CLUSTER}}
         then kind export kubeconfig --name {{.CLUSTER}} --kubeconfig "$OPS_TMP/kubeconfig"
         else
-           ops util freeze docker-load
-           ops util freeze kind-preload
-           ops setup docker cluster
-           ops util freeze kind-load
-           ops setup docker ingress
+          ops util freeze docker-load
+          test -n "{{.NO_KIND_PRELOAD}}" || ops util freeze kind-preload
+          ops setup docker cluster
+          ops util freeze kind-load
+          ops setup docker ingress
         fi
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/kind-{{.CLUSTER}}.kubeconfig"
 
