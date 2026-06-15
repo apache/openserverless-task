@@ -1,39 +1,51 @@
-## Openserverless Configurator task
+## OpenServerless Configurator
 
-### Development:
+An interactive terminal tool for editing the parameters used by the `ops` CLI.
+It groups parameters by cloud provider or service component, lets you navigate
+with arrow keys, and auto-saves progress so you can resume after an interruption.
 
-The configurator is inside the `configurator` folder.
-The entrypoint is the `configurator/index.ts` file. It simply calls the configurator main function.
+---
 
-All the logic is inside the `configurator/configurator.ts` file. Of course, you can add more files
-and change the structure as you see fit.
+### How `ops` configuration works
 
-Inside the `configurator` folder, first install dependencies:
+The `ops` CLI stores key-value pairs that control the behaviour of deployments.
 
-```bash
-bun install
-```
-
-In the `package.json` file there are a couple of scripts. The `start` script will run the configurator:
+Display all current values:
 
 ```bash
-bun run start
+ops -config -d
 ```
 
-### Tests:
-
-There are unit tests inside the `configurator/test` folder. You can run them with the following command:
+Set a single value:
 
 ```bash
-bun run test
+ops -config KEY=value
 ```
 
-### Building:
-
-To build the configurator and generate the `configurator.js` file, run the following command:
+Read a single value:
 
 ```bash
-bun run build
+ops -config KEY
 ```
 
-It will generate the `configurator.js` file and move it in the parent, where it can be used by the opsfile task.
+Remove a key:
+
+```bash
+ops -config -r KEY
+```
+
+The configurator is a friendlier front-end for these operations: it reads
+`all-config-parameters.toml` to know which keys exist and what their labels and
+defaults are, lets you edit them interactively, and then either calls
+`ops -config KEY=value` for each change or saves the result to a timestamped
+TOML file.
+
+---
+
+### Further reading
+
+- `configurator/docs/user_manual.md` - full usage guide (navigation, exit options,
+  resumability, TOML file format)
+- `configurator/all-config-parameters.toml` - master list of all supported
+  components and parameters
+- `configurator/docs/development.md` - a guide for the Apache Openserverless contributors

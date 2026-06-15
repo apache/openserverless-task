@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "bun index.ts",
+    "startdebug": "bun --inspect-wait index.ts",
     "test": "bun test tests/index.test.ts",
     "build": "bun build --target=bun index.ts > configurator.js && mv configurator.js ../configurator.js"
   },
@@ -14,6 +15,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@clack/prompts": "^0.7.0"
+    "@clack/prompts": "^1.0.1",
+    "toml": "^3.0.0"
   }
 }

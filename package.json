@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@clack/prompts": "^1.0.1",
+    "js-toml": "^1.0.2",
+    "toml": "^3.0.0"
+  }
+}

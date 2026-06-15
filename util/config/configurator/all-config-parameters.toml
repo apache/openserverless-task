@@ -1,0 +1,248 @@
+# Content: for all the components that Openserverless needs in its configuration,
+# we create a suitable configuration
+# This is a TOML document
+# To obtain some of these arguments, use the command
+# ops -config -d | awk -F= '/=/{print $1}'
+
+
+
+[components.aws]
+
+# taskfile format:
+# VAR={ label="<MSG>", initialValue="<VAL>", userInputValue="<DEFAULT_VALUE>"}
+
+
+#
+# AWS configuration values
+#
+
+# Mandatory values
+AWS_ACCESS_KEY_ID= {label="AWS Access Id", initialValue="AAA", userInputValue="BBB"}
+AWS_SECRET_ACCESS_KEY= {label="AWS Secret Key", initialValue="", userInputValue="", type="password"}
+# Non-mandatory values
+AWS_DEFAULT_REGION= {label="AWS Region to use", initialValue="", userInputValue="us-east-1"}
+
+# Value defined in the aws task
+# Mandatory values
+# None
+
+# Non-mandatory values
+AWS_VM_IMAGE_ID={ label="AWS Image to use for VMs", initialValue="{{.__image}}", userInputValue="ami-052efd3df9dad4825"}
+AWS_VM_IMAGE_USER={ label="AWS Default user for image to use for VMs", initialValue="{{.__vmuser}}", userInputValue="ubuntu"}
+AWS_VM_INSTANCE_TYPE={ label="AWS Instance type to use for VMs", hint="The suggested instance type has 8GB and 2vcpus.\nTo get a list of valid values, use:\naws ec2 describe-instance-types --query 'InstanceTypes[].InstanceType' --output table",  initialValue="{{.__vm}}", userInputValue="t3a.large"}
+AWS_VM_DISK_SIZE={ label="AWS Disk Size to use for VMs", initialValue="{{.__disk}}", userInputValue="100"}
+
+
+#
+# EKS configuration values
+#
+
+[components.eks]
+
+# Mandatory values
+# None
+
+# Non-mandatory values
+EKS_NAME={ label="EKS Name for Cluster and Node Group", initialValue="{{.__name}}", userInputValue="openserverless"}
+EKS_REGION={ label="EKS location", initialValue="{{.__region}}", userInputValue="us-east-2"}
+EKS_COUNT={ label="EKS number of worker nodes", initialValue="{{.__count}}", userInputValue="3"}
+EKS_VM={ label="EKS virtual machine type", initialValue="{{.__vm}}", userInputValue="m5.xlarge"}
+EKS_DISK={ label="EKS disk size in gigabyte", initialValue="{{.__disk}}", userInputValue="50"}
+EKS_KUBERNETES_VERSION={ label="EKS Kubernetes Version", initialValue="{{.__kubever}}", userInputValue="1.25"}
+
+
+#
+# GCLOUD configuration values
+#
+
+[components.gcloud]
+
+
+# Mandatory values
+GCLOUD_PROJECT={ label="GCloud Project Id", initialValue="{{.__project}}", userInputValue=""}
+
+# Non-mandatory values
+GCLOUD_REGION={ label="GCloud Zone", initialValue="{{.__region}}", userInputValue="us-east1"}
+GCLOUD_VM={ label="GCloud virtual machine type", initialValue="{{.__vm}}", userInputValue="n2-standard-4"}
+GCLOUD_DISK={ label="GCloud disk size in gigabyte", initialValue="{{.__disk}}", userInputValue="200"}
+GCLOUD_SSHKEY={ label="GCloud public SSH key", initialValue="{{.__key}}", userInputValue="~/.ssh/id_rsa.pub"}
+GCLOUD_IMAGE={ label="GCloud VM image", initialValue="{{.__image}}", userInputValue="ubuntu-minimal-2204-lts"}
+
+#
+# GKE configuration values
+#
+
+[components.gke]
+
+# Mandatory values
+GKE_PROJECT={ label="GCloud Project Id", initialValue="{{.__project}}", userInputValue=""}
+
+# Non-mandatory values
+GKE_NAME={ label="GCloud Cluster Name", initialValue="{{.__name}}", userInputValue="nuvolaris"}
+GKE_REGION={ label="GCloud Cluster Zone", initialValue="{{.__region}}", userInputValue="us-east1"}
+GKE_COUNT={ label="GCloud number of worker nodes", initialValue="{{.__count}}", userInputValue="3"}
+GKE_VM={ label="GKE virtual machine type", initialValue="{{.__vm}}", userInputValue="e2-standard-2"}
+GKE_DISK={ label="GKE disk size in gigabyte", initialValue="{{.__disk}}", userInputValue="50"}
+
+
+#
+# AZCLOUD configuration values
+#
+
+[components.azcloud]
+
+# Mandatory values
+AZCLOUD_PROJECT={ label="Azure Resource Group", initialValue="{{.__project}}", userInputValue=""}
+
+# Non-mandatory values
+AZCLOUD_REGION={ label="Azure Zone", initialValue="{{.__region}}", userInputValue="eastus"}
+AZCLOUD_VM={ label="Azure virtual machine type", initialValue="{{.__vm}}", userInputValue="Standard_B4s_v2"}
+AZCLOUD_DISK={ label="Azure vm disk size in gigabyte", initialValue="{{.__disk}}", userInputValue="100"}
+AZCLOUD_SSHKEY={ label="Azure Cloud public SSH key", initialValue="{{.__key}}", userInputValue="~/.ssh/id_rsa.pub"}
+AZCLOUD_IMAGE={ label="Azure Cloud VM image", initialValue="{{.__image}}", userInputValue="Ubuntu2204"}
+
+
+#
+# AKS configuration values
+#
+
+[components.aks]
+
+# Mandatory values
+AKS_PROJECT={ label="AKS Name for Resource Group", initialValue="{{.__project}}", userInputValue="openserverless"}
+
+# Non-mandatory values
+AKS_NAME={ label="AKS for Cluster", initialValue="{{.__name}}", userInputValue="openserverless"}
+AKS_COUNT={ label="AKS number of worker nodes", initialValue="{{.__count}}", userInputValue="3"}
+AKS_REGION={ label="AKS location", initialValue="{{.__region}}", userInputValue="eastus"}
+AKS_VM={ label="AKS virtual machine type", initialValue="{{.__vm}}", userInputValue="Standard_B4ms"}
+AKS_DISK={ label="AKS disk size in gigabyte", initialValue="{{.__disk}}", userInputValue="50"}
+AKS_SSHKEY={ label="AKS public SSH key in AWS", initialValue="{{.__key}}", userInputValue="~/.ssh/id_rsa.pub"}
+
+
+
+[components.redis]
+REDIS_URL= {label="Redis URL", initialValue="", userInputValue=""}
+REDIS_SERVICE= {label="Redis Service", initialValue="", userInputValue=""}
+REDIS_PREFIX= {label="Redis Prefix", initialValue="", userInputValue=""}
+REDIS_PASSWORD= {label="Redis password", initialValue="", userInputValue="", type="password"}
+# SECRET_REDIS_DEFAULT
+# REDIS_PORT
+# OPSTUTORIAL_SECRET_REDIS
+# REDIS_PROVIDER
+# REDIS_ALT_URL
+# SECRET_REDIS_NUVOLARIS
+# OPERATOR_COMPONENT_REDIS
+# DEVEL_SECRET_REDIS
+
+[components.postgres]
+POSTGRES_DATABASE={label="Database", initialValue="", userInputValue=""}
+POSTGRES_PORT={label="Port", initialValue="", userInputValue=""}
+POSTGRES_USERNAME={label="Username", initialValue="", userInputValue=""}
+POSTGRES_PASSWORD={label="Password", initialValue="", userInputValue="", type="password"}
+#SECRET_POSTGRES_REPLICA=""
+#OPSTUTORIAL_SECRET_POSTGRES=""
+
+
+
+#OPERATOR_CONFIG_ALERTGMAIL
+#OPENWHISK_TIME_LIMIT_MAX
+#POSTGRES_PORT
+#OPERATOR_COMPONENT_CRON
+#REDIS_PORT
+#S3_BUCKET_STATIC
+#S3_PORT
+#OPERATOR_COMPONENT_INVOKER
+#OPERATOR_COMPONENT_REDIS
+#OPERATOR_CONFIG_TLSEMAIL
+#OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY
+#DEVEL_SECRET_MILVUS
+#OPSTUTORIAL_SECRET_MONGODB
+#IMAGES_STREAMER
+#OPSTUTORIAL_SECRET_MILVUS
+#IMAGES_INVOKER
+#SECRET_NUVOLARIS_METADATA
+#OPERATOR_COMPONENT_ETCD
+#SECRET_MILVUS_ROOT
+#S3_ACCESS_KEY
+#OPSTUTORIAL_SECRET_COUCHDB
+#AUTH
+#SECRET_MONGODB_ADMIN
+#MILVUS_PORT
+#MILVUS_TOKEN
+#SECRET_REDIS_DEFAULT
+#OPERATOR_COMPONENT_KAFKA
+#OPERATOR_CONFIG_HOSTPROTOCOL
+#DEVEL_SECRET_REDIS
+#IMAGES_OPERATOR
+#SECRET_OPENWHISK_SYSTEM
+#MILVUS_HOST
+#S3_API_URL
+#OPERATOR_COMPONENT_TLS
+#DEVEL_SECRET_OPENWHISK
+#OPSDEV_APIHOST
+#OPERATOR_CONFIG_TOLERATIONS
+#MINIO_CONFIG_INGRESS_S3
+#SECRET_COUCHDB_INVOKER
+#OPERATOR_COMPONENT_ZOOKEEPER
+#SECRET_MINIO_NUVOLARIS
+#OPERATOR_COMPONENT_AM
+#CONFIGURED
+#DEVEL_SECRET_MINIO
+#HELLO
+#OPSTUTORIAL_SECRET_MINIO
+#STATUS_LAST
+#OPERATOR_COMPONENT_MILVUS
+#REDIS_PROVIDER
+#SECRET_MONGODB_NUVOLARIS
+#OPERATOR_COMPONENT_STATIC
+#SECRET_ETCD_ROOT
+#OPERATOR_CONFIG_APIHOST
+#OPS_COREUTILS
+#SECRET_COUCHDB_ADMIN
+#USER_V1_API_URL
+#OPSDEV_USERNAME
+#SECRET_POSTGRES_NUVOLARIS
+#S3_PROVIDER
+#ANOTHER
+#OPERATOR_CONFIG_AFFINITY
+#OPERATOR_COMPONENT_POSTGRES
+#S3_HOST
+#SECRET_MILVUS_S3
+#REDIS_URL
+#S3_SECRET_KEY
+#DEVEL_SECRET_POSTGRES
+#SECRET_MILVUS_NUVOLARIS
+#OPERATOR_COMPONENT_MINIO
+#OPERATOR_CONFIG_SLIM
+#POSTGRES_CONFIG_REPLICAS
+#REDIS_PREFIX
+#ETCD_CONFIG_REPLICAS
+#OPERATOR_CONFIG_ALERTSLACK
+#OPSTUTORIAL_SECRET_REDIS
+#STATIC_CONTENT_URL
+#IMAGES_CONTROLLER
+#USER_REST_API_URL
+#DEVEL_SECRET_MONGODB
+#MONGODB_URL
+#HELLO3
+#SECRET_POSTGRES_ADMIN
+#OPERATOR_COMPONENT_MONGODB
+#DEVEL_SECRET_COUCHDB
+#POSTGRES_HOST
+#OPERATOR_COMPONENT_PROMETHEUS
+#REDIS_ALT_URL
+#REDIS_PASSWORD
+#OPERATOR_COMPONENT_REGISTRY
+#OPSTUTORIAL_SECRET_OPENWHISK
+#REGISTRY_CONFIG_SECRET_PUSH_PULL
+#OPSDEV_HOST
+#SECRET_MINIO_ADMIN
+#SECRET_OPENWHISK_NUVOLARIS
+#SECRET_REDIS_NUVOLARIS
+#SECRET_COUCHDB_CONTROLLER
+#OPERATOR_COMPONENT_QUOTA
+#REDIS_SERVICE
+#S3_BUCKET_DATA
+#IMAGES_SYSTEMAPI
+#MILVUS_DB_NAME

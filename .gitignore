@@ -23,6 +23,9 @@ _*
 TODO.txt
 **/.env
 **/id_rsa*
+.agent
+.claude
+CLAUDE.md
 .task/
 attic.txt
 **/venv/

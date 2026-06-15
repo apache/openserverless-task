@@ -1,0 +1,5 @@
+{
+  "POSTGRES_PORT": {
+    "type": "string"
+  }
+}

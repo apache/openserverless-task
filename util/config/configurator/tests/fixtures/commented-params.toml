@@ -1,0 +1,4 @@
+[components.aws]
+OUT_AWS_ACCESS_KEY_ID = { label = "AWS Access Id", initialValue = "AAA", userInputValue = "BBB" }
+"#OUT_AWS_DISABLED" = { label = "Disabled param", initialValue = "", userInputValue = "" }
+OUT_AWS_REGION = "us-east-1"
