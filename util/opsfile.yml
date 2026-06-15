@@ -48,6 +48,12 @@ tasks:
     cmds:
       - echo "{{OS}}-{{ARCH}}"
 
+  whoami:
+    desc: current user/namespace
+    silent: true
+    cmds:
+      - ops -wsk property get | awk '/whisk namespace/{print $3}'
+
   apihost:
     desc: current apihost
     silent: true

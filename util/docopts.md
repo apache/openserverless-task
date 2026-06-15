@@ -24,6 +24,7 @@ OpenServerless Utilities
 
 ```text
 Usage:
+  util whoami
   util apihost
   util system
   util update-cli
@@ -50,6 +51,7 @@ Usage:
 ## Commands
 
 ```
+-  whoami                  current user/namespace
 -  apihost                 current apihost
 -  system                  system info (<os>-<arch> in Go format)
 -  update-cli              update the cli downloading the binary
