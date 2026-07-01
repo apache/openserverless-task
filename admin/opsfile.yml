@@ -44,6 +44,15 @@ tasks:
     silent: true
     cmds:
       - |
+        if test "$SSO_ENABLED" = "true" && ! {{.__confirm_namespace_delete}}
+        then
+          echo "SSO is enabled on this cluster."
+          echo "User administration is delegated to the remote authentication provider."
+          echo "This command would delete the OpenServerless namespace and its resources."
+          echo "Use 'ops admin sso unbind {{._username_}}' to disable SSO access while preserving the namespace."
+          echo "Re-run with '--confirm-namespace-delete' only when you really want to deprovision the namespace."
+          exit 1
+        fi
         {{.DRY}} kubectl -n nuvolaris delete wsku/{{._username_}}
         {{.DRY}}  $OPS -config -r {{._username_}}
 
