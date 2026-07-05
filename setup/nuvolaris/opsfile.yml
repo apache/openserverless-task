@@ -102,13 +102,13 @@ tasks:
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
         do
-          ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{.metadata.annotations.system_action_status}')"
-          if [[ -z "$ANNOT_VALUE" ]]
+          ANNOT_VALUE="$(kubectl -n nuvolaris get cm/config -o jsonpath='{{.JSONPATH}}')"
+          if [[ -z "$ANNOT_VALUE" || "$ANNOT_VALUE" != "{{.EXPECTED_VALUE}}" ]]
           then
             printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
             sleep 5
           else
-            test "$ANNOT_VALUE" = "{{.EXPECTED_VALUE}}" && RES=true || RES=false
+            RES=true
             break
           fi
         done
@@ -200,6 +200,25 @@ tasks:
       -p s3_port "$S3_PORT" \
       -p s3_data "$S3_BUCKET_DATA"
     - "{{.RUN}} wsk {{.ETC}} action invoke hello/minio -r"
+
+  seaweedfs:
+    silent: true
+    desc: seaweedfs s3-compatible test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      S3_ACCESS_KEY=$($OPS -config S3_ACCESS_KEY)
+      S3_SECRET_KEY=$($OPS -config S3_SECRET_KEY)
+      S3_HOST=$($OPS -config S3_HOST)
+      S3_PORT=$($OPS -config S3_PORT)
+      S3_BUCKET_DATA=$($OPS -config S3_BUCKET_DATA)
+      {{.RUN}} wsk {{.ETC}} action update hello/seaweedfs seaweedfs.js \
+      -p s3_access "$S3_ACCESS_KEY" \
+      -p s3_secret "$S3_SECRET_KEY" \
+      -p s3_host "$S3_HOST" \
+      -p s3_port "$S3_PORT" \
+      -p s3_data "$S3_BUCKET_DATA"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/seaweedfs -r"
 
   postgres:
     silent: true

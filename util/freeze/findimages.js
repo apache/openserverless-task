@@ -20,8 +20,8 @@ const imageDir = process.env.IMAGE_DIR
 
 const images = []
 
-// Component images from opsroot.json, skip controller and invoker
-const skipKeys = new Set(["controller", "invoker"])
+// Component images from opsroot.json, skip standalone and devcontainer
+const skipKeys = new Set(["standalone", "devcontainer"])
 const opsroot = await Bun.file(`${opsRoot}/opsroot.json`).json()
 for (const [key, img] of Object.entries(opsroot.config.images)) {
   if (skipKeys.has(key)) continue

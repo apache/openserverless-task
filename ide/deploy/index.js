@@ -45,10 +45,10 @@ async function signalHandler() {
 
 function checkPort() {
     const server = createServer();
-    server.listen(8080, '127.0.0.1');
+    server.listen(5173, '127.0.0.1');
     server.on('error', () => {
-        console.log('deployment mode already active (or something listening in 127.0.0.1:8080)');
-        server.close();        
+        console.log('deployment mode already active (or something listening in 127.0.0.1:5173)');
+        server.close();
     });
     server.on('listening', () => server.close());
 }
