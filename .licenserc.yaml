@@ -35,3 +35,9 @@ header:
     - 'update/update.ps1' 
     - '**/mime.types'
     - '**/*.txt'
+    - '**/*.md'
+    - DISCLAIMER
+    - LICENSE
+    - NOTICE
+    - '.gitignore'
+    - '**/.env.*'

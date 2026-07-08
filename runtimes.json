@@ -20,7 +20,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v21-8e09c2f"
+                    "tag": "v21-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -47,7 +47,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v20-8e09c2f"
+                    "tag": "v20-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -61,7 +61,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v18-8e09c2f"
+                    "tag": "v18-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -77,7 +77,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.12-8e09c2f"
+                    "tag": "v3.12-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -104,7 +104,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.11-8e09c2f"
+                    "tag": "v3.11-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -118,7 +118,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.12-8e09c2f"
+                    "tag": "v3.12-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -132,7 +132,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.13-8e09c2f"
+                    "tag": "v3.13-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -153,7 +153,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.22-8e09c2f"
+                    "tag": "v1.22-0045691"
                 }
             },
             {
@@ -167,7 +167,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.21-8e09c2f"
+                    "tag": "v1.21-0045691"
                 }
             },
             {
@@ -181,7 +181,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.20-8e09c2f"
+                    "tag": "v1.20-0045691"
                 }
             },
             {
@@ -195,7 +195,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.22proxy-8e09c2f"
+                    "tag": "v1.22proxy-0045691"
                 }
             }
         ],
@@ -206,7 +206,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v8-8e09c2f"
+                    "tag": "v8-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -221,7 +221,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v11-8e09c2f"
+                    "tag": "v11-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -236,7 +236,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v17-8e09c2f"
+                    "tag": "v17-0045691"
                 },
                 "deprecated": false,
                 "attached": {
@@ -251,7 +251,7 @@
                 "image": {
                     "prefix": "apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v21-8e09c2f"
+                    "tag": "v21-0045691"
                 },
                 "deprecated": false,
                 "attached": {

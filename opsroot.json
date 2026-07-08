@@ -5,11 +5,11 @@
       "coreutils": "arch b2sum b3sum base32 basename basenc cat chgrp chmod chown chroot cksum comm cp csplit cut date dd df dir dircolors dirname du env expand expr factor fmt fold groups hashsum head hostid hostname id install join kill link ln logname ls md5sum mkdir mkfifo mknod mktemp more mv nice nl nohup nproc numfmt od paste pathchk pinky pr printenv printf ptx pwd readlink realpath rm rmdir seq sha1sum sha224sum sha256sum sha3-224sum sha3-256sum sha3-384sum sha3-512sum sha384sum sha3sum sha512sum shake128sum shake256sum shred shuf sleep sort split stat stdbuf stty sum sync tac tail tee timeout touch tr truncate tsort tty uname unexpand uniq unlink uptime users vdir wc who whoami yes"
     },
     "images": {
-      "operator": "docker.io/apache/openserverless-operator:8e09c2f",
-      "controller": "docker.io/apache/openserverless-wsk-invoker:8e09c2f",
-      "invoker": "docker.io/apache/openserverless-wsk-controller:8e09c2f",
-      "streamer": "docker.io/apache/openserverless-streamer:8e09c2f",
-      "systemapi": "docker.io/apache/openserverless-admin-api:8e09c2f",
+      "operator": "docker.io/apache/openserverless-operator:0045691",
+      "controller": "docker.io/apache/openserverless-wsk-invoker:0045691",
+      "invoker": "docker.io/apache/openserverless-wsk-controller:0045691",
+      "streamer": "docker.io/apache/openserverless-streamer:0045691",
+      "systemapi": "docker.io/apache/openserverless-admin-api:0045691",
       "devcontainer": "apache/openserverless-devcontainer:0.1.0-incubating.2603111653",
       "ingress": "registry.k8s.io/ingress-nginx/controller:v1.7.0",
       "couchdb": "docker.io/apache/couchdb:2.3",
