@@ -119,13 +119,15 @@ tasks:
 
   setup:
     silent: true
-    desc: setup OpenServerless ide
+    desc: setup app
     cmds:
       - |
-        clear
-        while ! test -e ~/.wskprops
-        do $OPS ide login
+        echo ">>>"
+        ops action list setup | awk 'NR>1{print $1}' | while read action
+        do echo "=== $action"
+           ops invoke "$action" || echo "error in $action"
         done
+        echo "<<<"
 
 
   login:
@@ -268,6 +270,8 @@ tasks:
               echo "URL: $OPSDEV_HOST"
             fi
         fi
+      - task: setup
+
 
   undeploy:
     desc: undeploy actions and packages from the current project
@@ -366,16 +370,3 @@ tasks:
     desc: nodejs subcommand
 
 
-  init:
-    desc: setup the package invoking all the setup actions
-    silent: true
-    cmds:
-    - |
-      if ops action list init 2>/dev/null >_init
-      then
-          cat _init | awk 'NR>1{print $1}' | while read action
-          do  echo $action >&2
-              ops action invoke -r "$action" | jq -M -c .
-          done
-      else echo "nothing to do" >&2
-      fi

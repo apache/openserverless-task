@@ -14,22 +14,10 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+#
 
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: usage-job
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: df-checker
-          image: busybox:1.36
-          command: [ "sh", "-c" ]
-          args:
-            - |
-              # skip header row
-              df -h /mnt/data* | tail -n +2;
-          volumeMounts: []
-      volumes: []
+* text=auto eol=lf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary

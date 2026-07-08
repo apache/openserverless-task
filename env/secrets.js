@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 // @bun
 var{argv:G}=globalThis.Bun;var{$:W}=globalThis.Bun;class Q{static parseArguments(z,J){let B={};if(J==="add"){let D=null,F="";for(let N of z)if(N.includes("=")){if(D!==null)B[D]=F.trim();let[E,X=""]=N.split("=",2);D=E.toUpperCase().trim(),F=X}else F+=` ${N}`;if(D!==null)B[D]=F.trim()}else if(J==="remove")for(let D of z)B[D.toUpperCase().trim()]="";return B}static printTable(z,J){try{let B=Object.keys(J),D=Math.max(...B.map((X)=>X.length)),F=Math.max(...B.map((X)=>J[X].length)),N=D+F+7,E="";return E+=`
 ${z}

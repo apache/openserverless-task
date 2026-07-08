@@ -28,7 +28,7 @@ import { file } from "bun";
  * @param startPort
  * @returns {Promise<number>}
  */
-async function findAvailablePort(host, startPort = 8080) {
+async function findAvailablePort(host, startPort = 5173) {
     host = host || '127.0.0.1';
     for (let port = startPort; port < 65535; port++) {
         try {
@@ -123,7 +123,7 @@ async function main() {
     // Get command-line arguments
     const args = Bun.argv.slice(2);
     const flags = {
-        port: 8080,
+        port: 5173,
         host: "127.0.0.1",
         dir: "./",
         proxyHost: null,

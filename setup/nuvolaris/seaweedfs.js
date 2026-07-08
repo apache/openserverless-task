@@ -16,7 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+const Minio = require('minio');
 
-import main from "./configurator";
+async function main(args) {
+    console.log(`connecting to ${args.s3_host}:${args.s3_port}`)
+    let minioClient = new Minio.Client({
+        endPoint: args.s3_host,
+        port: parseInt(args.s3_port),
+        useSSL: false,
+        accessKey: args.s3_access,
+        secretKey: args.s3_secret
+    });
 
-main().catch(console.error);
+    let bucketName = args.s3_data;
+    let bucketExists = await minioClient.bucketExists(bucketName);
+
+    if(!bucketExists) {
+        throw new Error(`bucket ${bucketName} not found`);
+    }
+
+    return {
+        "body": {
+            "bucket": bucketName,
+            "exists": bucketExists
+        }
+    }
+}

@@ -15,21 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: usage-job
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: df-checker
-          image: busybox:1.36
-          command: [ "sh", "-c" ]
-          args:
-            - |
-              # skip header row
-              df -h /mnt/data* | tail -n +2;
-          volumeMounts: []
-      volumes: []
+github:
+  rulesets:
+    - name: "Default Branch Protection"
+      type: branch
+      branches:
+        includes:
+          - "~DEFAULT_BRANCH"
+          - "release/*"
+          - "rel/*"
+        excludes: []
+      bypass_teams:
+        - root
+      restrict_deletion: true
+      restrict_force_push: true
