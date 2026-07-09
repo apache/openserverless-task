@@ -26,6 +26,8 @@ Configure OpenServerless
 Usage:
   config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
+  config sso keycloak --enable --issuer-url=<issuer-url> --jwks-url=<jwks-url> --audience=<audience> --required-group=<group> [--username-claim=<claim>] [--groups-claim=<claim>] [--namespace=<namespace>] [--configmap=<name>] [--statefulset=<name>] [--container=<name>] [--no-rollout]
+  config sso (show|disable)
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
@@ -58,6 +60,7 @@ Usage:
 
 ```
   config apihost          configure the apihost (auto: auto assign) and enable tls
+  config sso              configure SSO/OIDC integration for admin-api; run `ops config sso --help` for details
   config runtime          show the current runtime.json or import the <runtime-json> if provided
   config enable           enable OpenServerless services to install
   config disable          disable OpenServerless services to install
