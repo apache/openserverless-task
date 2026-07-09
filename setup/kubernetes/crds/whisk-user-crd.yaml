@@ -245,4 +245,24 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_user_create.storage_route
-          description: Route                         
+          description: Route
+        - name: SSO
+          type: string
+          priority: 0
+          jsonPath: .metadata.annotations.openserverless\.apache\.org/auth-mode
+          description: SSO authentication mode
+        - name: SSOProvider
+          type: string
+          priority: 1
+          jsonPath: .metadata.annotations.openserverless\.apache\.org/auth-provider
+          description: SSO authentication provider
+        - name: SSOUser
+          type: string
+          priority: 1
+          jsonPath: .metadata.annotations.openserverless\.apache\.org/sso-username
+          description: External SSO username
+        - name: SSODisabled
+          type: string
+          priority: 1
+          jsonPath: .metadata.annotations.openserverless\.apache\.org/sso-disabled
+          description: SSO login disabled flag
