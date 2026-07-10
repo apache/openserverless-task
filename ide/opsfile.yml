@@ -146,7 +146,10 @@ tasks:
         then export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         echo "*** Configuring Access to OpenServerless ***"
-        if test -z "{{._username_}}"
+        if test "$SSO_ENABLED" = "true" && test "$OPS_SSO_LOGIN_FLOW" != "password"
+        then
+            OPSDEV_USERNAME=""
+        elif test -z "{{._username_}}"
         then
             if test -n "$OPS_USER"
             then
@@ -172,15 +175,31 @@ tasks:
             fi
         else export OPSDEV_APIHOST="{{._apihost_}}"
         fi
-        echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
+        if test -n "$OPSDEV_USERNAME"
+        then echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
+        else echo "Logging in $OPSDEV_APIHOST with SSO"
+        fi
         if test -n "$OPS_PASSWORD"
         then export "OPS_PASSWORD"
         fi
         # TO FIX: workaround to a problem on ops that ignores the paratemer if OPS_USER is set
-        export OPS_USER="$OPSDEV_USERNAME"
+        if test -n "$OPSDEV_USERNAME"
+        then export OPS_USER="$OPSDEV_USERNAME"
+        else unset OPS_USER
+        fi
         export OPS_APIHOST="$OPSDEV_APIHOST"
-        if ops -login
+        if $OPS -login
         then
+          source ~/.wskprops
+          if test -z "$OPSDEV_USERNAME"
+          then
+            OPSDEV_USERNAME="$($OPS -config STATUS_LOGGED_USER)"
+            if test -z "$OPSDEV_USERNAME"
+            then
+              OPSDEV_USERNAME="$($OPS -wsk property get --namespace | awk '{ print $3 }')"
+            fi
+            test -n "$OPSDEV_USERNAME" || die "cannot determine OpenServerless namespace after SSO login"
+          fi
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
           OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
           OPSDEV_STREAM="${OPSDEV_APIHOST/\/\////stream.}"
@@ -195,7 +214,6 @@ tasks:
           config VITE_OPSDEV_S3="$OPSDEV_S3"
           config VITE_OPSDEV_HOST="$OPSDEV_HOST"
           config VITE_OPSDEV_APIHOST="$OPSDEV_APIHOST"
-          source ~/.wskprops
         fi
         if {{.__pin}}
         then
@@ -368,5 +386,4 @@ tasks:
 
   nodejs:
     desc: nodejs subcommand
-
 
