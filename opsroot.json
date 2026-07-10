@@ -9,7 +9,7 @@
       "controller": "ghcr.io/nuvolaris/openwhisk-controller:3.1.0-mastrogpt.2402101445",
       "invoker": "ghcr.io/nuvolaris/openwhisk-invoker:3.1.0-mastrogpt.2402101445",
       "streamer": "docker.io/apache/openserverless-streamer:0.1.0-incubating.2505031325",
-      "systemapi": "docker.io/apache/openserverless-admin-api:0.1.0-incubating.2512101357",
+      "systemapi": "docker.io/apache/openserverless-admin-api:0.9.1-incubating.2607101525",
       "devcontainer": "apache/openserverless-devcontainer:0.1.0-incubating.2603111653",
       "ingress": "registry.k8s.io/ingress-nginx/controller:v1.7.0",
       "couchdb": "docker.io/apache/couchdb:2.3",
