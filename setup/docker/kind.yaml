@@ -49,6 +49,51 @@ nodes:
   - containerPort: 30222
     hostPort: 2222
     protocol: TCP
+  - containerPort: 30232
+    hostPort: 3232
+    protocol: TCP
+  - containerPort: 30233
+    hostPort: 3233
+    protocol: TCP
+  - containerPort: 30896
+    hostPort: 7896
+    protocol: TCP  
+  - containerPort: 30984
+    hostPort: 5984
+    protocol: TCP  
+  - containerPort: 30992 
+    hostPort: 9092
+    protocol: TCP
+  - containerPort: 30644
+    hostPort: 9644
+    protocol: TCP    
+  - containerPort: 6379
+    hostPort: 30379
+    protocol: TCP
+  - containerPort: 28017
+    hostPort: 32817
+    protocol: TCP
+  - containerPort: 32717
+    hostPort: 27017
+    protocol: TCP
+  - containerPort: 32090
+    hostPort: 9000
+    protocol: TCP 
+  - containerPort: 32091
+    hostPort: 9090
+    protocol: TCP            
+  - containerPort: 9080
+    hostPort: 9080
+    protocol: TCP            
+  - containerPort: 9010
+    hostPort: 9010
+    protocol: TCP 
+  - containerPort: 32530
+    hostPort: 19530
+    protocol: TCP 
+  - containerPort: 32531
+    hostPort: 9091
+    protocol: TCP
   extraMounts:
   - hostPath: "$DATADIR/data"
     containerPath: /data
