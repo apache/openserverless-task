@@ -41,6 +41,14 @@ spec:
           ports:
             - containerPort: 5000
               name: api
+          readinessProbe:
+            tcpSocket:
+              port: api
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
           env:
           - name: "APIHOST"
             value: "${SYS_API_HOSTNAME:-localhost}"
