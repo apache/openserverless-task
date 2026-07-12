@@ -26,9 +26,7 @@ Configure OpenServerless
 Usage:
   config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
-  config sso keycloak --enable --issuer-url=<issuer-url> --jwks-url=<jwks-url> (--audience=<audience>|--client-id=<client-id>) --required-group=<group> [--client-secret=<client-secret>] [--username-claim=<claim>] [--groups-claim=<claim>] [--namespace=<namespace>] [--configmap=<name>] [--secret=<name>] [--statefulset=<name>] [--container=<name>] [--no-rollout]
-  config sso show
-  config sso disable [--namespace=<namespace>] [--configmap=<name>] [--secret=<name>] [--statefulset=<name>] [--container=<name>] [--no-rollout]
+  config sso
   config runtimes [<runtimesjson>]  
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
