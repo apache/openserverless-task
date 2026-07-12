@@ -102,14 +102,15 @@ tasks:
   bun:
     desc: download bun
     vars:
-      VERSION: "1.2.5"
+      VERSION: "1.3.14"
       ARCH2: '{{if eq .ARCH "amd64"}}x64{{else}}aarch64{{end}}'
       URL: 'https://github.com/oven-sh/bun/releases/download/bun-v{{.VERSION}}/bun-{{.OS}}-{{.ARCH2}}.zip'
       FILE: '{{base .URL}}'
     cmds:
     - echo "{{.URL}}"
-    - curl -sL "{{.URL}}" -o "{{.FILE}}"
+    - curl -fsSL "{{.URL}}" -o "{{.FILE}}"
     - extract "{{.FILE}}" bun{{.EXE}}
+    - executable bun{{.EXE}}
     - remove "{{.FILE}}"
 
   kubectl:
@@ -385,4 +386,3 @@ tasks:
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
-
