@@ -1,0 +1,70 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { expect, test } from "bun:test";
+import {
+  access,
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { installDependencies } from "./install-dependencies";
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+test("replaces a partial install and skips a verified install", async () => {
+  const projectDir = await mkdtemp(join(tmpdir(), "ops-bun-install-test-"));
+  const nodeModules = join(projectDir, "node_modules");
+
+  try {
+    await writeFile(
+      join(projectDir, "package.json"),
+      JSON.stringify({ name: "dependency-test", private: true }),
+    );
+    await mkdir(nodeModules);
+    await writeFile(join(nodeModules, "partial-download"), "incomplete");
+
+    expect(await installDependencies(projectDir)).toBe(true);
+    expect(await exists(join(nodeModules, "partial-download"))).toBe(false);
+
+    const state = await readFile(
+      join(nodeModules, ".ops-bun-install-state"),
+      "utf8",
+    );
+    expect(state.trim()).toHaveLength(64);
+
+    await writeFile(join(nodeModules, "verified-install"), "keep");
+    expect(await installDependencies(projectDir)).toBe(false);
+    expect(await exists(join(nodeModules, "verified-install"))).toBe(true);
+  } finally {
+    await rm(projectDir, { recursive: true, force: true });
+  }
+});
