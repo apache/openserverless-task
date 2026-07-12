@@ -46,7 +46,7 @@ tasks:
     silent: true
     desc: Bun test
     cmds:
-    - bun | rg '1.1.27'
+    - bun --version | rg '^1.3.14$'
 
   kubectl:
     silent: true
