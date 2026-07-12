@@ -146,7 +146,7 @@ tasks:
         then export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         echo "*** Configuring Access to OpenServerless ***"
-        if test "$SSO_ENABLED" = "true" && test "$OPS_SSO_LOGIN_FLOW" != "password"
+        if test "$SSO_ENABLED" = "true" && test "$OPS_SSO_LOGIN_FLOW" != "password" && test -z "{{._username_}}"
         then
             OPSDEV_USERNAME=""
         elif test -z "{{._username_}}"
@@ -188,7 +188,11 @@ tasks:
         else unset OPS_USER
         fi
         export OPS_APIHOST="$OPSDEV_APIHOST"
-        if $OPS -login
+        LOGIN_ARGS=()
+        if test -n "$OPSDEV_USERNAME"
+        then LOGIN_ARGS=("$OPSDEV_USERNAME")
+        fi
+        if $OPS -login "${LOGIN_ARGS[@]}"
         then
           source ~/.wskprops
           if test -z "$OPSDEV_USERNAME"
@@ -386,4 +390,3 @@ tasks:
 
   nodejs:
     desc: nodejs subcommand
-
