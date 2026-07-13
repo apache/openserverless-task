@@ -16,10 +16,11 @@
 // under the License.
 
 import {glob} from 'glob';
-import {buildAction, buildZip, deployAction, deployPackage, deployProject} from './deploy.js';
+import {buildAction, buildZip, deployAction, deployPackage, deployProject, setRuntimeImages} from './deploy.js';
 import {getOpenServerlessConfig} from './client.js';
 import {config} from "dotenv";
 import {syncDeployInfo} from "./syncDeployInfo";
+import {ensureRuntimeProfiles} from "./builder.js";
 
 /**
  * This function will prepare and deploy the functions in `packages` directory.
@@ -37,11 +38,13 @@ import {syncDeployInfo} from "./syncDeployInfo";
  * ```
  * @returns {Promise<void>}
  */
-export async function scan() {
+export async function scan(options = {}) {
     const deployments = new Set();
     const packages = new Set();
 
     console.log("> Scan:");
+
+    setRuntimeImages(await ensureRuntimeProfiles(null, options));
 
     // => REQUIREMENTS
     const defaultReqsGlobs = [

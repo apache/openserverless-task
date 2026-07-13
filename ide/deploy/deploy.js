@@ -23,6 +23,7 @@ const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
 
 const queue = [];
 const activeDeployments = new Map();
+let runtimeImages = new Map();
 
 let dryRun = false;
 
@@ -30,8 +31,22 @@ export function setDryRun(b) {
   dryRun = b;
 }
 
+export function setRuntimeImages(images) {
+  runtimeImages = new Map(images || []);
+}
+
+export function mergeRuntimeImages(images) {
+  for (const [action, image] of images || []) runtimeImages.set(action, image);
+}
+
+export function appendRuntimeImage(args, image) {
+  if (!image || /(^|\s)--docker(?:\s|=)/.test(args)) return args;
+  return `${args} --docker ${image}`.trim();
+}
+
 async function exec(cmd) {
   console.log("$", cmd);
+  if (dryRun) return;
   cmd = expandEnv(cmd);
   const cmdArgs = parse(cmd).filter((arg) => typeof arg === "string");
 
@@ -114,9 +129,9 @@ export async function deployAction(artifact) {
     typ = spData[1];
     pkg = sp[1];
   } catch(error) {
-
     console.log("❌ cannot deploy", artifact, "Error:", error.message);
-    return;
+    activeDeployments.delete(artifact);
+    throw error;
   }
 
   await deployPackage(pkg);
@@ -129,16 +144,19 @@ export async function deployAction(artifact) {
     toInspect = [artifact];
   }
 
-  const args = (await extractArgs(toInspect)).join(" ");
+  let args = (await extractArgs(toInspect)).join(" ");
   const actionName = `${pkg}/${name}`;
+  const runtimeImage = runtimeImages.get(actionName);
+  args = appendRuntimeImage(args, runtimeImage);
 
   try {
     await exec(`ops action update ${actionName} ${artifact} ${args}`);
   } catch(error) {
     console.log("❌ cannot deploy", artifact, "Error:", error.message);
+    throw error;
+  } finally {
+    activeDeployments.delete(artifact);
   }
-
-  activeDeployments.delete(artifact);
 
   if (queue.length > 0) {
     const nextArtifact = queue.shift();

@@ -28,6 +28,7 @@ Usage:
   k3s delete <server> [<user>]
   k3s info
   k3s kubeconfig <server> [<user>]
+  k3s registry <server> [<user>]
   k3s status
 ```
 
@@ -38,5 +39,6 @@ Usage:
   delete     uninstall k3s with ssh in <server> using <username> with sudo
   info       info on the server
   kubeconfig recover the kubeconfig from a k3s server <server> with user <username>
+  registry   configure the private registry endpoint used by K3s containerd
   status     status of the server
 ```

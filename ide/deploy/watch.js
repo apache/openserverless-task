@@ -19,12 +19,14 @@ const SKIPDIR = ["virtualenv", "node_modules", "__pycache__"];
 
 import {watch} from 'chokidar';
 import {resolve} from 'path';
-import {deploy} from './deploy.js';
+import {deploy, mergeRuntimeImages} from './deploy.js';
 import {logs, serve} from './client.js';
+import {ensureRuntimeProfiles, runtimeProfileWatchEntries} from './builder.js';
 
 import process from 'process';
 
 export let globalWatcher;
+export let runtimeProfileWatcher;
 
 
 /**
@@ -95,6 +97,29 @@ async function redeploy() {
   });
 }
 
+async function watchRuntimeProfiles() {
+  const entries = await runtimeProfileWatchEntries();
+  if (entries.length === 0) return;
+  runtimeProfileWatcher = watch(entries.map((entry) => entry.path), {
+    persistent: true,
+    ignoreInitial: true,
+    atomic: 250,
+  });
+  runtimeProfileWatcher.on('change', async (changedPath) => {
+    const resolved = resolve(changedPath);
+    const actions = entries
+      .filter((entry) => entry.path === resolved)
+      .flatMap((entry) => entry.actions);
+    if (actions.length === 0) return;
+    try {
+      mergeRuntimeImages(await ensureRuntimeProfiles(actions));
+      for (const action of actions) await deploy(`packages/${action}`);
+    } catch (error) {
+      console.error(`runtime profile rebuild failed: ${error.message}`);
+    }
+  });
+}
+
 /**
  * This function is the entry point and is called when
  * the program is started with the watch flag on
@@ -104,6 +129,7 @@ export async function watchAndDeploy() {
   await logs();
 
   try {
+    await watchRuntimeProfiles();
     await redeploy();
   }
   catch(error) {

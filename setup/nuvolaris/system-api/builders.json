@@ -1,0 +1,7 @@
+{
+  "builders": {
+    "python:3.13": {
+      "kind": "python"
+    }
+  }
+}

@@ -825,6 +825,9 @@ spec:
                     hostname:
                       description: used to configure the repo hostname (if set to auto and mode=internal it will be img.<apihost>)
                       type: string
+                    pull-hostname:
+                      description: node-reachable registry hostname used in action image references
+                      type: string
                     ingress:
                       description: configuration option for global REGISTRY ingresses exposure, will be taken into account only if deployment=interna
                       type: object
@@ -999,4 +1002,4 @@ spec:
           type: string
           priority: 0
           jsonPath: .status.whisk_create.seaweedfs
-          description: Seaweedfs                                                                                                                        
+          description: Seaweedfs

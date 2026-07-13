@@ -65,6 +65,7 @@ tasks:
         k3sup install --k3s-version="{{.K3S_VERSION}}"
         --host="{{._server_}}" --user="{{.INSTALL_USER}}"
         --local-path=$OPS_TMP/kubeconfig
+      - bun registry.ts "{{._server_}}" "{{.INSTALL_USER}}"
     
 
   cert-manager:
@@ -78,9 +79,20 @@ tasks:
     desc: create a k3s with ssh in <server> using <username> with sudo
     cmds:
       - config OPERATOR_CONFIG_KUBE=k3s
+      - config REGISTRY_CONFIG_PULL_HOSTNAME="{{._server_}}:32000"
       - task: install
       - task: cert-manager
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
+
+  registry:
+    silent: true
+    desc: configure the OpenServerless registry endpoint on a K3s node
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
+    cmds:
+      - test -n "{{._server_}}" || die "required <server> ip or hostname"
+      - bun registry.ts "{{._server_}}" "{{.INSTALL_USER}}"
+      - config REGISTRY_CONFIG_PULL_HOSTNAME="{{._server_}}:32000"
 
   delete:
     silent: true

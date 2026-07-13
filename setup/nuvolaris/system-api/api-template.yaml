@@ -50,6 +50,8 @@ spec:
             failureThreshold: 3
             successThreshold: 1
           env:
+          - name: "BUILDER_CATALOG_FILE"
+            value: "/etc/openserverless/builders.json"
           - name: "APIHOST"
             value: "${SYS_API_HOSTNAME:-localhost}"
           - name: "COUCHDB_SERVICE_PORT"
@@ -60,6 +62,15 @@ spec:
             value: "${SYS_API_CDB_USER}"
           - name: "COUCHDB_ADMIN_PASSWORD"
             value: "${SYS_API_CDB_PASSWORD}"
+          volumeMounts:
+          - name: builder-catalog
+            mountPath: /etc/openserverless/builders.json
+            subPath: builders.json
+            readOnly: true
+      volumes:
+      - name: builder-catalog
+        configMap:
+          name: nuvolaris-builder-catalog
 ---
 apiVersion: v1
 kind: Service

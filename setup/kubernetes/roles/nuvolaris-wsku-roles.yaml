@@ -33,6 +33,11 @@ rules:
 - apiGroups: [""]
   resources: ["configmaps"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]  
+# allow the admin api to read registry credentials used by BuildKit
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["registry-pull-secret", "registry-pull-secret-int"]
+  verbs: ["get"]
 # assign the possibility to operate on jobs (admin api)
 - apiGroups: ["batch"]
   resources: ["jobs"]
