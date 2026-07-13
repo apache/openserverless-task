@@ -20,10 +20,11 @@ import {createServer} from 'net';
 import process from 'process';
 import {program} from 'commander';
 import {scan} from './scan.js';
-import {watchAndDeploy, globalWatcher} from './watch.js';
-import {setDryRun, deploy} from './deploy.js';
+import {watchAndDeploy, globalWatcher, runtimeProfileWatcher} from './watch.js';
+import {setDryRun, setRuntimeImages, deploy} from './deploy.js';
 import {undeploy, setDryRun as setUndeployDryRun} from './undeploy.js';
 import {build} from './client.js';
+import {ensureRuntimeProfiles} from './builder.js';
 
 
 
@@ -33,6 +34,11 @@ async function signalHandler() {
     if (globalWatcher) {
         console.log("☠️ SIGKILL - Stopping watcher");
         await globalWatcher.close();
+    }
+
+    if (runtimeProfileWatcher) {
+        console.log("Stopping runtime profile watcher");
+        await runtimeProfileWatcher.close();
     }
 
     const pidPath = expanduser('~/.ops/tmp/deploy.pid');
@@ -125,13 +131,13 @@ async function main() {
     } else if (options.watch) {
         checkPort();
         if (!options.fast) {
-            await scan();
+            await scan({dryRun: options.dryRun});
             await build();
         }
         await watchAndDeploy();
 
     } else if (options.deploy) {
-        await scan();
+        await scan({dryRun: options.dryRun});
         await build();
         process.exit(0);
     } else if (options.single !== '') {
@@ -143,6 +149,9 @@ async function main() {
             console.log(`❌ action ${action} not found: must be either a file or a directory under packages`);
             return;
         }
+        const actionParts = action.split('/');
+        const actionName = `${actionParts[1]}/${actionParts[2].split('.')[0]}`;
+        setRuntimeImages(await ensureRuntimeProfiles([actionName], {dryRun: options.dryRun}));
         console.log(`Deploying ${action}`);
         await deploy(action);
         process.exit(0);

@@ -55,6 +55,20 @@ env:
     sh: ops util ingress-type
 
 tasks:
+  install-builders:
+    desc: Install the versioned runtime builder catalog
+    silent: true
+    cmds:
+      - >
+        bun "$OPS_ROOT/setup/nuvolaris/system-api/builders.ts"
+        "$OPS_ROOT/runtimes.json"
+        "$OPS_ROOT/setup/nuvolaris/system-api/builders.json"
+        > "$OPS_TMP/builders.json"
+      - >
+        kubectl -n nuvolaris create configmap nuvolaris-builder-catalog
+        --from-file=builders.json="$OPS_TMP/builders.json"
+        --dry-run=client -o yaml | kubectl apply -f -
+
   install-toml:
     desc: Update the buildkitd.toml file config map
     silent: true
@@ -78,7 +92,7 @@ tasks:
       - task: remove-secret
       - |
         if ! kubectl -n nuvolaris get secret registry-pull-secret-int >/dev/null 2>&1;
-        then kubectl -n nuvolaris create secret docker-registry registry-pull-secret-int --docker-server=http://nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
+        then kubectl -n nuvolaris create secret docker-registry registry-pull-secret-int --docker-server=nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
         fi
 
   remove-secret:
@@ -97,6 +111,7 @@ tasks:
     cmds:
     - test -e ${INGRESS_TYPE}-template.yaml || die "No avalable template for ingress type ${INGRESS_TYPE}."
     - test -n "$IMAGES_SYSTEMAPI" || die "IMAGES_SYSTEMAPI is not set. Please set it to the desired image version."
+    - task: install-builders
     - envsubst -i api-template.yaml -o _api.yaml > /dev/null 2>&1
     - envsubst -i ${INGRESS_TYPE}-template.yaml -o _ingress.yaml > /dev/null 2>&1
     - kubectl -n nuvolaris apply -f "$OPS_ROOT/setup/nuvolaris/system-api/_api.yaml"
@@ -114,6 +129,7 @@ tasks:
     cmds:
     - task: remove-secret
     - task: remove-toml
+    - kubectl -n nuvolaris delete configmap nuvolaris-builder-catalog --ignore-not-found
     - kubectl -n nuvolaris delete sts/nuvolaris-system-api ing/nuvolaris-system-api-ingress svc/nuvolaris-system-api
     - |
       echo "System Admin API undeployed"

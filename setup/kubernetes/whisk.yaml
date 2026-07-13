@@ -252,6 +252,7 @@ spec:
       username: ${REGISTRY_CONFIG_USERNAME:-opsuser}
       password: ${REGISTRY_CONFIG_SECRET_PUSH_PULL:-changeme-registry}
     hostname: ${REGISTRY_CONFIG_HOSTNAME:-auto}
+    pull-hostname: ${REGISTRY_CONFIG_PULL_HOSTNAME:-auto}
     ingress:
       enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}
   seaweedfs:

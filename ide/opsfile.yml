@@ -102,10 +102,12 @@ tasks:
     desc: setup app
     cmds:
       - |
+        set -e
         echo ">>>"
-        ops action list setup | awk 'NR>1{print $1}' | while read action
+        ACTIONS=$(ops action list)
+        printf '%s\n' "$ACTIONS" | awk 'NR>1 && index($1, "/setup/"){print $1}' | while read action
         do echo "=== $action"
-           ops invoke "$action" || echo "error in $action"
+           ops invoke "$action"
         done
         echo "<<<"
 
