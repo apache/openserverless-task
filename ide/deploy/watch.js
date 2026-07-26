@@ -26,6 +26,21 @@ import process from 'process';
 
 export let globalWatcher;
 
+export const watcherOptions = {
+  persistent: true,
+  ignoreInitial: true,
+  recursive: true,
+  // WHY: MCP scaffold/service tools rewrite generated wrappers in multiple
+  // writes. Deploying the first partial write can miss #--kind and produce an
+  // invalid ZIP update, so wait for the file to remain stable before reading it.
+  awaitWriteFinish: {
+    stabilityThreshold: 500,
+    pollInterval: 100,
+  },
+  atomic: 250,
+  ignored: (file) => shouldIgnoreFile(file),
+};
+
 
 /**
  * This function will return true when the file should
@@ -72,14 +87,7 @@ export async function checkAndDeploy(changeType, path) {
  */
 async function redeploy() {
   console.log("> Watching:");
-  globalWatcher = watch('packages', {
-    persistent: true,
-    ignoreInitial: true,
-    recursive: true,
-    //awaitWriteFinish: true,
-    atomic: 250,
-    ignored: (file) => shouldIgnoreFile(file),
-  });
+  globalWatcher = watch('packages', watcherOptions);
 
 
   globalWatcher.on('all', async (event, path) => {
