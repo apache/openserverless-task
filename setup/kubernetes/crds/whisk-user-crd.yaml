@@ -69,7 +69,10 @@ spec:
                   type: string
                 namespace:
                   description: ow namespace assigned to the user
-                  type: string 
+                  type: string
+                  x-kubernetes-validations:
+                    - rule: "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                      message: "Invalid namespace name"
                 auth:
                   description: ow auth used to authenticate the user
                   type: string
@@ -87,6 +90,9 @@ spec:
                     prefix:
                       description: redis key prefixused to configure a user custom made ACL
                       type: string
+                      x-kubernetes-validations:
+                        - rule: "self.matches('^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')"
+                          message: "Invalid redis username name"
                     password:
                       description: user redis password
                       type: string
