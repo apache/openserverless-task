@@ -1,0 +1,177 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 48m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  name: ${USERNAME}-my-streamer-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: nginx
+
+$T  tls:
+$T  - hosts:
+$T      - ${USERNAME}.${BASE_HOST:-localhost}
+$T    secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+
+---
+# /stream/web/... -> /web/${USERNAME}/...
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 48m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /web/${USERNAME}/$$2
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  name: ${USERNAME}-my-streamer-web-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: nginx
+
+$T  tls:
+$T  - hosts:
+$T      - ${USERNAME}.${BASE_HOST:-localhost}
+$T    secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /stream/web(/|$$)(.*)
+        pathType: ImplementationSpecific
+
+---
+# /stream/action/... -> /action/${USERNAME}/...
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 48m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /action/${USERNAME}/$$2
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  name: ${USERNAME}-my-streamer-action-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: nginx
+
+$T  tls:
+$T  - hosts:
+$T      - ${USERNAME}.${BASE_HOST:-localhost}
+$T    secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /stream/action(/|$$)(.*)
+        pathType: ImplementationSpecific
+
+---
+# S3 buckets on the app host, so clients do not need s3.${BASE_HOST:-localhost}.
+#
+# NO rewrite-target here, deliberately: SigV4 signs the canonical request path,
+# so any rewrite makes SeaweedFS recompute a different signature and the request
+# fails with SignatureDoesNotMatch. The bucket name therefore has to stay in the
+# path exactly as the client signed it.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  name: ${USERNAME}-my-s3-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: nginx
+
+$T  tls:
+$T  - hosts:
+$T      - ${USERNAME}.${BASE_HOST:-localhost}
+$T    secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: seaweedfs
+            port:
+              number: 9000
+        path: /${USERNAME}-web
+        pathType: Prefix
+      - backend:
+          service:
+            name: seaweedfs
+            port:
+              number: 9000
+        path: /${USERNAME}-data
+        pathType: Prefix
+
