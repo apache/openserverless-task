@@ -1,0 +1,200 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    traefik.ingress.kubernetes.io/router.tls: "true"
+$T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+
+  name: ${USERNAME}-my-streamer-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: traefik
+
+$T  tls:
+$T    - hosts:
+$T        - ${USERNAME}.${BASE_HOST:-localhost}
+$T      secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+
+---
+# /stream/web/... -> /web/${USERNAME}/...
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ${USERNAME}-stream-web-rewrite
+  namespace: nuvolaris
+spec:
+  replacePathRegex:
+    regex: /stream/web(/|$$)(.*)
+    replacement: /web/${USERNAME}/$$2
+
+---
+# /stream/action/... -> /action/${USERNAME}/...
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ${USERNAME}-stream-action-rewrite
+  namespace: nuvolaris
+spec:
+  replacePathRegex:
+    regex: /stream/action(/|$$)(.*)
+    replacement: /action/${USERNAME}/$$2
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    traefik.ingress.kubernetes.io/router.middlewares: nuvolaris-${USERNAME}-stream-web-rewrite@kubernetescrd
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    traefik.ingress.kubernetes.io/router.tls: "true"
+$T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+
+  name: ${USERNAME}-my-streamer-web-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: traefik
+
+$T  tls:
+$T    - hosts:
+$T        - ${USERNAME}.${BASE_HOST:-localhost}
+$T      secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /stream/web
+        pathType: Prefix
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    traefik.ingress.kubernetes.io/router.middlewares: nuvolaris-${USERNAME}-stream-action-rewrite@kubernetescrd
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    traefik.ingress.kubernetes.io/router.tls: "true"
+$T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+
+  name: ${USERNAME}-my-streamer-action-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: traefik
+
+$T  tls:
+$T    - hosts:
+$T        - ${USERNAME}.${BASE_HOST:-localhost}
+$T      secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: nuvolaris-streamer-api
+            port:
+              number: 8080
+        path: /stream/action
+        pathType: Prefix
+
+---
+# S3 buckets on the app host, so clients do not need s3.${BASE_HOST:-localhost}.
+#
+# NO rewrite middleware here, deliberately: SigV4 signs the canonical request
+# path, so any replacePathRegex makes SeaweedFS recompute a different signature
+# and the request fails with SignatureDoesNotMatch. The bucket name therefore
+# has to stay in the path exactly as the client signed it.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
+    traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
+
+$T    cert-manager.io/cluster-issuer: letsencrypt-prod
+$T    traefik.ingress.kubernetes.io/router.tls: "true"
+$T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
+
+  name: ${USERNAME}-my-s3-ingress
+  namespace: nuvolaris
+
+spec:
+  ingressClassName: traefik
+
+$T  tls:
+$T    - hosts:
+$T        - ${USERNAME}.${BASE_HOST:-localhost}
+$T      secretName: streamer-api-tls
+
+  rules:
+  - host: ${USERNAME}.${BASE_HOST:-localhost}
+    http:
+      paths:
+      - backend:
+          service:
+            name: seaweedfs
+            port:
+              number: 9000
+        path: /${USERNAME}-web
+        pathType: Prefix
+      - backend:
+          service:
+            name: seaweedfs
+            port:
+              number: 9000
+        path: /${USERNAME}-data
+        pathType: Prefix
