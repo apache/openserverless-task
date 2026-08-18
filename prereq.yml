@@ -290,7 +290,7 @@ tasks:
     cmds:
     - |
       case "{{.OS}}-{{.ARCH}}" in
-      darwin-*) touch zip ;;
+      darwin-*) ln -sf /usr/bin/zip zip ;;
       linux-*)
         cat >zip <<EOF
       #!/bin/bash
