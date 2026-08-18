@@ -290,20 +290,23 @@ tasks:
     cmds:
     - |
       case "{{.OS}}-{{.ARCH}}" in
-      darwin-*) ln -sf /usr/bin/zip zip ;;
-      linux-*)
+      darwin-* | linux-*)
         cat >zip <<EOF
-      #!/bin/bash
-      if test -x /bin/zip -o -x /usr/bin/zip -o -x /usr/local/bin/zip
-      then rm "\$0" ; exec zip "\$@"
-      else echo "Please install zip in your system." ; exit 1
-      fi
+      #!/bin/sh
+      for ZIP in /bin/zip /usr/bin/zip /usr/local/bin/zip
+      do
+        if test -x "\$ZIP"
+        then exec "\$ZIP" "\$@"
+        fi
+      done
+      echo "Please install zip in your system."
+      exit 1
       EOF
         executable zip
       ;;
       windows-*)
-         curl -sL "{{.ZIP_EXE}}" -o zip.exe
-         executable zip.exe
+        curl -sL "{{.ZIP_EXE}}" -o zip.exe
+        executable zip.exe
       ;;
       esac
 
