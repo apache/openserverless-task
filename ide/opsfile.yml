@@ -122,12 +122,15 @@ tasks:
     desc: setup app
     cmds:
       - |
-        echo ">>>"
-        ops action list setup | awk 'NR>1{print $1}' | while read action
-        do echo "=== $action"
-           ops invoke "$action" || echo "error in $action"
-        done
-        echo "<<<"
+        if ops package get setup >/dev/null 2>&1
+        then
+          echo ">>>"
+          ops action list setup | awk 'NR>1{print $1}' | while read action
+          do echo "=== $action"
+            ops invoke "$action" || echo "error in $action"
+          done
+          echo "<<<"
+        fi
 
 
   login:
