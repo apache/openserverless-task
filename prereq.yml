@@ -102,15 +102,14 @@ tasks:
   bun:
     desc: download bun
     vars:
-      VERSION: "1.3.14"
+      VERSION: "1.2.5"
       ARCH2: '{{if eq .ARCH "amd64"}}x64{{else}}aarch64{{end}}'
       URL: 'https://github.com/oven-sh/bun/releases/download/bun-v{{.VERSION}}/bun-{{.OS}}-{{.ARCH2}}.zip'
       FILE: '{{base .URL}}'
     cmds:
     - echo "{{.URL}}"
-    - curl -fsSL "{{.URL}}" -o "{{.FILE}}"
+    - curl -sL "{{.URL}}" -o "{{.FILE}}"
     - extract "{{.FILE}}" bun{{.EXE}}
-    - executable bun{{.EXE}}
     - remove "{{.FILE}}"
 
   kubectl:
@@ -290,23 +289,20 @@ tasks:
     cmds:
     - |
       case "{{.OS}}-{{.ARCH}}" in
-      darwin-* | linux-*)
+      darwin-*) touch zip ;;
+      linux-*)
         cat >zip <<EOF
-      #!/bin/sh
-      for ZIP in /bin/zip /usr/bin/zip /usr/local/bin/zip
-      do
-        if test -x "\$ZIP"
-        then exec "\$ZIP" "\$@"
-        fi
-      done
-      echo "Please install zip in your system."
-      exit 1
+      #!/bin/bash
+      if test -x /bin/zip -o -x /usr/bin/zip -o -x /usr/local/bin/zip
+      then rm "\$0" ; exec zip "\$@"
+      else echo "Please install zip in your system." ; exit 1
+      fi
       EOF
         executable zip
       ;;
       windows-*)
-        curl -sL "{{.ZIP_EXE}}" -o zip.exe
-        executable zip.exe
+         curl -sL "{{.ZIP_EXE}}" -o zip.exe
+         executable zip.exe
       ;;
       esac
 
@@ -389,3 +385,4 @@ tasks:
    - __OS=darwin  __ARCH=amd64 ops -task -t prereq.yml test
    - __OS=darwin  __ARCH=arm64 ops -task -t prereq.yml test
    - __OS=windows __ARCH=amd64 ops -task -t prereq.yml test
+

@@ -34,15 +34,17 @@ tasks:
     cmds:
       - |
         if test -n "{{._username_}}"
-        then 
+        then
           kubectl -n nuvolaris get wsku/{{._username_}} -ojsonpath='{.spec}' | jq .
         else
-          kubectl -n nuvolaris get wsku 
+          kubectl -n nuvolaris get wsku
         fi
 
   deleteuser:
     silent: true
     cmds:
+      - |
+        {{.DRY}} ops admin ingress undeploy U="{{._username_}}"
       - |
         {{.DRY}} kubectl -n nuvolaris delete wsku/{{._username_}}
         {{.DRY}}  $OPS -config -r {{._username_}}
@@ -53,12 +55,12 @@ tasks:
       - |
         export USERNAME={{._username_}}
         export EMAIL={{._email_}}
-        export PASSWORD={{._password_}} 
+        export PASSWORD={{._password_}}
         export SECRET_USER_AUTH="$($OPS -random -u):$($OPS -random --str 64)"
 
         # check {{._username_}} is at least 5 chars long
         if [ ${#USERNAME} -lt 5 ]
-        then 
+        then
           $OPS -die "User name must be at least 5 chars long: $USERNAME"
         fi
 
@@ -100,32 +102,32 @@ tasks:
         export MINIO_STORAGE_QUOTA=auto
 
         if {{.__redis}} || {{.__all}}
-        then 
+        then
           if $OPERATOR_COMPONENT_REDIS
-          then 
+          then
             REDIS_ENABLED=true
-          else 
+          else
             die "Error! Redis is not enabled in OpenServerless"
           fi
         fi
 
         if {{.__mongodb}} || {{.__all}}
-        then 
+        then
           if $OPERATOR_COMPONENT_MONGODB
-          then 
+          then
             MONGODB_ENABLED=true
-          else 
+          else
             die "Error! MongoDB is not enabled in OpenServerless"
           fi
         fi
 
         if {{.__minio}} || {{.__seaweedfs}} || {{.__all}}
-        then 
+        then
           if $OPERATOR_COMPONENT_MINIO || $OPERATOR_COMPONENT_SEAWEEDFS
-          then 
+          then
             MINIO_DATA_ENABLED=true
             MINIO_STATIC_ENABLED=true
-          else 
+          else
             die "Error! Minio or Seaweedfs are not enabled in OpenServerless"
           fi
         fi
@@ -133,12 +135,12 @@ tasks:
 
         if test -n "{{.__storagequota}}"
         then MINIO_STORAGE_QUOTA={{.__storagequota}}
-        fi         
+        fi
 
         if {{.__postgres}} || {{.__all}}
-        then 
+        then
           if $OPERATOR_COMPONENT_POSTGRES
-          then 
+          then
             POSTGRES_ENABLED=true
           else
             die "Error! Postgres is not enabled in OpenServerless"
@@ -146,18 +148,19 @@ tasks:
         fi
 
         if {{.__milvus}} || {{.__all}}
-        then 
+        then
           if $OPERATOR_COMPONENT_MILVUS
-          then 
+          then
             MILVUS_ENABLED=true
           else
             die "Error! Milvus is not enabled in OpenServerless"
           fi
-        fi        
+        fi
 
         envsubst -i user-crd.yaml -o _user-crd.yaml
       - |
-        {{.DRY}} kubectl apply -f _user-crd.yaml  
+        {{.DRY}} kubectl apply -f _user-crd.yaml
+      - ops admin ingress deploy U="{{._username_}}"
 
   compact:
     silent: true
