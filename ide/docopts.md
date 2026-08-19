@@ -68,4 +68,5 @@ Usage:
 --fast          Skip the initial deployment step and go in incremental update mode
 --pin           Pin the current auth in the .env to check you are not deploying on the wrong user
 --mode          this will load from .env.<mode> after .env
+<username>      Optional workspace binding; omit it for SSO device flow to use the authenticated identity
 ```

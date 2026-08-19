@@ -23,20 +23,6 @@ vars:
     sh: |
       echo "http://localhost:80"
 
-  DEPLOY_CURRENT_HASH:
-    sh: |
-      if test -e "$OPS_ROOT/ide/deploy/bun.lockb"
-      then cd "$OPS_ROOT/ide/deploy" && bun "$OPS_ROOT/ide/deploy/bun.lockb" --hash
-      else echo "0"
-      fi
-
-  DEPLOY_PREVIOUS_HASH:
-    sh: |
-      if test -e "$OPS_ROOT/ide/deploy/hash.lock"
-      then cat "$OPS_ROOT/ide/deploy/hash.lock"
-      else echo "0"
-      fi
-
 tasks:
 
   prereq:
@@ -49,21 +35,15 @@ tasks:
             You can also reopen the project with VSCode and use the command 'Reopen in Container'.
     cmds:
       - test {{OS}} != "windows" || die '{{.MSG}}'
-      - test "$(printf '%s\n' "$(bun -v)" "1.1.18" | sort -V | head -n 1)" = "1.1.18" || die "bun 1.1.18 or greater not available"
+      - test "$(printf '%s\n' "$(bun -v)" "1.3.14" | sort -V | head -n 1)" = "1.3.14" || die "bun 1.3.14 or greater not available"
       - test -d "$OPS_PWD/packages" || die "no packages in current directory"
       - test -e ~/.wskprops || die "please run 'ops ide login' first"
       - test -n "$OPSDEV_HOST" || die "please run 'ops ide login' first"
       - test "$(ops -wsk property get --namespace | awk '{ print $3 }')" = "$OPSDEV_USERNAME" || die "Repeat the login"
-      - |
-        if ! test -d "$OPS_ROOT/ide/deploy/node_modules" || [ "{{.DEPLOY_CURRENT_HASH}}" != "{{.DEPLOY_PREVIOUS_HASH}}" ]
-          then
-            cd $OPS_ROOT/ide/deploy && bun install && rm -f $OPS_ROOT/ide/deploy/hash.lock && bun $OPS_ROOT/ide/deploy/bun.lockb --hash > $OPS_ROOT/ide/deploy/hash.lock
-        fi
+      - bun "$OPS_ROOT/ide/install-dependencies.ts" "$OPS_ROOT/ide/deploy"
       - |
         if test -e "$OPS_PWD/package.json"
-        then if ! test -d "$OPS_PWD/node_modules"
-             then cd $OPS_PWD ; bun install
-             fi
+        then bun "$OPS_ROOT/ide/install-dependencies.ts" "$OPS_PWD"
         fi
       - task: kill
 
@@ -149,7 +129,10 @@ tasks:
         then export OPSDEV_APIHOST="{{._apihost_}}"
         fi
         echo "*** Configuring Access to OpenServerless ***"
-        if test -z "{{._username_}}"
+        if test "$SSO_ENABLED" = "true" && test "$OPS_SSO_LOGIN_FLOW" != "password" && test -z "{{._username_}}"
+        then
+            OPSDEV_USERNAME=""
+        elif test -z "{{._username_}}"
         then
             if test -n "$OPS_USER"
             then
@@ -175,15 +158,35 @@ tasks:
             fi
         else export OPSDEV_APIHOST="{{._apihost_}}"
         fi
-        echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
+        if test -n "$OPSDEV_USERNAME"
+        then echo "Logging user $OPSDEV_USERNAME in $OPSDEV_APIHOST"
+        else echo "Logging in $OPSDEV_APIHOST with SSO"
+        fi
         if test -n "$OPS_PASSWORD"
         then export "OPS_PASSWORD"
         fi
         # TO FIX: workaround to a problem on ops that ignores the paratemer if OPS_USER is set
-        export OPS_USER="$OPSDEV_USERNAME"
+        if test -n "$OPSDEV_USERNAME"
+        then export OPS_USER="$OPSDEV_USERNAME"
+        else unset OPS_USER
+        fi
         export OPS_APIHOST="$OPSDEV_APIHOST"
-        if ops -login
+        LOGIN_ARGS=()
+        if test -n "$OPSDEV_USERNAME"
+        then LOGIN_ARGS=("$OPSDEV_USERNAME")
+        fi
+        if $OPS -login "${LOGIN_ARGS[@]}"
         then
+          source ~/.wskprops
+          if test -z "$OPSDEV_USERNAME"
+          then
+            OPSDEV_USERNAME="$($OPS -config STATUS_LOGGED_USER)"
+            if test -z "$OPSDEV_USERNAME"
+            then
+              OPSDEV_USERNAME="$($OPS -wsk property get --namespace | awk '{ print $3 }')"
+            fi
+            test -n "$OPSDEV_USERNAME" || die "cannot determine OpenServerless namespace after SSO login"
+          fi
           OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
           OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
           OPSDEV_STREAM="${OPSDEV_APIHOST/\/\////stream.}"
@@ -198,7 +201,6 @@ tasks:
           config VITE_OPSDEV_S3="$OPSDEV_S3"
           config VITE_OPSDEV_HOST="$OPSDEV_HOST"
           config VITE_OPSDEV_APIHOST="$OPSDEV_APIHOST"
-          source ~/.wskprops
         fi
         if {{.__pin}}
         then
@@ -371,5 +373,3 @@ tasks:
 
   nodejs:
     desc: nodejs subcommand
-
-

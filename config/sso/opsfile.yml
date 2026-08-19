@@ -1,0 +1,60 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: "3"
+
+tasks:
+  keycloak:
+    desc: enable Keycloak OIDC for admin-api
+    silent: true
+    env:
+      OPS_SSO_ENABLE: '{{.__enable}}'
+      OPS_SSO_ISSUER_URL: '{{.__issuer_url}}'
+      OPS_SSO_JWKS_URL: '{{.__jwks_url}}'
+      OPS_SSO_AUDIENCE: '{{.__audience}}'
+      OPS_SSO_CLIENT_ID: '{{.__client_id}}'
+      OPS_SSO_CLIENT_SECRET: '{{.__client_secret}}'
+      OPS_SSO_REQUIRED_GROUP: '{{.__required_group}}'
+      OPS_SSO_USERNAME_CLAIM: '{{.__username_claim}}'
+      OPS_SSO_GROUPS_CLAIM: '{{.__groups_claim}}'
+      OPS_SSO_NAMESPACE: '{{.__namespace}}'
+      OPS_SSO_CONFIGMAP: '{{.__configmap}}'
+      OPS_SSO_SECRET: '{{.__secret}}'
+      OPS_SSO_STATEFULSET: '{{.__statefulset}}'
+      OPS_SSO_CONTAINER: '{{.__container}}'
+      OPS_SSO_NO_ROLLOUT: '{{.__no_rollout}}'
+    cmds:
+      - bun sso.ts keycloak
+
+  show:
+    desc: show local SSO configuration
+    silent: true
+    cmds:
+      - bun sso.ts show
+
+  disable:
+    desc: disable SSO/OIDC for admin-api
+    silent: true
+    env:
+      OPS_SSO_NAMESPACE: '{{.__namespace}}'
+      OPS_SSO_CONFIGMAP: '{{.__configmap}}'
+      OPS_SSO_SECRET: '{{.__secret}}'
+      OPS_SSO_STATEFULSET: '{{.__statefulset}}'
+      OPS_SSO_CONTAINER: '{{.__container}}'
+      OPS_SSO_NO_ROLLOUT: '{{.__no_rollout}}'
+    cmds:
+      - bun sso.ts disable
