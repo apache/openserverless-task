@@ -15,31 +15,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# /// script
-# requires-python = ">=3.12"
-# dependencies = []
-# ///
+version: "3"
 
-import shutil
-import platform
-import os
+env:
+  KUBECONFIG:
+    sh: |
+      if test -e "$OPS_TMP/kubeconfig"
+      then echo  "$OPS_TMP/kubeconfig"
+      else echo ~/.kube/config
+      fi
 
-def get_disk_space_gb(path=None):
+tasks:
 
-    if not path:
-        path = "C:\\" if platform.system() == "Windows" else "/"
-
-    total, used, free = shutil.disk_usage(path)
-    GB = 1024 ** 3
-    return round(free / GB, 2)
-
-REQUIRED_SPACE = int(os.getenv("OPS_REQUIRED_SPACE", "34"))
-
-if __name__ == "__main__":
-    print(f"Checking disk space, required: {REQUIRED_SPACE}GB")
-    free = get_disk_space_gb()
-    if free < REQUIRED_SPACE:
-        print(f"Not enough free disk space ({free}/{REQUIRED_SPACE}GB.)")
-        exit(1)
-
-    exit(0)
+  unbind:
+    desc: disable SSO login for a namespace while preserving resources
+    silent: true
+    cmds:
+      - |
+        kubectl -n nuvolaris annotate wsku/{{._username_}} openserverless.apache.org/sso-disabled=true --overwrite
+        echo "SSO login disabled for namespace {{._username_}}."
+        echo "The OpenServerless namespace and its resources were preserved."
+        echo "To delete them explicitly, run: ops admin deleteuser {{._username_}} --confirm-namespace-delete"
