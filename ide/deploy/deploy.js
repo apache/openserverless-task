@@ -16,10 +16,21 @@
 // under the License.
 
 import fs from "fs/promises";
+import path from "path";
 import { expandEnv } from "./env_utils";
+import { getBuiltImageTag, buildImage, getRuntimeImage } from "./builder.js";
+import { addActionToDeployInfo } from "./syncDeployInfo.js";
 const { parse } = await import("shell-quote");
 
-const MAINS = ["__main__.py", "index.js", "index.php", "main.go"];
+/**
+ * Get the registry host for custom images
+ * @returns {string} - Registry host
+ */
+function getRegistryHost() {
+  return "127.0.0.1:32000";
+}
+
+const MAINS = ["__main__.py", "index.js", "index.php", "main.go", "Main.java"];
 
 const queue = [];
 const activeDeployments = new Map();
@@ -47,20 +58,58 @@ async function exec(cmd) {
   }
 }
 
+/**
+ * Determine the language kind from file extension
+ * @param {string} filePath - Path to the file
+ * @returns {string|null} - Language kind or null
+ */
+function getKindFromFile(filePath) {
+  const ext = path.extname(filePath);
+  const basename = path.basename(filePath);
+
+  // Check by main file name
+  if (basename === "__main__.py") return "python";
+  if (basename === "index.js") return "nodejs";
+  if (basename === "index.php") return "php";
+  if (basename === "main.go") return "go";
+  if (basename === "Main.java") return "java";
+
+  // Check by extension
+  if (ext === ".py") return "python";
+  if (ext === ".js") return "nodejs";
+  if (ext === ".php") return "php";
+  if (ext === ".go") return "go";
+  if (ext === ".java") return "java";
+  if (ext === ".rb") return "ruby";
+  if (ext === ".cs") return "dotnet";
+
+  return null;
+}
+
 async function extractArgs(files) {
   const res = [];
   for (const file of files) {
-    if (await fs.exists(file)) {
+    if (await fs.exists(file) && (await fs.stat(file)).isFile()) {
       const fileContent = await fs.readFile(file, "utf-8");
       const lines = fileContent.split("\n");
       for (const line of lines) {
+        let argLine = null;
+
         // python style comment
         if (line.match(/^#[ ]?-{1,2}[^\s-].+/)) {
-          res.push(line.trim().substring(1).trim());
+          argLine = line.trim().substring(1).trim();
         }
         // js style comment
         if (line.match(/^\/\/[ ]?-{1,2}[^\s-].+/)) {
-          res.push(line.trim().substring(2).trim());
+          argLine = line.trim().substring(2).trim();
+        }
+
+        // Split the argument line into individual arguments
+        if (argLine) {
+          const parts = argLine.split(/\s+/);
+          for (const part of parts) {
+            if (part) res.push(part);
+          }
         }
       }
     }
@@ -129,13 +178,92 @@ export async function deployAction(artifact) {
     toInspect = [artifact];
   }
 
-  const args = (await extractArgs(toInspect)).join(" ");
+  let args = await extractArgs(toInspect);
+  let dockerFailed = false;
+
+  // Check if there's a --docker <language>:extend:<auto|version> parameter and replace it
+  const dockerArgIndex = args.findIndex(arg => arg === "--docker");
+  if (dockerArgIndex !== -1 && dockerArgIndex + 1 < args.length) {
+    const dockerValue = args[dockerArgIndex + 1];
+
+    // Check if it matches the pattern <language>:extend:<auto|version>
+    const extendMatch = dockerValue.match(/^(\w+):extend:([\w.]+)$/);
+    if (extendMatch) {
+      const kind = extendMatch[1]; // Extract the language kind (python, nodejs, etc.)
+      const requestedVersion = extendMatch[2]; // "auto" or an explicit version
+
+      try {
+        console.log(`🔍 Detected --docker ${kind}:extend:${requestedVersion} annotation`);
+
+        // Resolve and validate the version to extend
+        const { version: resolvedVersion } = await getRuntimeImage(kind, requestedVersion);
+
+        // Look for requirement file, so we can (re)build the image if the
+        // requirement file hash changed since the last cached build
+        const requirementFiles = {
+          'python': 'requirements.txt',
+          'nodejs': 'package.json',
+          'php': 'composer.json',
+          'java': 'pom.xml',
+          'go': 'go.mod',
+          'ruby': 'Gemfile',
+          'dotnet': 'project.json'
+        };
+
+        let imageTag = null;
+        const reqFile = requirementFiles[kind];
+        if (reqFile) {
+          // Check in packages directory first, then in current working directory
+          const baseDir = process.env.OPS_PWD || process.cwd();
+          const reqPath = path.join(baseDir, 'packages', reqFile);
+
+          try {
+            await fs.access(reqPath);
+            // File exists: buildImage() compares the current hash against the
+            // cached one and only triggers a real build when it changed
+            const result = await buildImage(reqPath, resolvedVersion);
+            if (result) {
+              imageTag = await getBuiltImageTag(kind, resolvedVersion);
+            }
+          } catch (error) {
+            console.log(`⚠️ No ${reqFile} found in packages directory, cannot build custom image`);
+          }
+        }
+
+        // Fall back to a previously cached tag if the requirement file
+        // couldn't be found/rebuilt but a cached image still exists
+        if (!imageTag) {
+          imageTag = await getBuiltImageTag(kind, resolvedVersion);
+        }
+
+        if (imageTag) {
+          const registryHost = getRegistryHost();
+          const fullImageTag = `${registryHost}/${imageTag}`;
+          console.log(`🐳 Using custom built image: ${fullImageTag}`);
+          // Replace <language>:extend:<auto|version> with the full image tag
+          args[dockerArgIndex + 1] = fullImageTag;
+        } else {
+          console.log(`⚠️ Could not build custom image for ${kind}:${resolvedVersion}, using default runtime`);
+          // Remove --docker <language>:extend:<auto|version> if no custom image is available
+          args.splice(dockerArgIndex, 2);
+        }
+      } catch (error) {
+        console.log("❌ cannot deploy", artifact, "Error:", error.message);
+        dockerFailed = true;
+      }
+    }
+  }
+
+  const argsStr =args.join(" ");
   const actionName = `${pkg}/${name}`;
 
-  try {
-    await exec(`ops action update ${actionName} ${artifact} ${args}`);
-  } catch(error) {
-    console.log("❌ cannot deploy", artifact, "Error:", error.message);
+  if (!dockerFailed) {
+    try {
+      await exec(`ops action update ${actionName} ${artifact} ${argsStr}`);
+      addActionToDeployInfo(pkg, name);
+    } catch(error) {
+      console.log("❌ cannot deploy", artifact, "Error:", error.message);
+    }
   }
 
   activeDeployments.delete(artifact);

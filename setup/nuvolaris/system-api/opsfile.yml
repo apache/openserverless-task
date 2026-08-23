@@ -77,8 +77,8 @@ tasks:
     cmds:
       - task: remove-secret
       - |
-        if ! kubectl -n nuvolaris get secret registry-pull-secret-int >/dev/null 2>&1;
-        then kubectl -n nuvolaris create secret docker-registry registry-pull-secret-int --docker-server=http://nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
+        if ! kubectl -n nuvolaris get secret registry-pull-secret-builder >/dev/null 2>&1;
+        then kubectl -n nuvolaris create secret docker-registry registry-pull-secret-builder --docker-server=nuvolaris-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
         fi
 
   remove-secret:
@@ -86,8 +86,8 @@ tasks:
     silent: true
     cmds:
       - |
-        if kubectl -n nuvolaris get secret registry-pull-secret-int >/dev/null 2>&1;
-        then kubectl -n nuvolaris delete secret registry-pull-secret-int
+        if kubectl -n nuvolaris get secret registry-pull-secret-builder >/dev/null 2>&1;
+        then kubectl -n nuvolaris delete secret registry-pull-secret-builder
         fi
 
   deploy:
