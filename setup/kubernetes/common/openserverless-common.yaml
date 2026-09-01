@@ -15,27 +15,22 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-# =========================
-# Worker OCI (rootlesskit)
-# =========================
-[worker.oci]
-  enabled = true
-  rootless = true
-  no-process-sandbox = true
-  snapshotter = "overlayfs"   # usa overlayfs se il kernel lo consente
-
-[worker.containerd]
-  enabled = false
-
-# =========================
-# Registry HTTP insicuro
-# =========================
-[registry."nuvolaris-registry-svc:5000"]
-  #insecure = true
-  http = true
-
-# =========================
-# Logging
-# =========================
-[log]
-  level = "trace"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openserverless
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: openserverless
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openserverless-operator
+  namespace: openserverless
+  labels:
+    app: openserverless-operator  

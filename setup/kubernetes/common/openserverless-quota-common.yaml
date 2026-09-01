@@ -19,7 +19,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nuvolaris-quota
-  namespace: nuvolaris
+  name: openserverless-quota
+  namespace: openserverless
   labels:
-    app: nuvolaris-quota
+    app: openserverless-quota

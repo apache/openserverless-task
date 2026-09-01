@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-K="kubectl -n nuvolaris"
+K="kubectl -n openserverless"
 
 function force_delete {
     ITEM=$1

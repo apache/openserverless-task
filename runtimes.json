@@ -221,8 +221,8 @@
                     "attachmentType": "text/plain"
                 },
                 "image": {
-                    "prefix": "ghcr.io/nuvolaris",
-                    "name": "go-nuvolaris-metaflow",
+                    "prefix": "ghcr.io/openserverless",
+                    "name": "go-openserverless-metaflow",
                     "tag": "bc86ab6"
                 }
             },

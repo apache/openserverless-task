@@ -27,7 +27,7 @@ $T    traefik.ingress.kubernetes.io/router.tls: "true"
 $T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
 
   name: ${USERNAME}-my-streamer-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: traefik
@@ -43,7 +43,7 @@ $T      secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /
@@ -55,7 +55,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: ${USERNAME}-stream-web-rewrite
-  namespace: nuvolaris
+  namespace: openserverless
 spec:
   replacePathRegex:
     regex: /stream/web(/|$$)(.*)
@@ -67,7 +67,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: ${USERNAME}-stream-action-rewrite
-  namespace: nuvolaris
+  namespace: openserverless
 spec:
   replacePathRegex:
     regex: /stream/action(/|$$)(.*)
@@ -79,7 +79,7 @@ kind: Ingress
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
-    traefik.ingress.kubernetes.io/router.middlewares: nuvolaris-${USERNAME}-stream-web-rewrite@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: openserverless-${USERNAME}-stream-web-rewrite@kubernetescrd
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
@@ -89,7 +89,7 @@ $T    traefik.ingress.kubernetes.io/router.tls: "true"
 $T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
 
   name: ${USERNAME}-my-streamer-web-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: traefik
@@ -105,7 +105,7 @@ $T      secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /stream/web
@@ -117,7 +117,7 @@ kind: Ingress
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
-    traefik.ingress.kubernetes.io/router.middlewares: nuvolaris-${USERNAME}-stream-action-rewrite@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: openserverless-${USERNAME}-stream-action-rewrite@kubernetescrd
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
     traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
@@ -127,7 +127,7 @@ $T    traefik.ingress.kubernetes.io/router.tls: "true"
 $T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
 
   name: ${USERNAME}-my-streamer-action-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: traefik
@@ -143,7 +143,7 @@ $T      secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /stream/action
@@ -170,7 +170,7 @@ $T    traefik.ingress.kubernetes.io/router.tls: "true"
 $T    traefik.ingress.kubernetes.io/router.entrypoints: websecure,web
 
   name: ${USERNAME}-my-s3-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: traefik

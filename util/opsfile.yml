@@ -114,15 +114,15 @@ tasks:
     desc: generate secrets
     silent: true
     cmds:
-      - config SECRET_OPENWHISK_SYSTEM="$(random --uuid):$(random --str 64)" SECRET_OPENWHISK_NUVOLARIS="$(random --uuid):$(random --str 64)"
+      - config SECRET_OPENWHISK_SYSTEM="$(random --uuid):$(random --str 64)" SECRET_OPENWHISK_OPENSERVERLESS="$(random --uuid):$(random --str 64)"
       - config SECRET_COUCHDB_ADMIN="$(random --str 12)" SECRET_COUCHDB_CONTROLLER="$(random --str 12)"  SECRET_COUCHDB_INVOKER="$(random --str 12)"
-      - config SECRET_REDIS_DEFAULT="$(random --str 12)" SECRET_REDIS_NUVOLARIS="$(random --str 12)"
-      - config SECRET_MONGODB_ADMIN="$(random --str 12)" SECRET_MONGODB_NUVOLARIS="$(random --str 12)"
-      - config SECRET_MINIO_ADMIN="$(random --str 40)" SECRET_MINIO_NUVOLARIS="$(random --str 40)"
-      - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_NUVOLARIS="$(random --str 12)"
-      - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_NUVOLARIS="$(random --str 12)"
-      - config SECRET_NUVOLARIS_METADATA="$(random --str 12)"
-      - config SECRET_SEAWEEDFS_NUVOLARIS="$(random --str 12)"
+      - config SECRET_REDIS_DEFAULT="$(random --str 12)" SECRET_REDIS_OPENSERVERLESS="$(random --str 12)"
+      - config SECRET_MONGODB_ADMIN="$(random --str 12)" SECRET_MONGODB_OPENSERVERLESS="$(random --str 12)"
+      - config SECRET_MINIO_ADMIN="$(random --str 40)" SECRET_MINIO_OPENSERVERLESS="$(random --str 40)"
+      - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_OPENSERVERLESS="$(random --str 12)"
+      - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_OPENSERVERLESS="$(random --str 12)"
+      - config SECRET_OPENSERVERLESS_METADATA="$(random --str 12)"
+      - config SECRET_SEAWEEDFS_OPENSERVERLESS="$(random --str 12)"
       - echo "Generated $(config -d | rg SECRET_ | wc -l) secrets."
 
   user-secrets:
@@ -144,14 +144,14 @@ tasks:
     desc: remove secrets
     ignore_error: true
     cmds:
-      - config -r SECRET_OPENWHISK_SYSTEM SECRET_OPENWHISK_NUVOLARIS
+      - config -r SECRET_OPENWHISK_SYSTEM SECRET_OPENWHISK_OPENSERVERLESS
       - config -r SECRET_COUCHDB_ADMIN SECRET_COUCHDB_CONTROLLER  SECRET_COUCHDB_INVOKER
-      - config -r SECRET_REDIS_DEFAULT SECRET_REDIS_NUVOLARIS
-      - config -r SECRET_MONGODB_ADMIN SECRET_MONGODB_NUVOLARIS
-      - config -r SECRET_MINIO_ADMIN SECRET_MINIO_NUVOLARIS
-      - config -r SECRET_POSTGRES_ADMIN SECRET_POSTGRES_REPLICA SECRET_POSTGRES_NUVOLARIS
-      - config -r SECRET_ETCD_ROOT SECRET_MILVUS_ROOT SECRET_MILVUS_S3 SECRET_MILVUS_NUVOLARIS
-      - config -r SECRET_NUVOLARIS_METADATA
+      - config -r SECRET_REDIS_DEFAULT SECRET_REDIS_OPENSERVERLESS
+      - config -r SECRET_MONGODB_ADMIN SECRET_MONGODB_OPENSERVERLESS
+      - config -r SECRET_MINIO_ADMIN SECRET_MINIO_OPENSERVERLESS
+      - config -r SECRET_POSTGRES_ADMIN SECRET_POSTGRES_REPLICA SECRET_POSTGRES_OPENSERVERLESS
+      - config -r SECRET_ETCD_ROOT SECRET_MILVUS_ROOT SECRET_MILVUS_S3 SECRET_MILVUS_OPENSERVERLESS
+      - config -r SECRET_OPENSERVERLESS_METADATA
       - config -r SECRET_REGISTRY_PUSH_PULL
       - config -d | rg SECRET_
 
@@ -181,7 +181,7 @@ tasks:
         # removing the '--' at the beginning required to pass extra flags
         test "$1" = "--" && shift
         # execute the command line as passed and expanded
-        kubectl -n nuvolaris "$@"
+        kubectl -n openserverless "$@"
     env:
       KUBECONFIG:
         sh: |-
@@ -194,7 +194,7 @@ tasks:
     desc: extract informations from
     silent: true
     cmds:
-    - kubectl -n nuvolaris get "$OBJECT" -o jsonpath="{$JSONPATH}"
+    - kubectl -n openserverless get "$OBJECT" -o jsonpath="{$JSONPATH}"
     env:
       JSONPATH: '{{._jsonpath_}}'
       OBJECT: '{{._object_}}'
@@ -222,7 +222,7 @@ tasks:
           echo exported current kubeconfig to ~/.kube/config
           echo $BKP
           kubectl cluster-info
-          kubectl config set-context --current --namespace nuvolaris
+          kubectl config set-context --current --namespace openserverless
         else echo "No kubeconfig to export"
         fi
 

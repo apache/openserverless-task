@@ -21,5 +21,5 @@ ops debug kube pod
 
 # enter
 ops util kubeconfig
-kubectl exec -ti -n nuvolaris nuvolaris-operator-0 -- bash
+kubectl exec -ti -n openserverless openserverless-operator-0 -- bash
 

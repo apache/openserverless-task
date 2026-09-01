@@ -18,7 +18,7 @@
 version: 3
 
 vars:
-  CLUSTER: nuvolaris
+  CLUSTER: openserverless
   KIND_CLUSTER: '{{.CLUSTER}}-control-plane'
   BASE:
     sh: echo ~/.ops | replace -s \\ -r / --stdin

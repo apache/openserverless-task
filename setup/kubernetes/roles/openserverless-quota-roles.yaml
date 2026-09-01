@@ -19,14 +19,14 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: nuvolaris
-  name: nuvolaris-quota-role
+  namespace: openserverless
+  name: openserverless-quota-role
   labels:
-    app: nuvolaris-quota-role
+    app: openserverless-quota-role
 rules:
 
 # assign the possibility to operate on whisk users
-- apiGroups: ["nuvolaris.org"]
+- apiGroups: ["openserverless.org"]
   resources: ["whisksusers","whisksusers/status","*/finalizers"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
@@ -38,15 +38,15 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-quota-rb
-  namespace: nuvolaris
+  name: openserverless-quota-rb
+  namespace: openserverless
   labels:
-    app: nuvolaris-quota-rb
+    app: openserverless-quota-rb
 subjects:
 - kind: ServiceAccount
-  namespace: nuvolaris
-  name:  nuvolaris-quota
+  namespace: openserverless
+  name:  openserverless-quota
 roleRef:
   kind: Role
-  name: nuvolaris-quota-role
+  name: openserverless-quota-role
   apiGroup: rbac.authorization.k8s.io

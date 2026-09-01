@@ -45,24 +45,24 @@ tasks:
     desc: retrieve secrets from the kubernetes cluster
     cmds:
       - echo "Retrieving secrets..."
-      - config SECRET_OPENWHISK_SYSTEM="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.whisk-system}')"
-      - config SECRET_OPENWHISK_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.nuvolaris}')"
-      - config SECRET_COUCHDB_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}')"
-      - config SECRET_COUCHDB_INVOKER="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.controller.password}')"
-      - config SECRET_COUCHDB_CONTROLLER="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.couchdb.invoker.password}')"
-      - config SECRET_REDIS_DEFAULT="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.redis.default.password}')"
-      - config SECRET_REDIS_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.redis.nuvolaris.password}')"
-      - config SECRET_MONGODB_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.mongodb.admin.password}')"
-      - config SECRET_MONGODB_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.mongodb.nuvolaris.password}')"
-      - config SECRET_MINIO_ADMIN="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.minio.admin.password}')"
-      - config SECRET_MINIO_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.minio.nuvolaris.password}')"
-      - config SECRET_POSTGRES_ADMIN="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.postgres.admin.password}')"
-      - config SECRET_POSTGRES_REPLICA="$(kubectl -n nuvolaris get wsk/controller -o jsonpath='{.spec.postgres.admin.replica-password}')"
-      - config SECRET_POSTGRES_NUVOLARIS="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.postgres.nuvolaris.password}')"
-      - config SECRET_NUVOLARIS_METADATA="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.nuvolaris.password}')"
-      - config SECRET_MILVUS_ROOT="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.milvus.password.root}')"
-      - config SECRET_MILVUS_S3="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.milvus.password.s3}')"
-      - config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(kubectl -n nuvolaris get wsk/controller -ojsonpath='{.spec.registry.auth.password}')"
+      - config SECRET_OPENWHISK_SYSTEM="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.whisk-system}')"
+      - config SECRET_OPENWHISK_OPENSERVERLESS="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.openwhisk.namespaces.openserverless}')"
+      - config SECRET_COUCHDB_ADMIN="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.couchdb.admin.password}')"
+      - config SECRET_COUCHDB_INVOKER="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.couchdb.controller.password}')"
+      - config SECRET_COUCHDB_CONTROLLER="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.couchdb.invoker.password}')"
+      - config SECRET_REDIS_DEFAULT="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.redis.default.password}')"
+      - config SECRET_REDIS_OPENSERVERLESS="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.redis.openserverless.password}')"
+      - config SECRET_MONGODB_ADMIN="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.mongodb.admin.password}')"
+      - config SECRET_MONGODB_OPENSERVERLESS="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.mongodb.openserverless.password}')"
+      - config SECRET_MINIO_ADMIN="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.minio.admin.password}')"
+      - config SECRET_MINIO_OPENSERVERLESS="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.minio.openserverless.password}')"
+      - config SECRET_POSTGRES_ADMIN="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.postgres.admin.password}')"
+      - config SECRET_POSTGRES_REPLICA="$(kubectl -n openserverless get wsk/controller -o jsonpath='{.spec.postgres.admin.replica-password}')"
+      - config SECRET_POSTGRES_OPENSERVERLESS="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.postgres.openserverless.password}')"
+      - config SECRET_OPENSERVERLESS_METADATA="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.openserverless.password}')"
+      - config SECRET_MILVUS_ROOT="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.milvus.password.root}')"
+      - config SECRET_MILVUS_S3="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.milvus.password.s3}')"
+      - config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(kubectl -n openserverless get wsk/controller -ojsonpath='{.spec.registry.auth.password}')"
 
   apply:
     desc: apply updated config
@@ -71,7 +71,7 @@ tasks:
       - $OPS setup kubernetes runtimes
       - $OPS setup kubernetes instance
       - $OPS setup kubernetes wait-services
-      - $OPS setup nuvolaris login
+      - $OPS setup openserverless login
 
   operator:
     desc: deploys latest version of operator

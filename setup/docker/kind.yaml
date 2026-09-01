@@ -30,13 +30,13 @@ nodes:
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: "ingress-ready=true,nuvolaris.io/kube=kind"
+        node-labels: "ingress-ready=true,openserverless.io/kube=kind"
   - |
     kind: ClusterConfiguration
-    controlPlaneEndpoint: "nuvolaris-control-plane:6443"
+    controlPlaneEndpoint: "openserverless-control-plane:6443"
     apiServer:
       certSANs:
-      - "nuvolaris-control-plane"
+      - "openserverless-control-plane"
       - "localhost"
       - "127.0.0.1"
   extraPortMappings:

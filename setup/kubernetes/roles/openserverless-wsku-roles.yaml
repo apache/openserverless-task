@@ -19,14 +19,14 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: nuvolaris
-  name: nuvolaris-wsku-role
+  namespace: openserverless
+  name: openserverless-wsku-role
   labels:
-    app: nuvolaris-wsku-role
+    app: openserverless-wsku-role
 rules:
 
 # assign the possibility to operate on whisk users
-- apiGroups: ["nuvolaris.org"]
+- apiGroups: ["openserverless.org"]
   resources: ["whisksusers","whisksusers/status","*/finalizers"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 # assign the possibility to operate on configmaps (admin api)
@@ -50,24 +50,24 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-wsku-rb
-  namespace: nuvolaris
+  name: openserverless-wsku-rb
+  namespace: openserverless
   labels:
-    app: nuvolaris-wsku-rb
+    app: openserverless-wsku-rb
 subjects:
 - kind: ServiceAccount
-  namespace: nuvolaris
-  name:  nuvolaris-wsku
+  namespace: openserverless
+  name:  openserverless-wsku
 roleRef:
   kind: Role
-  name: nuvolaris-wsku-role
+  name: openserverless-wsku-role
   apiGroup: rbac.authorization.k8s.io
 ---
 kind: Secret
 apiVersion: v1
 type: kubernetes.io/service-account-token
 metadata:
-  name: nuvolaris-wsku-secret
-  namespace: nuvolaris
+  name: openserverless-wsku-secret
+  namespace: openserverless
   annotations:
-    kubernetes.io/service-account.name: nuvolaris-wsku
+    kubernetes.io/service-account.name: openserverless-wsku

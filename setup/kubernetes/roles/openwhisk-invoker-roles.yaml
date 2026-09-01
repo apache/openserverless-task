@@ -26,7 +26,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: openwhisk-invoker
-  namespace: nuvolaris
+  namespace: openserverless
 rules:
 - apiGroups: ["extensions", "apps"]
   resources: ["deployments"]
@@ -45,10 +45,10 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name:  openwhisk-invoker
-  namespace: nuvolaris
+  namespace: openserverless
 subjects:
 - kind: ServiceAccount
-  namespace: "nuvolaris"
+  namespace: "openserverless"
   name:  openwhisk-invoker 
 roleRef:
   kind: Role
