@@ -111,7 +111,7 @@ async function main() {
         //
         // or
         //
-        // echo '{                                                                                                                                                                                                             (⎈|kind-nuvolaris:default)
+        // echo '{                                                                                                                                                                                                             (⎈|kind-openserverless:default)
         //   "find": "opstutorial",
         //   "filter": {
         //     "experience": { "$gte": 4 }

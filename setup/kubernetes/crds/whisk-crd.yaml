@@ -19,11 +19,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: whisks.nuvolaris.org
-  namespace: nuvolaris
+  name: whisks.openserverless.org
+  namespace: openserverless
 spec:
   scope: Namespaced
-  group: nuvolaris.org
+  group: openserverless.org
   names:
     kind: Whisk
     plural: whisks
@@ -43,12 +43,12 @@ spec:
               type: object
               x-kubernetes-preserve-unknown-fields: true
               properties:              
-                nuvolaris:
+                openserverless:
                   description: Used to specify the openwishk apihost. It can be omitted on kubernetes having ingress attached to external LB (AKS, EKS, LKS etc)
                   type: object
                   properties:
                     password:
-                      description: a password to be used to impersonate the nuvolaris user over some specific whisk_system action as the devel one.
+                      description: a password to be used to impersonate the openserverless user over some specific whisk_system action as the devel one.
                       type: string                  
                     apihost:
                       description: a valid api hostname or ip address. If set to auto the ip address of the kubernetes cluster will be used to generate a hostname with <ip>.nip.io
@@ -84,10 +84,10 @@ spec:
                       description: enable/disable openwhisk toleration. This flag can be true only on multinode cluster deployment. Default to false
                       type: boolean
                     slim:
-                      description: boolean flag to enable/disable nuvolaris slim mode. Defaulted to false
+                      description: boolean flag to enable/disable openserverless slim mode. Defaulted to false
                       type: boolean
                     preload:
-                      description: used to preload some default actions in the nuvolaris namespace. Defaulted to false
+                      description: used to preload some default actions in the openserverless namespace. Defaulted to false
                       type: object
                       properties:
                         only-apache:
@@ -121,7 +121,7 @@ spec:
                       description: deploys redis
                       type: boolean
                     cron:
-                      description: activate the nuvolaris internal scheduled action executor
+                      description: activate the openserverless internal scheduled action executor
                       type: boolean
                     tls:
                       description: enables TLS support via let's encrypt certificate for the ow apihost
@@ -157,7 +157,7 @@ spec:
                     - openwhisk
                     - couchdb
                 openwhisk:
-                  description: Used to setup the default OW namespaces assigned to whisk-system and nuvolaris
+                  description: Used to setup the default OW namespaces assigned to whisk-system and openserverless
                   type: object
                   properties:
                     namespaces:
@@ -166,12 +166,12 @@ spec:
                         whisk-system:
                           description: the auth value to be used for the whisk-system user
                           type: string
-                        nuvolaris:
-                          description: the auth value to be used for the nuvolaris user
+                        openserverless:
+                          description: the auth value to be used for the openserverless user
                           type: string
                       required:
                       - whisk-system
-                      - nuvolaris
+                      - openserverless
                   required:
                   - namespaces    
                 couchdb:
@@ -225,7 +225,7 @@ spec:
                   - admin
                   - controller
                 mongodb:
-                  description: used to configure a nuvolaris shared mongodb instance
+                  description: used to configure a openserverless shared mongodb instance
                   type: object
                   properties:
                     host:
@@ -250,8 +250,8 @@ spec:
                       required:
                       - user
                       - password
-                    nuvolaris:
-                      description: mongodb nuvolaris database credentials
+                    openserverless:
+                      description: mongodb openserverless database credentials
                       type: object
                       properties:
                         user:
@@ -265,9 +265,9 @@ spec:
                     - host
                     - volume-size
                     - admin
-                    - nuvolaris
+                    - openserverless
                 postgres:
-                  description: used to configure a nuvolaris shared postgres instance
+                  description: used to configure a openserverless shared postgres instance
                   type: object
                   properties:
                     volume-size:
@@ -300,8 +300,8 @@ spec:
                       required:
                       - password
                       - replica-password
-                    nuvolaris:
-                      description: postgres nuvolaris database credentials
+                    openserverless:
+                      description: postgres openserverless database credentials
                       type: object
                       properties:
                         password:
@@ -311,7 +311,7 @@ spec:
                   required:
                     - volume-size
                     - admin
-                    - nuvolaris                    
+                    - openserverless                    
                 kafka:
                   description: setup a kafka instance
                   type: object
@@ -390,8 +390,8 @@ spec:
                       required:
                       - user
                       - password
-                    nuvolaris:
-                      description: used to configure the MINIO nuvolaris user used for non administrative purposes
+                    openserverless:
+                      description: used to configure the MINIO openserverless user used for non administrative purposes
                       type: object
                       properties:
                         user:
@@ -423,7 +423,7 @@ spec:
                   required:
                   - volume-size
                   - admin
-                  - nuvolaris 
+                  - openserverless 
                 redis:
                   description: used to configure redis default credentials
                   type: object
@@ -445,12 +445,12 @@ spec:
                           type: string
                       required:
                       - password
-                    nuvolaris:
-                      description: used to configure nuvolaris REDIS user
+                    openserverless:
+                      description: used to configure openserverless REDIS user
                       type: object
                       properties:
                         prefix:
-                          description: REDIS nuvolaris key prefix. Defaulted to "nuvolaris:" if missing
+                          description: REDIS openserverless key prefix. Defaulted to "openserverless:" if missing
                           type: string
                         password:
                           type: string
@@ -459,7 +459,7 @@ spec:
                   required:
                   - volume-size
                   - default
-                  - nuvolaris
+                  - openserverless
                 configs:
                   description: Configuration parameters to customize OW controller/invoker
                   type: object
@@ -655,7 +655,7 @@ spec:
                             description: boolean falg to enable/disable user pod affinity. Default to false
                             type: boolean 
                            user_pod_affinity_key:
-                            description: node label to be used for the invoker pod affinity. Defaults to nuvolaris-role
+                            description: node label to be used for the invoker pod affinity. Defaults to openserverless-role
                             type: string 
                            user_pod_affinity_value:
                             description: node label value used for the invoker pod affinity. Defaults to invoker
@@ -664,7 +664,7 @@ spec:
                             description: boolean falg to enable/disable port forwarding. Default to false
                             type: boolean
                            action_namespace:
-                            description: Action namespace. Default to nuvolaris
+                            description: Action namespace. Default to openserverless
                             type: string                                                       
                         javaOpts:
                           description: invoker memory settings defaulted to "-Xmx1024M"
@@ -711,7 +711,7 @@ spec:
                       required:
                       - containerPool
                 ectd:
-                  description: used to configure a nuvolaris shared ETCD instance
+                  description: used to configure a openserverless shared ETCD instance
                   type: object
                   properties:
                     volume-size:
@@ -736,7 +736,7 @@ spec:
                       required:
                       - password
                 milvus:
-                  description: used to configure a nuvolaris shared MILVUS instance
+                  description: used to configure a openserverless shared MILVUS instance
                   type: object
                   properties:
                     volume-size:
@@ -791,15 +791,15 @@ spec:
                       required:
                       - root
                       - s3
-                    nuvolaris:
+                    openserverless:
                       description: MILVUS default user setup
                       type: object
                       properties:
                         password:
-                          description: nuvolaris MILVUS password
+                          description: openserverless MILVUS password
                           type: string
                         collection:
-                          description: nuvolaris MILVUS collection (default to nuvolaris)
+                          description: openserverless MILVUS collection (default to openserverless)
                           type: string
                 registry:
                   description: used to configure the internal docker compliant registry
@@ -849,8 +849,8 @@ spec:
                     default-bucket-quota:
                       description: default bucket quota, default to 1024MB
                       type: integer
-                    nuvolaris:
-                      description: used to configure the MINIO nuvolaris user used for non administrative purposes
+                    openserverless:
+                      description: used to configure the MINIO openserverless user used for non administrative purposes
                       type: object
                       properties:
                         user:
@@ -881,7 +881,7 @@ spec:
                       - console-enabled                           
                   required:
                   - volume-size
-                  - nuvolaris                                                           
+                  - openserverless                                                           
             status:
               x-kubernetes-preserve-unknown-fields: true
               # type: object

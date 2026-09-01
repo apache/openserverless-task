@@ -19,7 +19,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: nuvolaris-wsku
-  namespace: nuvolaris
+  name: openserverless-wsku
+  namespace: openserverless
   labels:
-    app: nuvolaris-wsku
+    app: openserverless-wsku

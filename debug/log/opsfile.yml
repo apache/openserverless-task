@@ -27,14 +27,14 @@ env:
 
 tasks:
   operator:
-    desc: show nuvolaris operator logs
+    desc: show openserverless operator logs
     cmds:
-      - kubectl -n nuvolaris logs po/nuvolaris-operator-0
+      - kubectl -n openserverless logs po/openserverless-operator-0
 
   foperator:
-    desc: show nuvolaris operator logs following continuosly
+    desc: show openserverless operator logs following continuosly
     cmds:
-      - kubectl -n nuvolaris logs po/nuvolaris-operator-0 -f
+      - kubectl -n openserverless logs po/openserverless-operator-0 -f
 
   certman:
     desc: show cert manager logs
@@ -49,20 +49,20 @@ tasks:
   controller:
     desc: show controller logs
     cmds:
-      - kubectl -n nuvolaris logs controller-0
+      - kubectl -n openserverless logs controller-0
 
   fcontroller:
     desc: show controller logs following continuosly
     cmds:
-      - kubectl -n nuvolaris logs controller-0 -f
+      - kubectl -n openserverless logs controller-0 -f
 
 
   couchdb:
     desc: show couchdb  logs
     cmds:
-      - kubectl -n nuvolaris logs po/couchdb-0
+      - kubectl -n openserverless logs po/couchdb-0
 
   fcouchdb:
     desc: show couchdb  logs following continuosly
     cmds:
-      - kubectl -n nuvolaris logs po/couchdb-0 -f
+      - kubectl -n openserverless logs po/couchdb-0 -f

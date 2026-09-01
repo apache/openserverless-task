@@ -26,7 +26,7 @@ $T    cert-manager.io/cluster-issuer: letsencrypt-prod
 $T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   name: ${USERNAME}-my-streamer-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: nginx
@@ -42,7 +42,7 @@ $T    secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /
@@ -65,7 +65,7 @@ $T    cert-manager.io/cluster-issuer: letsencrypt-prod
 $T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   name: ${USERNAME}-my-streamer-web-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: nginx
@@ -81,7 +81,7 @@ $T    secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /stream/web(/|$$)(.*)
@@ -104,7 +104,7 @@ $T    cert-manager.io/cluster-issuer: letsencrypt-prod
 $T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   name: ${USERNAME}-my-streamer-action-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: nginx
@@ -120,7 +120,7 @@ $T    secretName: streamer-api-tls
       paths:
       - backend:
           service:
-            name: nuvolaris-streamer-api
+            name: openserverless-streamer-api
             port:
               number: 8080
         path: /stream/action(/|$$)(.*)
@@ -146,7 +146,7 @@ $T    cert-manager.io/cluster-issuer: letsencrypt-prod
 $T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   name: ${USERNAME}-my-s3-ingress
-  namespace: nuvolaris
+  namespace: openserverless
 
 spec:
   ingressClassName: nginx

@@ -50,7 +50,7 @@ interface JobOperator {
     cleanup(jobName: string): Promise<void>
 }
 
-const kubectl = ['kubectl', '-n', 'nuvolaris'];
+const kubectl = ['kubectl', '-n', 'openserverless'];
 
 class JobOperatorImpl implements JobOperator {
     constructor(private volumeManager: VolumeManager, private logProcessor: LogFormatter) {

@@ -35,9 +35,9 @@ tasks:
       - |
         if test -n "{{._username_}}"
         then
-          kubectl -n nuvolaris get wsku/{{._username_}} -ojsonpath='{.spec}' | jq .
+          kubectl -n openserverless get wsku/{{._username_}} -ojsonpath='{.spec}' | jq .
         else
-          kubectl -n nuvolaris get wsku
+          kubectl -n openserverless get wsku
         fi
 
   deleteuser:
@@ -46,7 +46,7 @@ tasks:
       - |
         {{.DRY}} ops admin ingress undeploy U="{{._username_}}"
       - |
-        {{.DRY}} kubectl -n nuvolaris delete wsku/{{._username_}}
+        {{.DRY}} kubectl -n openserverless delete wsku/{{._username_}}
         {{.DRY}}  $OPS -config -r {{._username_}}
 
   adduser:
@@ -168,7 +168,7 @@ tasks:
       COUCHDB_HOST: couchdb
       COUCHDB_PORT: "5984"
       JOB_TTL: "10" # cleanup job after 10 seconds
-      DB_NAME: "nuvolaris_activations"
+      DB_NAME: "openserverless_activations"
     cmds:
       - |
         JOB_TTL={{.__ttl}}
@@ -179,7 +179,7 @@ tasks:
         export COUCHDB_PORT="{{.COUCHDB_PORT}}"
         export JOB_TTL=$JOB_TTL
         export DB_NAME={{.DB_NAME}}
-        export COUCHDB_SECRET_NAME=$(kubectl -n nuvolaris get secrets -o name | awk -F'/' '{print $2}' | rg couchdb-auth-)
+        export COUCHDB_SECRET_NAME=$(kubectl -n openserverless get secrets -o name | awk -F'/' '{print $2}' | rg couchdb-auth-)
         envsubst -i kubernetes/compact-job.yaml -o kubernetes/_compact-job.yaml
         {{.DRY}} kubectl apply -f kubernetes/_compact-job.yaml
 

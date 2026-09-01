@@ -15,14 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-apiVersion: nuvolaris.org/v1
+apiVersion: openserverless.org/v1
 kind: Whisk
 metadata:
   name: controller
-  namespace: nuvolaris
+  namespace: openserverless
 spec:
-  nuvolaris:
-      password: $SECRET_NUVOLARIS_METADATA
+  openserverless:
+      password: $SECRET_OPENSERVERLESS_METADATA
       kube: ${OPERATOR_CONFIG_KUBE:-auto}
       apihost: ${OPERATOR_CONFIG_APIHOST}
       storageclass: ${OPERATOR_CONFIG_STORAGECLASS:-auto}
@@ -77,7 +77,7 @@ spec:
   openwhisk:
     namespaces:
       whisk-system: $SECRET_OPENWHISK_SYSTEM
-      nuvolaris: $SECRET_OPENWHISK_NUVOLARIS
+      openserverless: $SECRET_OPENWHISK_OPENSERVERLESS
   couchdb:
     host: couchdb
     volume-size: ${STORAGE_SIZE_COUCHDB:-30}
@@ -148,8 +148,8 @@ spec:
       containerPool:
         userMemory: "$OPENWHISK_INVOKER_CONTAINER_POOL_MEMORY"
       kubernetes:
-        user_pod_affinity_enabled: ${NUVOLARIS_AFFINITY:-false}
-        user_pod_affinity_key : "nuvolaris-role"
+        user_pod_affinity_enabled: ${OPENSERVERLESS_AFFINITY:-false}
+        user_pod_affinity_key : "openserverless-role"
         user_pod_affinity_value : "invoker"
         timeouts_run: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN:-1}
         timeouts_logs: ${OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS:-1}
@@ -163,18 +163,18 @@ spec:
     volume-size: ${STORAGE_SIZE_REDIS:-25}
     default:
       password: $SECRET_REDIS_DEFAULT
-    nuvolaris:
-      prefix: nuvolaris
-      password: $SECRET_REDIS_NUVOLARIS
+    openserverless:
+      prefix: openserverless
+      password: $SECRET_REDIS_OPENSERVERLESS
   mongodb:
     host: mongodb
     volume-size: ${STORAGE_SIZE_MONGODB:-50}
     admin: 
       user: whisk_admin
       password: $SECRET_MONGODB_ADMIN
-    nuvolaris:
-      user: nuvolaris
-      password: $SECRET_MONGODB_NUVOLARIS
+    openserverless:
+      user: openserverless
+      password: $SECRET_MONGODB_OPENSERVERLESS
     exposedExternally: False
     useOperator: False
   minio:
@@ -187,17 +187,17 @@ spec:
     admin:
       user: minioadmin
       password: $SECRET_MINIO_ADMIN    
-    nuvolaris:
-      user: nuvolaris
-      password: $SECRET_MINIO_NUVOLARIS
+    openserverless:
+      user: openserverless
+      password: $SECRET_MINIO_OPENSERVERLESS
   postgres:    
     volume-size: ${STORAGE_SIZE_POSTGRES:-50}
     replicas: ${POSTGRES_CONFIG_REPLICAS:-2}
     admin:      
       password: $SECRET_POSTGRES_ADMIN
       replica-password: $SECRET_POSTGRES_REPLICA
-    nuvolaris:
-      password: $SECRET_POSTGRES_NUVOLARIS
+    openserverless:
+      password: $SECRET_POSTGRES_OPENSERVERLESS
     failover: ${POSTGRES_CONFIG_FAILOVER:-false}
     backup:
       enabled: ${POSTGRES_CONFIG_BACKUP_ENABLED:-false}
@@ -243,8 +243,8 @@ spec:
       root: $SECRET_MILVUS_ROOT     
       s3: $SECRET_MILVUS_S3
       etcd: $SECRET_ETCD_ROOT
-    nuvolaris:
-      password: $SECRET_MILVUS_NUVOLARIS
+    openserverless:
+      password: $SECRET_MILVUS_OPENSERVERLESS
   registry:
     mode: ${REGISTRY_CONFIG_MODE:-internal}
     volume-size: ${REGISTRY_CONFIG_VOLUME_SIZE:-50}
@@ -256,9 +256,9 @@ spec:
       enabled: ${REGISTRY_CONFIG_INGRESS_ENABLED:-false}
   seaweedfs:
     volume-size:  ${STORAGE_SIZE_SEAWEEDFS:-60}
-    nuvolaris:
-      user: nuvolaris
-      password: ${SECRET_SEAWEEDFS_NUVOLARIS:-changeme-seaweedfs}
+    openserverless:
+      user: openserverless
+      password: ${SECRET_SEAWEEDFS_OPENSERVERLESS:-changeme-seaweedfs}
     ingress:
       s3-enabled: ${SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED:-true}
       s3-hostname: ${SEAWEEDFS_CONFIG_INGRESS_S3_HOSTNAME:-auto}

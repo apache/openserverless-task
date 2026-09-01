@@ -17,22 +17,24 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    ingressClassName: traefik
-    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
-    traefik.ingress.kubernetes.io/transport.respondingTimeouts.idleTimeout: "600"
-    traefik.ingress.kubernetes.io/transport.respondingTimeouts.readTimeout: "600"
-    traefik.ingress.kubernetes.io/transport.respondingTimeouts.writeTimeout: "600"
-  name: nuvolaris-system-api-ingress
-  namespace: nuvolaris
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 48m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+  name: openserverless-system-api-ingress
+  namespace: openserverless
 spec:
+  ingressClassName: nginx
   rules:
   - host: ${SYS_API_HOSTNAME:-localhost}
     http:
       paths:
       - backend:
           service:
-            name: nuvolaris-system-api
+            name: openserverless-system-api
             port:
               number: 5000
         path: /system
         pathType: Prefix
+

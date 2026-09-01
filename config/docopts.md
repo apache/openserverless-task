@@ -69,7 +69,7 @@ Usage:
   config invoker          configure Openwhisk enterprise invoker options
   config limits           configure Openwhisk actions limits
   config storage          allows to customize storage persistence class and provider
-  config postgres         allows to customize enterprise options for nuvolaris default postgres deployment  
+  config postgres         allows to customize enterprise options for openserverless default postgres deployment  
   config minio            allows to customize MINIO options
   config milvus           allows to customize MILVUS options
   config etcd             allows to customize ETCD options
@@ -114,7 +114,7 @@ Usage:
   --prometheus          select monitoring via Prometheus
   --slack               select alert manager module over Slack channel
   --mail                select alert manager module over mail channel using a gmail account
-  --affinity            select pod affinity for multinode enterprise deployment. In such case load will be splitted between node labeled with nuvolaris-role in core or invoker
+  --affinity            select pod affinity for multinode enterprise deployment. In such case load will be splitted between node labeled with openserverless-role in core or invoker
   --tolerations         select pod tolerations for multinode enterprise deployment.
   --failover            select failover support on components supporting it as postgres
   --backup              select automatic backup on components support it as postgres

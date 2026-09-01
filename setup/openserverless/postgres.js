@@ -25,14 +25,14 @@ async function main(args) {
 
     const createTableText = `
     CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-    CREATE TABLE IF NOT EXISTS nuvolaris_table (
+    CREATE TABLE IF NOT EXISTS openserverless_table (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         message varchar(100)        
     );
     `
 
-    const createSchema = `CREATE SCHEMA IF NOT EXISTS nuvolaris;
-    SET search_path TO nuvolaris;
+    const createSchema = `CREATE SCHEMA IF NOT EXISTS openserverless;
+    SET search_path TO openserverless;
     `;
 
     // Connect to database server
@@ -46,14 +46,14 @@ async function main(args) {
 
         await client.query(createTableText)
         console.log("CREATED TABLE");
-        const message = "Nuvolaris Postgres is up and running!"
-        await client.query('INSERT INTO nuvolaris_table(message) VALUES($1)', [message])
+        const message = "OpenServerless Postgres is up and running!"
+        await client.query('INSERT INTO openserverless_table(message) VALUES($1)', [message])
         console.log("INSERTED RECORD");
-        const { rows } = await client.query('SELECT * FROM nuvolaris_table')
+        const { rows } = await client.query('SELECT * FROM openserverless_table')
         console.log(rows)
-        await client.query('DROP table nuvolaris_table');
+        await client.query('DROP table openserverless_table');
         console.log("DROPPED TABLE");
-        await client.query('DROP SCHEMA nuvolaris CASCADE');
+        await client.query('DROP SCHEMA openserverless CASCADE');
         response.body = rows;
       } catch (e) {
         console.log(e);        

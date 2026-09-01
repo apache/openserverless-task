@@ -15,9 +15,32 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: openserverless-prometheus-server
+  namespace: openserverless
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: openserverless-prometheus    
+    app.kubernetes.io/name: prometheus
+---
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: openserverless-prometheus
+    app.kubernetes.io/name: alertmanager
+  name: openserverless-prometheus-alertmanager
+  namespace: openserverless
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kubegres-controller-manager
-  namespace: nuvolaris
+  name: openserverless-prometheus-kube-state-metrics
+  namespace: openserverless
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: openserverless-prometheus
+    app.kubernetes.io/name: kube-state-metrics

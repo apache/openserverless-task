@@ -17,24 +17,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: nuvolaris-system-api
-  namespace: nuvolaris
+  name: openserverless-system-api
+  namespace: openserverless
   labels:
-    app: nuvolaris-system-api
+    app: openserverless-system-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nuvolaris-system-api
+      app: openserverless-system-api
   template:
     metadata:
       labels:
-        name: nuvolaris-system-api
-        app: nuvolaris-system-api
+        name: openserverless-system-api
+        app: openserverless-system-api
     spec:
-      serviceAccount: nuvolaris-wsku
+      serviceAccount: openserverless-wsku
       containers:
-        - name: nuvolaris-system-api
+        - name: openserverless-system-api
           image: ${IMAGES_SYSTEMAPI}
           imagePullPolicy: IfNotPresent
           command: ["./run.sh"]
@@ -64,11 +64,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nuvolaris-system-api
-  namespace: nuvolaris
+  name: openserverless-system-api
+  namespace: openserverless
 spec:
   ports:
     - name: api
       port: 5000
   selector:
-    app: nuvolaris-system-api
+    app: openserverless-system-api

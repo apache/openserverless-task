@@ -15,32 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: nuvolaris-prometheus-server
-  namespace: nuvolaris
-  labels:
-    app.kubernetes.io/component: server
-    app.kubernetes.io/instance: nuvolaris-prometheus    
-    app.kubernetes.io/name: prometheus
----
-apiVersion: v1
-automountServiceAccountToken: true
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/instance: nuvolaris-prometheus
-    app.kubernetes.io/name: alertmanager
-  name: nuvolaris-prometheus-alertmanager
-  namespace: nuvolaris
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: nuvolaris-prometheus-kube-state-metrics
-  namespace: nuvolaris
-  labels:
-    app.kubernetes.io/component: metrics
-    app.kubernetes.io/instance: nuvolaris-prometheus
-    app.kubernetes.io/name: kube-state-metrics
+# =========================
+# Worker OCI (rootlesskit)
+# =========================
+[worker.oci]
+  enabled = true
+  rootless = true
+  no-process-sandbox = true
+  snapshotter = "overlayfs"   # usa overlayfs se il kernel lo consente
+
+[worker.containerd]
+  enabled = false
+
+# =========================
+# Registry HTTP insicuro
+# =========================
+[registry."openserverless-registry-svc:5000"]
+  #insecure = true
+  http = true
+
+# =========================
+# Logging
+# =========================
+[log]
+  level = "trace"

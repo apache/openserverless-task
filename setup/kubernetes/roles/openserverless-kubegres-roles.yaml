@@ -20,7 +20,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: kubegres-leader-election-role
-  namespace: nuvolaris
+  namespace: openserverless
 rules:
 - apiGroups:
   - ""
@@ -223,7 +223,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: kubegres-leader-election-rolebinding
-  namespace: nuvolaris
+  namespace: openserverless
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -244,7 +244,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kubegres-controller-manager
-  namespace: nuvolaris
+  namespace: openserverless
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -257,4 +257,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kubegres-controller-manager
-  namespace: nuvolaris
+  namespace: openserverless

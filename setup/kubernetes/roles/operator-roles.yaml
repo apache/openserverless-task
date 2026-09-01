@@ -19,10 +19,10 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-operator-role
-  namespace: nuvolaris
+  name: openserverless-operator-role
+  namespace: openserverless
   labels:
-    app: nuvolaris-operator-role
+    app: openserverless-operator-role
 rules:
 
 # edit secrets cm po svc pvc ingresses serviceaccounts events
@@ -54,8 +54,8 @@ rules:
   resources: ["jobs", "cronjobs", "*/finalizers"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
-# edit nuvolaris crds
-- apiGroups: ["nuvolaris.org"]
+# edit openserverless crds
+- apiGroups: ["openserverless.org"]
   resources: ["whisks","whisks/status","whisksusers","whisksusers/status","workflows","workflows/status","*/finalizers"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
@@ -91,7 +91,7 @@ rules:
   resources: ["kubegres","kubegres/finalizers","kubegres/status"]
   verbs: ["get","patch","list","update","watch","create","delete"]
 
-# required for rook managed bucket under nuvolaris namespace
+# required for rook managed bucket under openserverless namespace
 - apiGroups: ["objectbucket.io"]
   resources: ["objectbucketclaims"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -109,15 +109,15 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-operator-rb
-  namespace: nuvolaris
+  name: openserverless-operator-rb
+  namespace: openserverless
   labels:
-    app: nuvolaris-operator-rb
+    app: openserverless-operator-rb
 subjects:
 - kind: ServiceAccount
-  namespace: nuvolaris
-  name:  nuvolaris-operator
+  namespace: openserverless
+  name:  openserverless-operator
 roleRef:
   kind: Role
-  name: nuvolaris-operator-role
+  name: openserverless-operator-role
   apiGroup: rbac.authorization.k8s.io

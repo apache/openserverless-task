@@ -16,11 +16,11 @@
 # under the License.
 #
 
-apiVersion: nuvolaris.org/v1
+apiVersion: openserverless.org/v1
 kind: WhiskUser
 metadata:
   name: ${USERNAME}
-  namespace: nuvolaris
+  namespace: openserverless
 spec:
   email: ${EMAIL}
   password: ${PASSWORD}
