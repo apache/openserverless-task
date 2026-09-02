@@ -46,6 +46,8 @@ Usage:
   util edit [<plugin>]
   util link-plugin <plugin>
   util stdtext <text>
+  util wait <object> [<cond>] [<retry>]
+  util wait-pod <file> <selector> [<cond>] [<retry>]
 ```
 
 ## Commands
@@ -73,6 +75,8 @@ Usage:
 -  edit                    edit (with vscode) the current tasks or a plugin
 -  link-plugin             link the <plugin> in current directory to the global list
 -  stdtext                 standardize the text to the text convetions of the underlying platform (windows/unix)
+-  wait                    wait for an object to be ready
+-  wait-pod                wait for a pod to be ready and save its name in a file
 ```
 
 ## Options

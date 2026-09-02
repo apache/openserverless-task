@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tika-config
+  namespace: nuvolaris
+data:
+  JAVA_OPTS: "-Xms256m -Xmx1g -Djava.awt.headless=true"
+  tika-config.xml: |
+    <properties>
+      <ocr>
+        <tesseractPath>/usr/bin/tesseract</tesseractPath>
+        <applyOcr>true</applyOcr>
+        <ocrStrategy>ocr_only</ocrStrategy>
+        <!-- o "ocr_and_text_extraction" se vuoi unire OCR e testo digitale -->
+      </ocr>
+    </properties>
+
+---
+# StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tika
+  namespace: nuvolaris
+  labels:
+    app: tika
+spec:
+  serviceName: tika
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tika
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: tika
+    spec:
+      containers:
+      - name: tika
+        image: ${IMAGES_TIKA}
+        imagePullPolicy: IfNotPresent
+        #args:
+        #  - "-config"
+        #s  - "/tika-config/tika-config.xml"
+        ports:
+        - containerPort: 9998
+          name: http
+        env:
+        - name: JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: tika-config
+              key: JAVA_OPTS
+        readinessProbe:
+          tcpSocket:
+            port: 9998
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          tcpSocket:
+            port: 9998
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        volumeMounts:
+        - name: tika-config
+          mountPath: /tika-config
+        - name: tika-data
+          mountPath: /data
+      volumes:
+      - name: tika-config
+        configMap:
+          name: tika-config
+  volumeClaimTemplates:
+  - metadata:
+      name: tika-data
+      labels:
+        app: tika
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: tika
+  namespace: nuvolaris
+  labels:
+    app: tika
+spec:
+  type: ClusterIP
+  selector:
+    app: tika
+  ports:
+  - port: 9998
+    targetPort: 9998
+    protocol: TCP
+    name: http

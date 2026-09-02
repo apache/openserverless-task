@@ -263,11 +263,6 @@ tasks:
   delete:
     desc: no-op delete command
 
-  streamer:
-    desc: manage the streamer deployment
-
-  system-api:
-    desc: manage the system api deployment
 
   add-user:
     silent: true
@@ -305,3 +300,13 @@ tasks:
     - echo "Login with:" ops ide login {{.USR}} "$APIHOST"
     - echo "Password is saved in:" ~/.ops/{{.USR}}.password
     - echo "Web URL is:" "$HOST"
+
+
+  streamer:
+    desc: manage the streamer deployment
+
+  system-api:
+    desc: manage the system api deployment
+
+  tika:
+    desc: manage the tika api deployment
