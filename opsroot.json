@@ -23,7 +23,8 @@
       "pgvector": "docker.io/pgvector/pgvector:pg16",
       "kubegres": "docker.io/reactivetechio/kubegres:1.18",
       "ferretdb": "ghcr.io/nuvolaris/ferretdb:1.6.0",
-      "rbacproxy": "registry.k8s.io/kubebuilder/kube-rbac-proxy:v0.14.1"
+      "rbacproxy": "registry.k8s.io/kubebuilder/kube-rbac-proxy:v0.14.1",
+      "tika": "docker.io/apache/tika:3.2.3.0-full"
     }
   }
 }

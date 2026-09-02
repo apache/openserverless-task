@@ -39,6 +39,7 @@ vars:
       else
         echo $AUTH
       fi
+  TIMEOUT: 10s
   # unused
   #USERNAME:
   #  sh: |
@@ -312,4 +313,72 @@ tasks:
     silent: true
     cmds:
       - bun stdtext.js {{OS}} "{{._text_}}"
+
+
+  wait:
+    desc: wait for an object to reach a condition
+    silent: true
+    vars:
+      COND: '{{or ._cond_ "true"}}'
+      RETRY: '{{or ._retry_ "100"}}'
+      OBJECT: "{{._object_}}"
+    status:
+      - test "{{.COND}}" != "true"
+    env:
+      BAR:
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+      - test -n "{{.OBJECT}}" || die "use OBJECT=<to-wait-for>"
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do printf "\rwaiting for {{.OBJECT}} available: [${BAR:0:$((N++))}]"
+           if kubectl -n nuvolaris get "{{.OBJECT}}" >/dev/null 2>&1
+           then RES=true ; break
+           fi
+           sleep {{.TIMEOUT}}
+        done
+        printf "\n"
+        $RES
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do
+          printf "\rwaiting for {{.OBJECT}} ready: [${BAR:0:$((N++))}]"
+          if kubectl -n nuvolaris wait --for=condition=Ready "{{.OBJECT}}" --timeout={{.TIMEOUT}} >/dev/null 2>&1
+          then RES=true ; break
+          fi
+        done
+        printf "\n"
+        $RES
+
+  wait-pod:
+    desc: wait for a pod to be available - leave the result in FILE
+    silent: true
+    vars:
+      COND: '{{or ._cond_ "true"}}'
+      RETRY: '{{or ._retry_ "100"}}'
+      SELECTOR: "{{._selector_}}"
+      FILE: "{{._file_}}"
+    status:
+      - test "{{.COND}}" != "true"
+    env:
+      BAR:
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+      - |
+        cd "$OPS_PWD"
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do printf "\rwaiting for pod {{.SELECTOR}}: [${BAR:0:$((N++))}]"
+           if kubectl -n nuvolaris get po -l {{.SELECTOR}} -o jsonpath='{.items[0].metadata.name}' >{{.FILE}} 2>/dev/null
+           then RES=true ; break
+           fi
+           sleep {{.TIMEOUT}}
+        done
+        printf "\n"
+        $RES
 

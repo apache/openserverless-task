@@ -72,6 +72,7 @@ tasks:
     - "{{.DRY}} kubectl -n nuvolaris apply -f _streamer.yaml"
     #- cat _ingress.yaml
     - "{{.DRY}} kubectl -n nuvolaris apply -f _ingress.yaml"
+    - ops util wait po/nuvolaris-streamer-api-0
     - |
       echo "Streamer API deployed with HOSTNAME: stream.${STREAMER_API_HOSTNAME} and OW_APIHOST: ${OW_APIHOST}"
 
@@ -81,6 +82,7 @@ tasks:
     ignore_error: true
     cmds:
     - kubectl -n nuvolaris delete sts/nuvolaris-streamer-api ing/nuvolaris-streamer-api-ingress
+    - ops util wait po/nuvolaris-streamer-api-0 delete
     - |
       echo "Streamer API undeployed"
 
