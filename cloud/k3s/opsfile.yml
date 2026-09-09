@@ -61,6 +61,18 @@ tasks:
               websecure:
                 nodePort: ${traefik_https_nodeport}
         EOF
+      - |
+        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' "sudo mkdir -p /etc/rancher/k3s"
+        cat <<EOF | {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' "sudo tee /etc/rancher/k3s/registries.yaml >/dev/null"
+        mirrors:
+          "127.0.0.1:32000":
+            endpoint:
+              - "http://127.0.0.1:32000"
+        configs:
+          "127.0.0.1:32000":
+            tls:
+              insecure_skip_verify: true
+        EOF
       - >
         k3sup install --k3s-version="{{.K3S_VERSION}}"
         --host="{{._server_}}" --user="{{.INSTALL_USER}}"

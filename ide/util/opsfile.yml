@@ -30,6 +30,8 @@ tasks:
       then $OPS ide python zip DIR="$($OPS -opspath "packages/{{.A}}")"
       elif test -e "packages/{{.A}}/package.json"
       then $OPS ide nodejs zip DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/composer.json"
+      then $OPS ide php zip DIR="$($OPS -opspath "packages/{{.A}}")"
       else true #echo "no zip environment"
       fi
 
@@ -44,6 +46,12 @@ tasks:
       then $OPS ide python action DIR="$($OPS -opspath "packages/{{.A}}")"
       elif test -e "packages/{{.A}}/index.js"
       then $OPS ide nodejs action DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/main.go"
+      then $OPS ide go action DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/index.php"
+      then $OPS ide php action DIR="$($OPS -opspath "packages/{{.A}}")"
+      elif test -e "packages/{{.A}}/Main.java"
+      then $OPS ide java action DIR="$($OPS -opspath "packages/{{.A}}")"
       else die "*** unknown action type"
       fi
 

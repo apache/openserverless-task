@@ -20,6 +20,7 @@ import {buildAction, buildZip, deployAction, deployPackage, deployProject} from 
 import {getOpenServerlessConfig} from './client.js';
 import {config} from "dotenv";
 import {syncDeployInfo} from "./syncDeployInfo";
+import {scanAndBuildImages} from "./builder.js";
 
 /**
  * This function will prepare and deploy the functions in `packages` directory.
@@ -42,6 +43,9 @@ export async function scan() {
     const packages = new Set();
 
     console.log("> Scan:");
+
+    // Build custom runtime images if needed
+    await scanAndBuildImages();
 
     // => REQUIREMENTS
     const defaultReqsGlobs = [
@@ -78,7 +82,8 @@ export async function scan() {
         "packages/*/*/index.js",
         "packages/*/*/__main__.py",
         "packages/*/*/index.php",
-        "packages/*/*/main.go"
+        "packages/*/*/main.go",
+        "packages/*/*/Main.java",
     ];
     // load user defined main functions or use `defaultMainsGlobs`
     const mainsGlobs = await getOpenServerlessConfig("mains", defaultMainsGlobs);
@@ -104,7 +109,8 @@ export async function scan() {
         "packages/*/*.py",
         "packages/*/*.js",
         "packages/*/*.php",
-        "packages/*/*.go"
+        "packages/*/*.go",
+        "packages/*/*.java"
     ];
     const singlesGlobs = await getOpenServerlessConfig("singles", defaultSinglesGlobs);
     const singlesSet = new Set();

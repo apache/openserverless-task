@@ -27,7 +27,8 @@ export SERVER
 # install microk8s
 apt-get update
 apt-get install -y snapd curl grep sudo
-snap install microk8s --classic
+#snap install microk8s --classic
+snap install microk8s --classic --revision=8702
 microk8s stop
 cp /var/snap/microk8s/current/certs/csr.conf.template /tmp/in
 # script to try to give accettable values for ip and dns name
@@ -56,6 +57,16 @@ for i in range(0, len(lines)):
     if i == dns:
         n = int(lines[dns].split(".")[1].split(" ")[0])+1
         print(f"DNS.{n} =", host_name )
+EOF
+
+# configure insecure internal registry access (127.0.0.1:32000)
+mkdir -p /var/snap/microk8s/current/args/certs.d/127.0.0.1:32000
+cat <<EOF >/var/snap/microk8s/current/args/certs.d/127.0.0.1:32000/hosts.toml
+server = "http://127.0.0.1:32000"
+
+[host."http://127.0.0.1:32000"]
+capabilities = ["pull", "resolve", "push"]
+skip_verify = true
 EOF
 
 microk8s start
