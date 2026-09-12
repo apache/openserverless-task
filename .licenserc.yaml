@@ -21,25 +21,8 @@ header:
     copyright-owner: Apache Software Foundation
 
   paths-ignore:
-    - '**/*.sample'
-    - 'env.src'
-    - '.git-hooks/pre-commit'
-    - '**/_*'
-    - 'nuvroot.json'
-    - 'LICENSE'
-    - 'cert-manager.yaml'
-    - 'ingress-deploy.yaml'
-    - 'runtimes.json'
-    - '**/*.json'
-    - '**/*.service'
-    - 'update/update.ps1' 
-    - '**/mime.types'
-    - '**/*.txt'
-    - '**/*.md'
     - DISCLAIMER
     - LICENSE
     - NOTICE
-    - '.gitignore'
-    - '**/.env.*'
+    - '**/*.json'
     - '**/bun.lock'
-    - opsroot.orig
