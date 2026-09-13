@@ -22,6 +22,7 @@ header:
 
   paths-ignore:
     - DISCLAIMER
+    - WARN
     - LICENSE
     - NOTICE
     - '**/*.json'
