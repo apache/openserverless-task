@@ -7099,7 +7099,7 @@ var volumeManager = (dir, jobPath, debug) => {
 
 // job-operator.ts
 var {$ } = globalThis.Bun;
-var kubectl = ["kubectl", "-n", "nuvolaris"];
+var kubectl = ["kubectl", "-n", "openserverless"];
 
 class JobOperatorImpl {
   volumeManager;

@@ -490,7 +490,7 @@ tasks:
             The cluster name must be unique.
           VAR: "GKE_NAME"
           VAL: "{{.__name}}"
-          DEF: "nuvolaris"
+          DEF: "openserverless"
       - task: read
         vars:
           MSG: "GCloud Cluster Zone"
@@ -899,7 +899,7 @@ tasks:
         MSG: "Openwhisk Controller Java Options"
         VAR: "OPENWHISK_CONTROLLER_JVMGB"
         HINT: | 
-              Specifies nuvolaris controller Java options in GB
+              Specifies openserverless controller Java options in GB
         VAL: "{{.__javaopts}}"
         DEF: "2"
     - task: read
@@ -907,7 +907,7 @@ tasks:
         MSG: "Openwhisk Controller Logging Level"
         VAR: "OPENWHISK_CONTROLLER_LOGGINGLEVEL"
         HINT: | 
-              Specifies nuvolaris controller Logging Level
+              Specifies openserverless controller Logging Level
         VAL: "{{.__loglevel}}"
         DEF: "INFO"
     - task: read
@@ -915,7 +915,7 @@ tasks:
         MSG: "Openwhisk Controller Replicas"
         VAR: "OPENWHISK_CONTROLLER_REPLICAS"
         HINT: | 
-              Specifies nuvolaris controller sts replicas
+              Specifies openserverless controller sts replicas
         VAL: "{{.__replicas}}"
         DEF: "1"
 
@@ -927,7 +927,7 @@ tasks:
         MSG: "Openwhisk Invoker Java Options"
         VAR: "OPENWHISK_INVOKER_JVMGB"
         HINT: | 
-              Specifies nuvolaris invoker Java options in GB
+              Specifies openserverless invoker Java options in GB
         VAL: "{{.__javaopts}}"
         DEF: "2" 
     - task: read
@@ -935,7 +935,7 @@ tasks:
         MSG: "Openwhisk Invoker Pool Memory Settings"
         VAR: "OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB"
         HINT: | 
-              Specifies nuvolaris invoker pool memory Java options in GB
+              Specifies openserverless invoker pool memory Java options in GB
         VAL: "{{.__poolmemory}}"
         DEF: "2"
     - task: read
@@ -943,7 +943,7 @@ tasks:
         MSG: "Openwhisk Invoker Kubernetes Pod Run timeout in minute"
         VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN"
         HINT: | 
-              Specifies nuvolaris invoker kubernetes pod run timeout in minutes
+              Specifies openserverless invoker kubernetes pod run timeout in minutes
         VAL: "{{.__timeoutsrun}}"
         DEF: "1"  
     - task: read
@@ -951,7 +951,7 @@ tasks:
         MSG: "Openwhisk Invoker Kubernetes Pod Log timeout in minute"
         VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS"
         HINT: | 
-              Specifies nuvolaris invoker kubernetes pod logs timeout in minutes
+              Specifies openserverless invoker kubernetes pod logs timeout in minutes
         VAL: "{{.__timeoutslogs}}"
         DEF: "1"
     - task: read
@@ -959,7 +959,7 @@ tasks:
         MSG: "Openwhisk Invoker Logging Level"
         VAR: "OPENWHISK_INVOKER_LOGGINGLEVEL"
         HINT: | 
-              Specifies nuvolaris invoker Logging Level
+              Specifies openserverless invoker Logging Level
         VAL: "{{.__loglevel}}"
         DEF: "INFO"
     - task: read
@@ -967,7 +967,7 @@ tasks:
         MSG: "Openwhisk Invoker Replicas"
         VAR: "OPENWHISK_INVOKER_REPLICAS"
         HINT: | 
-              Specifies nuvolaris invoker sts replicas
+              Specifies openserverless invoker sts replicas
         VAL: "{{.__replicas}}"
         DEF: "1"
 
@@ -1027,7 +1027,7 @@ tasks:
         MSG: "Openwhisk Standalone Controller Activation Max Allowed Payload"
         VAR: "OPENWHISK_ACTIVATION_MAX_ALLOWED_PAYLOAD"
         HINT: | 
-              Specifies nuvolaris controller activation options (Defaults to 1Mb)
+              Specifies openserverless controller activation options (Defaults to 1Mb)
         VAL: "{{.__activation_max_payload}}"
         DEF: "1048576"
     - task: read
@@ -1075,7 +1075,7 @@ tasks:
         MSG: "Postgres Backup Schedule"
         VAR: "POSTGRES_CONFIG_BACKUP_SCHEDULE"
         HINT: | 
-              Specifies nuvolaris invoker Java options in GB
+              Specifies openserverless invoker Java options in GB
         VAL: "{{.__schedule}}"
         DEF: "0 */1 * * *" 
     - task: read

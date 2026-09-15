@@ -37,11 +37,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: whisksusers.nuvolaris.org
-  namespace: nuvolaris
+  name: whisksusers.openserverless.org
+  namespace: openserverless
 spec:
   scope: Namespaced
-  group: nuvolaris.org
+  group: openserverless.org
   names:
     kind: WhiskUser
     plural: whisksusers
@@ -104,7 +104,7 @@ spec:
                   - prefix
                   - password                       
                 object-storage:
-                  description: used to setup nuvolaris MINIO instance with custom user resources
+                  description: used to setup openserverless MINIO instance with custom user resources
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                   properties:

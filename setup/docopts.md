@@ -57,5 +57,5 @@ Usage:
 ## Subtasks
 
 - `kubernetes`: prepare kubernetes
-- `nuvolaris`: install nuvolaris
+- `openserverless`: install openserverless
 - `docker`: prepare docker

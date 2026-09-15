@@ -32,7 +32,7 @@ tasks:
     silent: true
     cmds:
       - |
-        kubectl -n nuvolaris annotate wsku/{{._username_}} openserverless.apache.org/sso-disabled=true --overwrite
+        kubectl -n openserverless annotate wsku/{{._username_}} openserverless.apache.org/sso-disabled=true --overwrite
         echo "SSO login disabled for namespace {{._username_}}."
         echo "The OpenServerless namespace and its resources were preserved."
         echo "To delete them explicitly, run: ops admin deleteuser {{._username_}} --confirm-namespace-delete"

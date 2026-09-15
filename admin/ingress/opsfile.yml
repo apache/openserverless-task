@@ -52,7 +52,7 @@ tasks:
       - |
         export USERNAME="{{.U}}"
         envsubst -i {{.INGRESS_TYPE}}-template.yaml >_ingress.yaml
-        kubectl -n nuvolaris {{.ACTION}} -f _ingress.yaml
+        kubectl -n openserverless {{.ACTION}} -f _ingress.yaml
 
   undeploy:
     requires: { vars: [U]}

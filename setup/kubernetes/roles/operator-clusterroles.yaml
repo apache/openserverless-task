@@ -19,9 +19,9 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-operator-cr
+  name: openserverless-operator-cr
   labels:
-    app: nuvolaris-operator-cr
+    app: openserverless-operator-cr
 rules:
 
 # read nodes storageclasses ingressclasses
@@ -99,15 +99,15 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: nuvolaris-operator-crb
-  namespace: nuvolaris
+  name: openserverless-operator-crb
+  namespace: openserverless
   labels:
-    app: nuvolaris-operator-crb
+    app: openserverless-operator-crb
 subjects:
 - kind: ServiceAccount
-  namespace: nuvolaris
-  name:  nuvolaris-operator
+  namespace: openserverless
+  name:  openserverless-operator
 roleRef:
   kind: ClusterRole
-  name: nuvolaris-operator-cr
+  name: openserverless-operator-cr
   apiGroup: rbac.authorization.k8s.io

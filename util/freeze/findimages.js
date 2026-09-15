@@ -55,7 +55,7 @@ for (const family of Object.values(runtimes.runtimes)) {
     if (!runtime.default || !runtime.image) continue
     const { prefix, name, tag } = runtime.image
     if (!tag || skipTags.has(tag)) continue
-    images.push(`docker.io/${prefix}/${name}:${tag}`)
+    images.push(`${prefix}/${name}:${tag}`)
   }
 }
 

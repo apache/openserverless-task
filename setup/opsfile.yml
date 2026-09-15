@@ -113,7 +113,7 @@ tasks:
               echo "*** You can can uninstall and restart with: ops setup docker delete"
               exit 1
             else
-              if ! kind get clusters | rg nuvolaris
+              if ! kind get clusters | rg openserverless
               then echo "*** Something is already running as a local webserver, please remove it before installing miniops."
                   exit 1
               fi
@@ -124,9 +124,9 @@ tasks:
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
       - ops setup devcluster
-      - ops setup nuvolaris add-user
-      - ops setup nuvolaris streamer deploy
-      - ops setup nuvolaris system-api deploy
+      - ops setup openserverless add-user
+      - ops setup openserverless streamer deploy
+      - ops setup openserverless system-api deploy
 
   devcluster:
     vars:
@@ -145,7 +145,7 @@ tasks:
         fi
         {{.RUN}} ops setup docker create
         {{.RUN}} ops setup kubernetes create
-        {{.RUN}} ops setup nuvolaris login
+        {{.RUN}} ops setup openserverless login
         config STATUS_LAST=devcluster
       fi
 
@@ -159,7 +159,7 @@ tasks:
       then  {{.RUN}} ops setup kubernetes delete CONTEXT="{{._context_}}"
       else
             {{.RUN}} ops setup kubernetes create CONTEXT="{{._context_}}"
-            {{.RUN}} ops setup nuvolaris login
+            {{.RUN}} ops setup openserverless login
             config STATUS_LAST=cluster
             if test -n "{{._context_}}"
             then config STATUS_CONTEXT="{{._context_}}"
@@ -177,7 +177,7 @@ tasks:
       else
           {{.RUN}} ops cloud k3s create {{._server_}} {{._user_}}
           {{.RUN}} ops setup kubernetes create
-          {{.RUN}} ops setup nuvolaris login
+          {{.RUN}} ops setup openserverless login
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"

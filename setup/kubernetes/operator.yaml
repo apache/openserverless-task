@@ -18,22 +18,22 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: nuvolaris-operator
-  namespace: nuvolaris
+  name: openserverless-operator
+  namespace: openserverless
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: nuvolaris-operator
+      name: openserverless-operator
   template:
     metadata:
       labels:
-        name: nuvolaris-operator
-        app: nuvolaris-operator
+        name: openserverless-operator
+        app: openserverless-operator
       annotations:
-        whisks.nuvolaris.org/annotate-version: "true"
+        whisks.openserverless.org/annotate-version: "true"
     spec:
-      serviceAccountName: nuvolaris-operator
+      serviceAccountName: openserverless-operator
       restartPolicy: Always
       affinity:
         # prefer to not run on an invoker node (only prefer because of single node clusters)
@@ -42,18 +42,18 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
-              - key: nuvolaris-role
+              - key: openserverless-role
                 operator: NotIn
                 values:
                 - invoker
           - weight: 80
             preference:
               matchExpressions:
-              - key: nuvolaris-role
+              - key: openserverless-role
                 operator: In
                 values:
                 - core
-        # Fault tolerance: prevent multiple instances of nuvolaris-operator from running on the same node
+        # Fault tolerance: prevent multiple instances of openserverless-operator from running on the same node
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
@@ -61,10 +61,10 @@ spec:
               - key: name
                 operator: In
                 values:
-                - nuvolaris-operator
+                - openserverless-operator
             topologyKey: "kubernetes.io/hostname"
       tolerations:
-        - key: "nuvolaris-role"
+        - key: "openserverless-role"
           operator: "Equal"
           value: core
           effect: "NoSchedule"
@@ -74,9 +74,9 @@ spec:
       volumes:
       - name: deploy
         persistentVolumeClaim:
-          claimName: nuvolaris-operator-deploy-pvc
+          claimName: openserverless-operator-deploy-pvc
       containers:
-        - name: nuvolaris-operator
+        - name: openserverless-operator
           image: ${IMAGES_OPERATOR}
           command:
           - bash
@@ -90,4 +90,4 @@ spec:
                 - ALL
           volumeMounts:
           - name: deploy
-            mountPath: "/home/nuvolaris/deploy"
+            mountPath: "/home/openserverless/deploy"

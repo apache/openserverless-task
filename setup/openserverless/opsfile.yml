@@ -1,0 +1,307 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+version: '3'
+
+vars:
+  D: ""
+  RUN: '{{if eq .D ""}}{{else}}echo RUN:{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
+  RETRY: 100
+  TIMEOUT: 10
+  ETC:
+    sh: if $WSK_INSECURE ; then echo "-i" ; else echo "" ; fi
+  CFG: "kubectl -n openserverless get wsk/controller"
+  SLEEP: "500"
+
+env:
+  KUBECONFIG:
+    sh: |
+        if test -e "$OPS_TMP/kubeconfig"
+        then echo "$OPS_TMP/kubeconfig"
+        else echo ~/.kube/config
+        fi
+
+tasks:
+
+  wait:
+    #desc: wait for apihost available
+    silent: true
+    env:
+      BAR:
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+    - |
+      N=0
+      while true
+      do
+        APIHOST="$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.apihost}')"
+        HOST="$(echo $APIHOST | awk -F: '{print $2}')"
+        if [[ "$APIHOST" != "" ]] && [[ "$HOST" != "//pending" ]]
+        then break
+        fi
+        printf "\rwaiting for APIHOST ready: [${BAR:0:$((N++))}]"
+        sleep 5
+      done
+      printf "\n"
+      echo $APIHOST
+
+  wait-cm:
+    desc: wait for an annotation in openserverless cm/config
+    silent: true
+    env:
+      BAR:
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+      - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
+      - |
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do
+          ANNOT_VALUE="$(kubectl -n openserverless get cm/config -o jsonpath='{{.JSONPATH}}')"
+          if [[ -z "$ANNOT_VALUE" ]]
+          then
+            printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
+            sleep 5
+          else
+            RES=true; break
+          fi
+        done
+        printf "\n"
+        $RES
+
+  wait-cm-value:
+    desc: wait for an annotation in openserverless cm/config to be set and have a specific value
+    silent: true
+    env:
+      BAR:
+        sh: printf "%*s" {{.RETRY}} "" | tr ' ' '#'
+    cmds:
+      - test -n "{{.JSONPATH}}" || die "use JSONPATH=<cm/config-jsonpath-lookup>"
+      - test -n "{{.EXPECTED_VALUE}}" || die "use EXPECTED_VALUE=<value>"
+      - |
+        if [[ -n "{{.MESSAGE}}" ]]
+        then echo "{{.MESSAGE}}"
+        fi
+        N=0
+        RES=false
+        while [[ $N -lt {{.RETRY}} ]]
+        do
+          ANNOT_VALUE="$(kubectl -n openserverless get cm/config -o jsonpath='{{.JSONPATH}}')"
+          if [[ -z "$ANNOT_VALUE" || "$ANNOT_VALUE" != "{{.EXPECTED_VALUE}}" ]]
+          then
+            printf "\rwaiting for completing system initialization: [${BAR:0:$((N++))}]"
+            sleep 5
+          else
+            RES=true
+            break
+          fi
+        done
+        printf "\n"
+        $RES
+
+  config:
+    #desc: configuring openserverless
+    silent: true
+    cmds:
+    - |
+      export OPSDEV_APIHOST=$(ops util kubeget cm/config .metadata.annotations.apihost)
+      export OPSDEV_USERNAME=openserverless
+      export AUTH=$(ops util kubeget wsk/controller .spec.openwhisk.namespaces.openserverless)
+      echo Checking connection...
+      retry -t 100 -m 600 ops -wsk {{.ETC}} --apihost "$OPSDEV_APIHOST" --auth "$AUTH" namespace list
+      export OPS_PASSWORD=$(kubectl -n openserverless get wsk/controller -ojsonpath -ojsonpath='{.spec.openserverless.password}')
+      export OPS_USER="$OPSDEV_USERNAME"
+      export OPS_APIHOST="$OPSDEV_APIHOST"
+      ops -login
+      OPSDEV_HOST_PROT="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $1}')"
+      OPSDEV_HOST_URL="$(echo "$OPSDEV_APIHOST" | awk -F '://' '{print $2}')"
+      config OPSDEV_APIHOST="$OPSDEV_APIHOST"
+      config OPSDEV_USERNAME="$OPSDEV_USERNAME"
+      config OPSDEV_HOST="$OPSDEV_HOST_PROT://$OPSDEV_USERNAME.$OPSDEV_HOST_URL"
+      source ~/.wskprops
+      echo "$OPS_PASSWORD" >~/.ops/openserverless.password
+      echo "Saved password for 'openserverless' user in ~/.ops/openserverless.password"
+
+  login:
+    silent: true
+    desc: configuring openserverless
+    cmds:
+    - task: wait
+    - task: wait-cm-value
+      vars:
+        JSONPATH: "{.metadata.annotations.system_action_status}"
+        EXPECTED_VALUE: "created"
+        MESSAGE: "Waiting for system action status"
+    - task: config
+    - task: hello
+
+  hello:
+    silent: true
+    desc: executing an hello world action
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - "{{.RUN}} wsk {{.ETC}} action update hello/hello hello.js"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/hello -p name 'Apache OpenServerless' -r | rg hello"
+
+  mongodb:
+    silent: true
+    desc: mongodb test
+    cmds:
+    - #echo {{.MONGODB_URL}}
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      MONGODB_URL="$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.mongodb_url}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/mongodb mongodb.js -p mongodb_url "$MONGODB_URL"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/mongodb -r | rg 'hello'"
+
+  redis:
+    silent: true
+    desc: redis test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      REDIS_URL="$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.redis_url}')"
+      REDIS_PREFIX="$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.redis_prefix}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/redis redis.js -p redis_url "$REDIS_URL" -p redis_prefix "$REDIS_PREFIX"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/redis -r | rg 'hello'"
+
+  minio:
+    silent: true
+    desc: minio test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      S3_ACCESS_KEY=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_access_key}')
+      S3_SECRET_KEY=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_secret_key}')
+      S3_HOST=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_host}')
+      S3_PORT=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_port}')
+      S3_BUCKET_DATA=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_data}')
+      S3_BUCKET_WEB=$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.s3_bucket_static}')
+      {{.RUN}} wsk {{.ETC}} action update hello/minio minio.js \
+      -p s3_access "$S3_ACCESS_KEY" \
+      -p s3_secret "$S3_SECRET_KEY" \
+      -p s3_host "$S3_HOST" \
+      -p s3_port "$S3_PORT" \
+      -p s3_data "$S3_BUCKET_DATA"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/minio -r"
+
+  seaweedfs:
+    silent: true
+    desc: seaweedfs s3-compatible test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      S3_ACCESS_KEY=$($OPS -config S3_ACCESS_KEY)
+      S3_SECRET_KEY=$($OPS -config S3_SECRET_KEY)
+      S3_HOST=$($OPS -config S3_HOST)
+      S3_PORT=$($OPS -config S3_PORT)
+      S3_BUCKET_DATA=$($OPS -config S3_BUCKET_DATA)
+      {{.RUN}} wsk {{.ETC}} action update hello/seaweedfs seaweedfs.js \
+      -p s3_access "$S3_ACCESS_KEY" \
+      -p s3_secret "$S3_SECRET_KEY" \
+      -p s3_host "$S3_HOST" \
+      -p s3_port "$S3_PORT" \
+      -p s3_data "$S3_BUCKET_DATA"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/seaweedfs -r"
+
+  postgres:
+    silent: true
+    desc: postgres test
+    cmds:
+    - "{{.RUN}} wsk {{.ETC}} package update hello"
+    - |
+      POSTGRES_URL="$(kubectl -n openserverless get cm/config -o jsonpath='{.metadata.annotations.postgres_url}')"
+      {{.RUN}} wsk {{.ETC}} action update hello/postgres postgres.js -p dburi "$POSTGRES_URL"
+    - "{{.RUN}} wsk {{.ETC}} action invoke hello/postgres -r"
+
+  sleep:
+    desc: sleep
+    silent: true
+    cmds:
+    - "{{.RUN}} wsk action update sleep sleep.js --web=true --timeout 300000"
+    #- "{{.RUN}}wsk action invoke sleep -p sleep {{.SLEEP}} -r"
+    - curl "$($OPS -wsk action get sleep --url)?sleep={{.SLEEP}}"
+
+  status:
+    silent: true
+    desc: showing the configuration status
+    cmds:
+    - echo "=== OpenServerless Host:"
+    - wsk property get --apihost | awk '/whisk API host/{print $4}'
+    - echo "=== OpenServerless Key:"
+    - wsk property get --auth | awk '/whisk auth/{print $3}'
+    - echo "=== Minio"
+    - kubectl -n openserverless get configmap config -n openserverless -o=jsonpath='{.metadata.annotations}' | jq . | awk '/minio_/{print $1 " " $2}'
+    - echo "=== Redis"
+    - kubectl -n openserverless get configmap config -n openserverless -o=jsonpath='{.metadata.annotations}' | jq . | awk '/redis_/{print $1 " " $2}'
+    - echo "=== Postgres"
+    - kubectl -n openserverless get configmap config -n openserverless -o=jsonpath='{.metadata.annotations}' | jq . | awk '/postgres_/{print $1 " " $2}'
+    - echo "=== MongoDB (FerretDB)"
+    - kubectl -n openserverless get configmap config -n openserverless -o=jsonpath='{.metadata.annotations}' | jq . | awk '/mongodb_/{print $1 " " $2}'
+
+  info:
+    - echo "kubectl={{.KUBECTL}}"
+    - echo "kubeconfig=$KUBECONFIG"
+    - cat ~/.wskprops
+
+  delete:
+    desc: no-op delete command
+
+  streamer:
+    desc: manage the streamer deployment
+
+  system-api:
+    desc: manage the system api deployment
+
+  add-user:
+    silent: true
+    desc: create a new U=user (default 'devel') with P=password, (default a random pw)
+    vars:
+      USR: '{{or .U "devel" }}'
+      PSW:
+        sh: |
+            if test -z "{{.P}}"
+            then ops -random --str 8
+            else echo "{{.P}}"
+            fi
+      FLAGS: '{{or .F "--all"}}'
+
+    env:
+      APIHOST:
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
+      HOST:
+        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
+    cmds:
+    #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
+    - |
+      if kubectl -n openserverless get wsku/{{.USR}} 2>/dev/null
+      then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"
+      fi
+    - echo "Creating user {{.USR}} in $APIHOST"
+    - |
+      ops admin adduser "{{.USR}}" "{{.USR}}@example.com" '{{.PSW}}' {{.FLAGS}}
+      sleep 15
+    - |
+      export OPS_PASSWORD="{{.PSW}}"
+      retry ops ide login {{.USR}} "$APIHOST"
+    - echo "{{.PSW}}" > ~/.ops/{{.USR}}.password
+    - ops util upload "$(realpath web)"
+    - echo "Login with:" ops ide login {{.USR}} "$APIHOST"
+    - echo "Password is saved in:" ~/.ops/{{.USR}}.password
+    - echo "Web URL is:" "$HOST"

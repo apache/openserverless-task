@@ -87,7 +87,7 @@ tasks:
       - ops util apihost | rg miniops.me || die "devcontainer requires miniops.me"
       - task: gen-key
       - >
-          kubectl -n nuvolaris create secret generic ssh-secret
+          kubectl -n openserverless create secret generic ssh-secret
           --from-literal=authorized_keys="$(cat {{.SSHKEY}}.pub)" 2>/dev/null || die "devcontainer already exists"
       - |
         export IMAGE="{{.IMAGES_DEVCONTAINER}}"
@@ -103,14 +103,14 @@ tasks:
     silent: true
     desc: undeploy the devcontainer in kubernetes
     cmds:
-      - kubectl -n nuvolaris delete sts/ssh-devcontainer secret/ssh-secret
+      - kubectl -n openserverless delete sts/ssh-devcontainer secret/ssh-secret
       - echo Please remove the Host miniops entry from your ~/.ssh/config file if present
 
   kind-load:
     silent: true
     desc: load the devcontainer image from docker to kind to avoid pulling from outside
     cmds:
-    - kind load docker-image {{.IMAGES_DEVCONTAINER}} --name nuvolaris
+    - kind load docker-image {{.IMAGES_DEVCONTAINER}} --name openserverless
 
   docker-run:
     desc: run the ssh-devcontainer in docker with W=<workspace absolute path>

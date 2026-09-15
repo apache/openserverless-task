@@ -43,7 +43,7 @@ tasks:
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
         do
-          if kubectl -n nuvolaris wait --for="{{.FOR}}" "{{.OBJ}}" --timeout="{{.TIMEOUT}}s"
+          if kubectl -n openserverless wait --for="{{.FOR}}" "{{.OBJ}}" --timeout="{{.TIMEOUT}}s"
           then RES=true; break
           else echo "$((N++)) Waiting {{.OBJ}} for {{.FOR}}"
                sleep "{{.SLEEP}}s"
@@ -52,7 +52,7 @@ tasks:
         $RES
 
   wait:
-    desc: wait for a value matching the given jsonpath on the specific resources under the namespace nuvolaris
+    desc: wait for a value matching the given jsonpath on the specific resources under the namespace openserverless
     silent: true
     cmds:
       - test -n "{{.OBJECT}}" || die "use OBJECT=<pod/pod-name>"
@@ -62,7 +62,7 @@ tasks:
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
         do
-          MATCHING_VALUE="$(kubectl -n nuvolaris get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
+          MATCHING_VALUE="$(kubectl -n openserverless get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
           if [[ -z "$MATCHING_VALUE" ]]
           then
             echo "$((N++)) Waiting for {{.JSONPATH}} to be non empty value"

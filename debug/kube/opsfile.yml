@@ -32,7 +32,7 @@ env:
 tasks:
 
   wait:
-    desc: wait for a value matching the given jsonpath on the specific resources under the namespace nuvolaris
+    desc: wait for a value matching the given jsonpath on the specific resources under the namespace openserverless
     silent: true
     cmds:
       - test -n "{{.OBJECT}}" || die "use OBJECT=<pod/pod-name>"
@@ -42,7 +42,7 @@ tasks:
         RES=false
         while [[ $N -lt {{.RETRY}} ]]
         do           
-          MATCHING_VALUE="$(kubectl -n nuvolaris get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
+          MATCHING_VALUE="$(kubectl -n openserverless get {{.OBJECT}} -o jsonpath='{{.JSONPATH}}')"
           if [[ -z "$MATCHING_VALUE" ]]
           then 
             echo "$((N++)) Waiting for {{.JSONPATH}} to be non empty value"
@@ -82,29 +82,29 @@ tasks:
     silent: true
     desc: show pods and related
     cmds:
-    - kubectl -n nuvolaris get po,sts,jobs --no-headers
+    - kubectl -n openserverless get po,sts,jobs --no-headers
 
   svc:
     silent: true
     desc: show services, routes and ingresses
     ignore_error: true
     cmds:
-    - kubectl -n nuvolaris get svc 
-    - kubectl -n nuvolaris get route  2>/dev/null
-    - kubectl -n nuvolaris get ingress 2>/dev/null
+    - kubectl -n openserverless get svc 
+    - kubectl -n openserverless get route  2>/dev/null
+    - kubectl -n openserverless get ingress 2>/dev/null
 
   exec:
     desc: exec bash in pod P=...
     cmds:
       - test -n "{{.P}}" || die "use P= for pod"
-      - kubectl -n nuvolaris exec -ti {{.P}} -- bash
+      - kubectl -n openserverless exec -ti {{.P}} -- bash
 
   users:
     silent: true
-    desc: show nuvolaris users custom resources
+    desc: show openserverless users custom resources
     ignore_error: true
     cmds:
-    - kubectl -n nuvolaris get wsku
+    - kubectl -n openserverless get wsku
 
   detect:
     desc: detect the kind of kubernetes we are using
@@ -122,7 +122,7 @@ tasks:
         then echo "openshift"
         elif echo "$LABELS" | jq . | grep 'instance-type.*k3s' >/dev/null
         then echo "k3s"
-        elif echo "$LABELS" | jq . | awk '/nuvolaris.io\/kube/ {print $2}' | grep kind >/dev/null
+        elif echo "$LABELS" | jq . | awk '/openserverless.io\/kube/ {print $2}' | grep kind >/dev/null
         then echo "kind"
         else echo "generic"
         fi
@@ -130,10 +130,10 @@ tasks:
   show-all: |
     kubectl api-resources --verbs=list --namespaced -o name | while read a 
     do  
-        RES="$(kubectl -n nuvolaris get $a -o jsonpath='{.items}')"
+        RES="$(kubectl -n openserverless get $a -o jsonpath='{.items}')"
         if [[ "$RES" != "[]" ]]
         then echo "*** $a ***"
-            kubectl -n nuvolaris get $a
+            kubectl -n openserverless get $a
         fi
     done 
 
@@ -141,4 +141,4 @@ tasks:
   operator:
     desc: describe operator
     cmds:
-    - kubectl -n nuvolaris describe pod/nuvolaris-operator-0
+    - kubectl -n openserverless describe pod/openserverless-operator-0

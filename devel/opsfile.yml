@@ -71,7 +71,7 @@ tasks:
 
   #scan:
   #  silent: true
-  #  desc: scan directory and generate nuvolaris manifest files
+  #  desc: scan directory and generate openserverless manifest files
   #  cmds:
   #    - task: detect
   #    - |
@@ -99,7 +99,7 @@ tasks:
   #
   #deploy:
   #  silent: true
-  #  desc: deploy nuvolaris projects
+  #  desc: deploy openserverless projects
   #  dir: $DEPLOY_PATH
   #  cmds:
   #    - |

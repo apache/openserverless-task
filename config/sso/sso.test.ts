@@ -66,7 +66,7 @@ class FakeRunner implements CommandRunner {
       case "patch": {
         const payload = command[command.indexOf("-p") + 1];
         this.applyPatch(JSON.parse(payload));
-        return ok("statefulset.apps/nuvolaris-system-api patched\n");
+        return ok("statefulset.apps/openserverless-system-api patched\n");
       }
       case "delete": {
         const kindIndex = command.findIndex((value) => value === "configmap" || value === "secret");
@@ -124,7 +124,7 @@ function ok(stdout = ""): CommandResult {
 function workload(envFrom: unknown[]): any {
   return {
     metadata: {
-      name: "nuvolaris-system-api",
+      name: "openserverless-system-api",
       annotations: { "external.example/owner": "platform" },
     },
     spec: {
@@ -133,7 +133,7 @@ function workload(envFrom: unknown[]): any {
         spec: {
           containers: [
             {
-              name: "nuvolaris-system-api",
+              name: "openserverless-system-api",
               image: "example.test/admin-api:latest",
               env: [{ name: "APPLICATION_MODE", value: "production" }],
               envFrom,
@@ -214,11 +214,11 @@ describe("config sso task", () => {
       { secretRef: { name: "openserverless-sso-secret" } },
     ]);
     const runner = new FakeRunner(state);
-    runner.local.SSO_KUBE_NAMESPACE = "nuvolaris";
+    runner.local.SSO_KUBE_NAMESPACE = "openserverless";
     runner.local.SSO_KUBE_CONFIGMAP = "openserverless-sso-config";
     runner.local.SSO_KUBE_SECRET = "openserverless-sso-secret";
-    runner.local.SSO_KUBE_STATEFULSET = "nuvolaris-system-api";
-    runner.local.SSO_KUBE_CONTAINER = "nuvolaris-system-api";
+    runner.local.SSO_KUBE_STATEFULSET = "openserverless-system-api";
+    runner.local.SSO_KUBE_CONTAINER = "openserverless-system-api";
     const manager = new SSOManager(runner, { OPS: "test-ops" });
 
     await manager.disable();

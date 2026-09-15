@@ -19,7 +19,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: couchdb-compact-job
-  namespace: nuvolaris
+  namespace: openserverless
   labels:
     app: couchdb-compact-job
 spec:

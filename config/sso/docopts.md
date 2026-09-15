@@ -70,10 +70,24 @@ skips waiting for it and never issues an additional restart.
   --groups-claim=<claim>        OIDC groups claim [default: groups]
   --client-id=<client-id>       OIDC client id; defaults to audience
   --client-secret=<secret>      confidential client secret stored only in Kubernetes
-  --namespace=<namespace>       Kubernetes namespace [default: nuvolaris]
+  --namespace=<namespace>       Kubernetes namespace [default: openserverless]
   --configmap=<name>            ConfigMap name [default: openserverless-sso-config]
   --secret=<name>               Secret name [default: openserverless-sso-secret]
-  --statefulset=<name>          admin-api StatefulSet [default: nuvolaris-system-api]
-  --container=<name>            admin-api container [default: nuvolaris-system-api]
+  --statefulset=<name>          admin-api StatefulSet [default: openserverless-system-api]
+  --container=<name>            admin-api container [default: openserverless-system-api]
   --no-rollout                  do not restart or wait for admin-api rollout
 ```
+
+## 0.9.0 prerequisites
+
+This backport keeps the SSO task behavior from `0.9.1` and targets the
+`openserverless` namespace and `openserverless-system-api` workload used by
+`0.9.0`. It requires an admin-api build containing the corresponding OIDC
+backport; the existing image pins in `opsroot.json` are unchanged.
+
+The CLI already includes SSO login support. Configuration does not install an
+IdP, rebuild admin-api or enable SSO automatically. With SSO disabled, the
+existing login and namespace administration remain available.
+
+Run `bun test config/sso/sso.test.ts` to check resource preservation and
+idempotent disable without a Kubernetes cluster.

@@ -69,11 +69,11 @@ interface JSONPatchOperation {
 const DEFAULTS = {
   usernameClaim: "preferred_username",
   groupsClaim: "groups",
-  namespace: "nuvolaris",
+  namespace: "openserverless",
   configMapName: "openserverless-sso-config",
   secretName: "openserverless-sso-secret",
-  workloadName: "nuvolaris-system-api",
-  containerName: "nuvolaris-system-api",
+  workloadName: "openserverless-system-api",
+  containerName: "openserverless-system-api",
 };
 
 const MANAGED_LOCAL_KEYS = [
