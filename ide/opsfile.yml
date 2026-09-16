@@ -25,8 +25,8 @@ vars:
 
   DEPLOY_CURRENT_HASH:
     sh: |
-      if test -e "$OPS_ROOT/ide/deploy/bun.lockb"
-      then cd "$OPS_ROOT/ide/deploy" && bun "$OPS_ROOT/ide/deploy/bun.lockb" --hash
+      if test -e "$OPS_ROOT/ide/deploy/bun.lock"
+      then cd "$OPS_ROOT/ide/deploy" && bun "$OPS_ROOT/ide/deploy/bun.lock" --hash
       else echo "0"
       fi
 
@@ -57,7 +57,7 @@ tasks:
       - |
         if ! test -d "$OPS_ROOT/ide/deploy/node_modules" || [ "{{.DEPLOY_CURRENT_HASH}}" != "{{.DEPLOY_PREVIOUS_HASH}}" ]
           then
-            cd $OPS_ROOT/ide/deploy && bun install && rm -f $OPS_ROOT/ide/deploy/hash.lock && bun $OPS_ROOT/ide/deploy/bun.lockb --hash > $OPS_ROOT/ide/deploy/hash.lock
+            cd $OPS_ROOT/ide/deploy && bun install && rm -f $OPS_ROOT/ide/deploy/hash.lock && bun $OPS_ROOT/ide/deploy/bun.lock --hash > $OPS_ROOT/ide/deploy/hash.lock
         fi
       - |
         if test -e "$OPS_PWD/package.json"
