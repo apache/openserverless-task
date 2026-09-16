@@ -25,9 +25,9 @@
                 "kind": "go:1.27",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.27-26i10j35-snapshot"
+                    "tag": "v1.27-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -39,9 +39,9 @@
                 "kind": "go:1.26",
                 "default": true,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.26-26i10j35-snapshot"
+                    "tag": "v1.26-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -53,9 +53,9 @@
                 "kind": "go:1.25",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.25-26i10j35-snapshot"
+                    "tag": "v1.25-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -69,9 +69,9 @@
                 "kind": "java:21",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-java",
-                    "tag": "v21-26i10j35-snapshot"
+                    "tag": "v21-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -84,9 +84,9 @@
                 "kind": "java:17",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-java",
-                    "tag": "v17-26i10j35-snapshot"
+                    "tag": "v17-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -99,9 +99,9 @@
                 "kind": "java:11",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-java",
-                    "tag": "v11-26i10j35-snapshot"
+                    "tag": "v11-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -114,9 +114,9 @@
                 "kind": "java:8",
                 "default": true,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-java",
-                    "tag": "v8-26i10j35-snapshot"
+                    "tag": "v8-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -131,9 +131,9 @@
                 "kind": "nodejs:24",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v24-26i10j35-snapshot"
+                    "tag": "v24-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -145,9 +145,9 @@
                 "kind": "nodejs:22",
                 "default": true,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v22-26i10j35-snapshot"
+                    "tag": "v22-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -172,9 +172,9 @@
                 "kind": "nodejs:20",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v20-26i10j35-snapshot"
+                    "tag": "v20-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -188,9 +188,9 @@
                 "kind": "python:sys",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-python",
-                    "tag": "sys-26i10j35-snapshot"
+                    "tag": "sys-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -202,9 +202,9 @@
                 "kind": "python:3.13",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.13-26i10j35-snapshot"
+                    "tag": "v3.13-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -216,9 +216,9 @@
                 "kind": "python:3.12",
                 "default": true,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.12-26i10j35-snapshot"
+                    "tag": "v3.12-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -243,9 +243,9 @@
                 "kind": "python:3.11",
                 "default": false,
                 "image": {
-                    "prefix": "docker.io/apache",
+                    "prefix": "ghcr.io/trustable-ai",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.11-26i10j35-snapshot"
+                    "tag": "v3.11-26i14l29-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
