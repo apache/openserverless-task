@@ -1,0 +1,24 @@
+{
+  "ingress": {
+    "kind": {
+      "version": "4.6.0",
+      "url": "https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.6.0/ingress-nginx-4.6.0.tgz",
+      "sha256": "60aa4aa33c6867bf961f9e715bf7246d57fc3ca3bfa2ea433c1768eb1670d963"
+    },
+    "eks": {
+      "version": "4.6.1",
+      "url": "https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.6.1/ingress-nginx-4.6.1.tgz",
+      "sha256": "1a70806cd2410979b6c29e2288b59b0a5866453dc9c27240a1bd065c637ad8eb"
+    },
+    "cloud": {
+      "version": "4.7.1",
+      "url": "https://github.com/kubernetes/ingress-nginx/releases/download/helm-chart-4.7.1/ingress-nginx-4.7.1.tgz",
+      "sha256": "db950084dfa3db359430cc5c3846ffefe6dfc51cb94cdb09fefb57e256c6fbe8"
+    }
+  },
+  "cert-manager": {
+    "version": "v1.11.0",
+    "url": "https://charts.jetstack.io/charts/cert-manager-v1.11.0.tgz",
+    "sha256": "39ebaad81cf7368643fc5616275b2f9e19d9837ccf10ae7f9531785ef4e03646"
+  }
+}

@@ -18,6 +18,12 @@
 version: 3
 tasks:
 
+  addons:
+    desc: verify Helm add-on rendering and lifecycle without a Kubernetes cluster
+    silent: true
+    cmds:
+      - bun test "$OPS_ROOT/setup/addons"
+
   all:
     desc: All tests
     silent: true

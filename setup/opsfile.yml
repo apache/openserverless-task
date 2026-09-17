@@ -25,6 +25,9 @@ vars:
   ARCH: '{{ARCH}}'
 
 tasks:
+  addons:
+    desc: manage ingress-nginx and cert-manager with pinned Helm charts
+
   check-ports:
     desc: "Check if an array of TCP/UDP ports is free and fail if any are in use"
     silent: true
@@ -226,4 +229,3 @@ tasks:
         ;;
         (*) echo nothing installed yet
         esac
-

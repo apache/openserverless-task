@@ -34,18 +34,25 @@ for each image found:
 - print the image to be preloaded
 
 */
+import { cacheChart, images as chartImages, ProcessRunner, render, selectAddon } from "../../setup/addons/addons.ts"
+
 const opsRoot = process.env.OPS_ROOT
 const imageDir = process.env.IMAGE_DIR
 
 const images = []
 
 // Component images from opsroot.json, skip standalone and devcontainer
-const skipKeys = new Set(["standalone", "devcontainer"])
+// The chart is authoritative for ingress images, including any hook images.
+const skipKeys = new Set(["standalone", "devcontainer", "ingress"])
 const opsroot = await Bun.file(`${opsRoot}/opsroot.json`).json()
 for (const [key, img] of Object.entries(opsroot.config.images)) {
   if (skipKeys.has(key)) continue
   images.push(img)
 }
+
+const ingress = selectAddon("ingress", "kind")
+const chart = await cacheChart(ingress)
+images.push(...chartImages(await render(ingress, chart, new ProcessRunner())))
 
 // Runtime images from runtimes.json, only defaults, skip nightly/latest tags
 const skipTags = new Set(["latest", "nightly"])
@@ -60,7 +67,7 @@ for (const family of Object.values(runtimes.runtimes)) {
 }
 
 // Print only images that need preloading
-for (const img of images) {
+for (const img of new Set(images)) {
   const marker = `${imageDir}/${btoa(img)}`
   const found = await Bun.file(marker).exists()
   if (!found) {

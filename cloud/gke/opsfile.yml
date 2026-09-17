@@ -42,9 +42,11 @@ tasks:
     - config GKE_PREREQ_OK
 
   update-yaml:
+    desc: cache the pinned Helm charts (compatibility alias)
+    silent: true
     cmds:
-    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
-    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
+      - bun "$OPS_ROOT/setup/addons/addons.ts" download ingress gke
+      - bun "$OPS_ROOT/setup/addons/addons.ts" download cert-manager
 
   kubeconfig:
     desc: extract kubeconfig to access
@@ -99,21 +101,21 @@ tasks:
       gcloud container clusters 
       delete "$GKE_NAME" --zone="$GKE_REGION"
 
-  certman: 
+  certman:
+    desc: manage certman with the pinned Helm chart
+    silent: true
+    env:
+      OPS_ADDON_DELETE: '{{or .DEL ""}}'
     cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl  --kubeconfig "$OPS_TMP/kubeconfig"  apply -f cert-manager.yaml
-        else kubectl apply -f cert-manager.yaml
-        fi
+      - bun "$OPS_ROOT/setup/addons/addons.ts" cert-manager --kubeconfig "$OPS_TMP/kubeconfig"
 
   ingress:
+    desc: manage ingress with the pinned Helm chart
+    silent: true
+    env:
+      OPS_ADDON_DELETE: '{{or .DEL ""}}'
     cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f ingress-deploy.yaml
-        else kubectl delete -f ingress-deploy.yaml
-        fi
+      - bun "$OPS_ROOT/setup/addons/addons.ts" ingress gke --kubeconfig "$OPS_TMP/kubeconfig"
 
   lb:
     silent: true
