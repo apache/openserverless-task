@@ -18,7 +18,6 @@ version: '3'
 
 vars:
   CLUSTER: openserverless
-  INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
   HOMEDIR:
     sh: echo ~ | replace --stdin -s \\ -r /
 
@@ -104,11 +103,10 @@ tasks:
 
 
   ingress:
+    desc: install ingress-nginx for Kind with Helm
     silent: true
     cmds:
-    - >
-      retry kubectl --kubeconfig="$OPS_TMP/kubeconfig"
-      apply -f ingress-deploy.yaml
+      - bun "$OPS_ROOT/setup/addons/addons.ts" ingress kind --kubeconfig "$OPS_TMP/kubeconfig"
 
   check-space:
     silent: true

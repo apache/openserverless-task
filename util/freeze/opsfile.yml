@@ -43,11 +43,12 @@ tasks:
       CLU: "{{.KIND_CLUSTER}}"
     desc: list images in kindes
     cmds:
-    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml | tee _kind.lst
+    - bun "$OPS_ROOT/setup/addons/addons.ts" images ingress kind > _kind.lst
+    - cat _kind.lst
     - >
       docker exec -it "$CLU" crictl images 2>/dev/null
       | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
-      | tee _kind.lst
+      | tee -a _kind.lst
 
   docker-save:
     silent: true
@@ -79,7 +80,7 @@ tasks:
     env:
       CLU: "{{.KIND_CLUSTER}}"
     cmds:
-    - awk '/image:/ {print $2}' $OPS_ROOT/setup/docker/ingress-deploy.yaml > _kind.lst
+    - bun "$OPS_ROOT/setup/addons/addons.ts" images ingress kind > _kind.lst
     - >
       docker exec -it "$CLU" crictl images 2>/dev/null
       | awk 'NR > 1  && !/^(registry.k8s.io\/(kube-|coredns|etc|pause|ingress-nginx)|docker.io\/kindest\/)/ {print  $1 ":" $2 }'
@@ -212,4 +213,3 @@ tasks:
   - task: kind-load
   - task: test-compare
   - task: test-clean
-

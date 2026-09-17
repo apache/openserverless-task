@@ -21,7 +21,6 @@ vars:
   # temporary....
   K3S_VERSION: "v1.27.7-rc1+k3s2"
   SSH: "ssh -oStrictHostKeyChecking=no"
-  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
 env:
   KUBECONFIG:
@@ -33,8 +32,10 @@ env:
 
 tasks:
   get-cert-manager:
+    desc: cache the pinned cert-manager chart (compatibility alias)
+    silent: true
     cmds:
-      - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
+      - bun "$OPS_ROOT/setup/addons/addons.ts" download cert-manager
 
   install:
     silent: true
@@ -68,10 +69,10 @@ tasks:
     
 
   cert-manager:
+    desc: install cert-manager with Helm
     silent: true
-    #desc: install cert-manager
     cmds:
-      - kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f cert-manager.yaml
+      - bun "$OPS_ROOT/setup/addons/addons.ts" cert-manager --kubeconfig "$OPS_TMP/kubeconfig"
 
   create:
     silent: true

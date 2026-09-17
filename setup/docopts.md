@@ -56,6 +56,7 @@ Usage:
 
 ## Subtasks
 
+- `addons`: manage ingress-nginx and cert-manager with pinned Helm charts
 - `kubernetes`: prepare kubernetes
 - `openserverless`: install openserverless
 - `docker`: prepare docker

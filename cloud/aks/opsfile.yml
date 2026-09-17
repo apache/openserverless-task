@@ -36,9 +36,11 @@ tasks:
     - config AKS_PREREQ_OK
 
   update-yaml:
+    desc: cache the pinned Helm charts (compatibility alias)
+    silent: true
     cmds:
-    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
-    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
+      - bun "$OPS_ROOT/setup/addons/addons.ts" download ingress aks
+      - bun "$OPS_ROOT/setup/addons/addons.ts" download cert-manager
 
   kubeconfig:
     desc: extract the kubeconfig to access
@@ -87,21 +89,21 @@ tasks:
     - az aks delete --name $AKS_NAME --resource-group $AKS_PROJECT
     - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
 
-  certman: 
+  certman:
+    desc: manage certman with the pinned Helm chart
+    silent: true
+    env:
+      OPS_ADDON_DELETE: '{{or .DEL ""}}'
     cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f cert-manager.yaml
-        else kubectl apply -f cert-manager.yaml
-        fi
+      - bun "$OPS_ROOT/setup/addons/addons.ts" cert-manager --kubeconfig "$OPS_TMP/kubeconfig_$AKS_NAME"
 
   ingress:
+    desc: manage ingress with the pinned Helm chart
+    silent: true
+    env:
+      OPS_ADDON_DELETE: '{{or .DEL ""}}'
     cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f ingress-deploy.yaml
-        else kubectl delete -f ingress-deploy.yaml
-        fi
+      - bun "$OPS_ROOT/setup/addons/addons.ts" ingress aks --kubeconfig "$OPS_TMP/kubeconfig_$AKS_NAME"
 
   lb:
     silent: true
