@@ -420,7 +420,7 @@ tasks:
           MSG: "EKS Kubernetes Version"
           VAR: "EKS_KUBERNETES_VERSION"
           VAL: "{{.__kubever}}"
-          DEF: "1.25"
+          DEF: "1.34"
       - config -d | rg AWS_
       - config -d | rg EKS_
 

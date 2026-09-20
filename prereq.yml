@@ -136,7 +136,7 @@ tasks:
   k3sup:
     desc: download k3sup
     vars:
-      VERSION: 0.13.12
+      VERSION: 0.13.13
       BASE: "https://github.com/alexellis/k3sup/releases/download/{{.VERSION}}"
       FILE:
         sh: |

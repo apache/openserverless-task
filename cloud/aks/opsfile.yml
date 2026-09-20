@@ -37,7 +37,7 @@ tasks:
 
   update-yaml:
     cmds:
-    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
+    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
 
   kubeconfig:
     desc: extract the kubeconfig to access
