@@ -39,10 +39,7 @@ vars:
       else
         echo $AUTH
       fi
-  # unused
-  #USERNAME:
-  #  sh: |
-  #    wsk property get --namespace | awk '{ print $3 }'
+  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
 tasks:
   config:
@@ -303,6 +300,13 @@ tasks:
           echo "$PLUGIN not found"
           exit 1
         fi
+
+  cert-manager:
+    desc: install the cert-manager
+    silent: true
+    cmds:
+    - curl -L "{{.CERTMANAGER}}" >_cert-manager.yaml
+    - kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f _cert-manager.yaml
 
   freeze:
     desc: freeze util

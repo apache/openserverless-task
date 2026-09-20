@@ -21,7 +21,6 @@ vars:
   # temporary....
   K3S_VERSION: "v1.27.7-rc1+k3s2"
   SSH: "ssh -oStrictHostKeyChecking=no"
-  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
 env:
   KUBECONFIG:
@@ -32,9 +31,6 @@ env:
       fi
 
 tasks:
-  get-cert-manager:
-    cmds:
-      - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
 
   install:
     silent: true
@@ -65,13 +61,6 @@ tasks:
         k3sup install --k3s-version="{{.K3S_VERSION}}"
         --host="{{._server_}}" --user="{{.INSTALL_USER}}"
         --local-path=$OPS_TMP/kubeconfig
-    
-
-  cert-manager:
-    silent: true
-    #desc: install cert-manager
-    cmds:
-      - kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f cert-manager.yaml
 
   create:
     silent: true
@@ -79,8 +68,8 @@ tasks:
     cmds:
       - config OPERATOR_CONFIG_KUBE=k3s
       - task: install
-      - task: cert-manager
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
+      - ops util cert-manager
 
   delete:
     silent: true
@@ -117,8 +106,8 @@ tasks:
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
       - >
-        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' 
-        sudo cat /etc/rancher/k3s/k3s.yaml 
+        {{.SSH}} '{{.INSTALL_USER}}@{{._server_}}'
+        sudo cat /etc/rancher/k3s/k3s.yaml
         | replace --stdin -s '127.0.0.1' -r '{{._server_}}'
         >"$OPS_TMP/kubeconfig"
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
