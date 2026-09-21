@@ -8,118 +8,187 @@ This product contains parts that were originally based on software from
 Nuvolaris (https://github.com/nuvolaris).
 Copyright (C) 2022-2024 Nuvolaris S.r.l.
 
-------------------------------------------------------------------------------
-SCOPE NOTE
-------------------------------------------------------------------------------
+---------------
 
-This component (oplugins) is the collection of Taskfiles (opsfile.yml) driving
-the `ops` command line, together with the helper scripts they invoke. The
-Taskfiles, the Kubernetes manifests and the TypeScript sources beside them are
-Apache-2.0 licensed files developed at the ASF and carry no third-party
-attribution requirement.
-
-Third-party code is present only in the pre-built JavaScript bundles that are
-checked into this tree. Those bundles are produced by `bun build` from the
-TypeScript sources in the sibling directories and statically embed their
-runtime dependencies. The sections below record the attribution for the code
-embedded in each bundle.
-
-All bundled components are under Apache-2.0 compatible (ASF Category A)
-licenses. See the WARN file beside this NOTICE for the license classification.
-
-------------------------------------------------------------------------------
-Bundled in util/upload.js (built from util/upload)
-------------------------------------------------------------------------------
-
-This bundle embeds the MinIO JavaScript client and its dependencies.
-
-This product bundles minio (v8.0.1), which was released under an
-Apache 2.0 license.
+oplugins bundles, in the pre-built JavaScript file util/upload.js, the MinIO
+JavaScript client which was released under an Apache 2.0 license.
 
 MinIO Javascript Library for Amazon S3 Compatible Cloud Storage
 Copyright 2015-2024 MinIO, Inc.
 
-This product bundles the following components, which were released under
-an MIT license.
+---------------
 
-  * async (v3.2.6) -- Copyright (c) 2010-2018 Caolan McMahon
-  * block-stream2 (v2.1.0) -- Copyright (c) James Halliday
-  * browser-or-node (v2.1.1) -- Copyright (c) 2018 Dineshkumar Pandiyan
-  * buffer-crc32 (v1.0.0) -- Copyright (c) 2013-2024 Brian J. Brennan
-  * decode-uri-component (v0.2.2) -- Copyright (c) Sam Verschueren
-  * docopt (v0.6.2) -- Copyright (c) 2012 Vladimir Keleshev
-  * eventemitter3 (v5.0.1) -- Copyright (c) 2014 Arnout Kazemier
-  * fast-xml-parser (v4.5.0) -- Copyright (c) 2021 Natural Intelligence
-  * filter-obj (v1.1.0) -- Copyright (c) Sindre Sorhus
-  * ipaddr.js (v2.2.0) -- Copyright (C) 2011-2017 whitequark
-  * lodash (v4.17.21) -- Copyright OpenJS Foundation and other contributors
-  * mime-db (v1.52.0) -- Copyright (c) 2014 Jonathan Ong
-  * mime-types (v2.1.35) -- Copyright (c) 2014 Jonathan Ong
-  * query-string (v7.1.3) -- Copyright (c) Sindre Sorhus
-  * readable-stream (v3.6.2) -- Copyright Joyent, Inc. and other Node contributors
-  * safe-buffer (v5.2.1) -- Copyright (c) Feross Aboukhadijeh
-  * split-on-first (v1.1.0) -- Copyright (c) Sindre Sorhus
-  * strict-uri-encode (v2.0.0) -- Copyright (c) Kevin Martensson
-  * string_decoder (v1.3.0) -- Copyright Joyent, Inc. and other Node contributors
-  * strnum (v1.0.5) -- Copyright (c) 2021 Natural Intelligence
-  * through2 (v4.0.2) -- Copyright (c) Rod Vagg
-  * util-deprecate (v1.0.2) -- Copyright (c) 2014 Nathan Rajlich
-  * xml2js (v0.5.0) -- Copyright 2010, 2011, 2012, 2013. All rights reserved.
-  * xmlbuilder (v11.0.1) -- Copyright (c) 2013 Ozgur Ozcitak
+oplugins bundles, in the pre-built JavaScript file util/upload.js, the
+following components which were released under an MIT license.
 
-This product bundles the following components, which were released under
-an ISC license.
+async
+Copyright (c) 2010-2018 Caolan McMahon
 
-  * inherits (v2.0.4) -- Copyright (c) Isaac Z. Schlueter
-  * sax (v1.4.1) -- Copyright (c) Isaac Z. Schlueter and Contributors
+block-stream2
+Copyright (c) James Halliday
 
-This product bundles the following components, which were released under
-a BSD 3-Clause license.
+browser-or-node
+Copyright (c) 2018 Dineshkumar Pandiyan
 
-  * stream-chain (v2.2.5) -- Copyright (c) 2005-2024, Eugene Lazutkin
-  * stream-json (v1.8.0) -- Copyright (c) 2005-2024, Eugene Lazutkin
+buffer-crc32
+Copyright (c) 2013-2024 Brian J. Brennan
 
-------------------------------------------------------------------------------
-Bundled in util/config/configurator.js (built from util/config/configurator)
-------------------------------------------------------------------------------
+decode-uri-component
+Copyright (c) Sam Verschueren
 
-This product bundles the following components, which were released under
-an MIT license.
+docopt
+Copyright (c) 2012 Vladimir Keleshev
 
-  * @clack/core (v0.3.5) -- Copyright (c) Nate Moore
-  * @clack/prompts (v0.7.0) -- Copyright (c) Nate Moore
-  * sisteransi (v1.0.5) -- Copyright (c) 2018 Terkel Gjervig Nielsen
+eventemitter3
+Copyright (c) 2014 Arnout Kazemier
 
-This product bundles the following component, which was released under
-an ISC license.
+fast-xml-parser
+Copyright (c) 2021 Natural Intelligence
 
-  * picocolors (v1.0.1) -- Copyright (c) 2021 Alexey Raspopov, Kostiantyn
-    Denysov, Anton Verinov
+filter-obj
+Copyright (c) Sindre Sorhus
 
-------------------------------------------------------------------------------
-Bundled in admin/usage/usage.js (built from admin/usage/usagechecker)
-------------------------------------------------------------------------------
+ipaddr.js
+Copyright (C) 2011-2017 whitequark
 
-This product bundles the following component, which was released under
-an ISC license.
+lodash
+Copyright OpenJS Foundation and other contributors
 
-  * yaml (v2.8.3) -- Copyright Eemeli Aro <eemeli@gmail.com>
+mime-db, mime-types
+Copyright (c) 2014 Jonathan Ong
 
-------------------------------------------------------------------------------
-NOT BUNDLED -- dependencies downloaded at run time
-------------------------------------------------------------------------------
+query-string
+Copyright (c) Sindre Sorhus
 
-The helper under ide/deploy is not pre-built: its dependencies are fetched by
-`bun install` on the end user's machine when `ops ide` first runs, and are
-neither redistributed in the Apache source release nor embedded in any file in
-this tree. They are recorded here for information only.
+readable-stream, string_decoder
+Copyright Joyent, Inc. and other Node contributors
 
-  * chokidar (v4.0.3) -- MIT -- Copyright (c) 2012-2019 Paul Miller
-  * commander (v13.1.0) -- MIT -- Copyright (c) 2011 TJ Holowaychuk
-  * dotenv (v16.4.7) -- BSD-2-Clause -- Copyright (c) 2015, Scott Motte
-  * glob (v12.0.0) -- BlueOak-1.0.0 -- Copyright (c) Isaac Z. Schlueter
-  * mime-types (v2.1.35) -- MIT -- Copyright (c) 2014 Jonathan Ong
-  * shell-quote (v1.8.3) -- MIT -- Copyright (c) 2013 James Halliday
+safe-buffer
+Copyright (c) Feross Aboukhadijeh
 
-The build-time only toolchain (typescript, @types/*, bun-types) is likewise
-not redistributed.
+split-on-first
+Copyright (c) Sindre Sorhus
+
+strict-uri-encode
+Copyright (c) Kevin Martensson
+
+strnum
+Copyright (c) 2021 Natural Intelligence
+
+through2
+Copyright (c) Rod Vagg
+
+util-deprecate
+Copyright (c) 2014 Nathan Rajlich
+
+xml2js
+Copyright 2010, 2011, 2012, 2013. All rights reserved.
+
+xmlbuilder
+Copyright (c) 2013 Ozgur Ozcitak
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file util/upload.js, inherits
+and sax which were released under an ISC license.
+
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file util/upload.js,
+stream-chain and stream-json which were released under a BSD 3-Clause
+license.
+
+Copyright (c) 2005-2024, Eugene Lazutkin
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file
+util/config/configurator.js, @clack/core and @clack/prompts which were
+released under an MIT license.
+
+Copyright (c) Nate Moore
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file
+util/config/configurator.js, sisteransi which was released under an MIT
+license.
+
+Copyright (c) 2018 Terkel Gjervig Nielsen
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file
+util/config/configurator.js, picocolors which was released under an ISC
+license.
+
+Copyright (c) 2021 Alexey Raspopov, Kostiantyn Denysov, Anton Verinov
+
+---------------
+
+oplugins bundles, in the pre-built JavaScript file admin/usage/usage.js, yaml
+which was released under an ISC license.
+
+Copyright Eemeli Aro <eemeli@gmail.com>
+
+---------------
+
+oplugins contains, in cloud/eks/ingress-deploy.yaml,
+cloud/gke/ingress-deploy.yaml, cloud/aks/ingress-deploy.yaml and
+setup/docker/ingress-deploy.yaml, the deployment manifests of the
+ingress-nginx controller, which were released under an Apache 2.0 license.
+
+Kubernetes ingress-nginx
+Copyright The Kubernetes Authors.
+
+---------------
+
+oplugins contains, in setup/kubernetes/crds/kubegres-crd.yaml,
+setup/kubernetes/roles/openserverless-kubegres-roles.yaml and
+setup/kubernetes/common/openserverless-kubegres-common.yaml, the custom
+resource definition and operator descriptors of Kubegres, which were released
+under an Apache 2.0 license.
+
+Kubegres
+Copyright Reactive Tech Limited.
+
+---------------
+
+oplugins contains, in cloud/osh/acme-openshift/acme-setup.yaml and
+cloud/osh/acme-openshift/acme-rbac.yaml, deployment descriptors of
+openshift-acme, which were released under an Apache 2.0 license.
+
+openshift-acme
+Copyright The openshift-acme Authors.
+
+---------------
+
+oplugins contains, in
+setup/kubernetes/common/openserverless-monitoring-common.yaml and
+setup/kubernetes/roles/openserverless-monitoring-roles.yaml, descriptors
+derived from the prometheus-community Helm chart, which were released under
+an Apache 2.0 license.
+
+Prometheus
+Copyright The Prometheus Authors.
+
+kube-state-metrics
+Copyright The Kubernetes Authors.
+
+---------------
+
+oplugins contains, in setup/kubernetes/common/openwhisk-core-common.yaml,
+setup/kubernetes/common/openwhisk-invoker-common.yaml,
+setup/kubernetes/roles/openwhisk-core-roles.yaml and
+setup/kubernetes/roles/openwhisk-invoker-roles.yaml, descriptors rendered
+from the openwhisk Helm chart, which were released under an Apache 2.0
+license.
+
+Apache OpenWhisk
+Copyright 2016-2024 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
