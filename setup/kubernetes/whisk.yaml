@@ -53,10 +53,8 @@ spec:
     cron: ${OPERATOR_COMPONENT_CRON:-false}
     # enable TLS
     tls: ${OPERATOR_COMPONENT_TLS:-false}
-    # minio enabled or not
-    minio: ${OPERATOR_COMPONENT_MINIO:-false}
-    # minio static enabled or not
-    static: ${OPERATOR_COMPONENT_STATIC:-false} 
+    # static web content serving enabled or not
+    static: ${OPERATOR_COMPONENT_STATIC:-false}
     # postgres enabled or not
     postgres: ${OPERATOR_COMPONENT_POSTGRES:-false}
     # quota enabled or not
@@ -175,20 +173,7 @@ spec:
       password: $SECRET_MONGODB_OPENSERVERLESS
     exposedExternally: False
     useOperator: False
-  minio:
-    ingress:
-      s3-enabled: ${MINIO_CONFIG_INGRESS_S3:-false}
-      console-enabled: ${MINIO_CONFIG_INGRESS_CONSOLE:-false}
-      s3-hostname: ${MINIO_CONFIG_INGRESS_S3_HOSTNAME:-auto}
-      console-hostname: ${MINIO_CONFIG_INGRESS_CONSOLE_HOSTNAME:-auto}
-    volume-size: ${STORAGE_SIZE_MINIO:-50}
-    admin:
-      user: minioadmin
-      password: $SECRET_MINIO_ADMIN    
-    openserverless:
-      user: openserverless
-      password: $SECRET_MINIO_OPENSERVERLESS
-  postgres:    
+  postgres:
     volume-size: ${STORAGE_SIZE_POSTGRES:-50}
     replicas: ${POSTGRES_CONFIG_REPLICAS:-2}
     admin:      

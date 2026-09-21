@@ -117,11 +117,8 @@ spec:
                     tls:
                       description: enables TLS support via let's encrypt certificate for the ow apihost
                       type: boolean
-                    minio:
-                      description: deploys MINIO as storage
-                      type: boolean
                     static:
-                      description: activate the MINIO/CEPH OBJECT STORE static internal service (requires components.minio or components.cephobjectstore to be true)
+                      description: activate the static web content internal service (requires components.seaweedfs to be true)
                       type: boolean
                     zookeeper:
                       description: deploys zookeeper if supported by the operator
@@ -363,58 +360,6 @@ spec:
                   required:
                   - acme-registered-email
                   - acme-server-url
-                minio:
-                  description: used to configure the internal minio data storage service
-                  type: object
-                  properties:
-                    volume-size:
-                      description: volume size in GB
-                      type: integer
-                    admin:
-                      description: used to configure the MINIO admin user
-                      type: object
-                      properties:
-                        user:
-                          type: string
-                        password:
-                          type: string
-                      required:
-                      - user
-                      - password
-                    openserverless:
-                      description: used to configure the MINIO openserverless user used for non administrative purposes
-                      type: object
-                      properties:
-                        user:
-                          type: string
-                        password:
-                          type: string
-                      required:
-                      - user
-                      - password
-                    ingress:
-                      description: configuration option for global minio ingresses exposure
-                      type: object
-                      properties:
-                        s3-enabled:
-                          description: boolean flag to activate MINIO S3 compatible ingress. Default to false
-                          type: boolean
-                        s3-hostname:
-                          description: ingress hostname to be used if true (normally s3.<apihost>)
-                          type: string
-                        console-enabled:
-                          description: boolean flag to expose MINIO console
-                          type: boolean
-                        console-hostname:
-                          description: ingress hostname to be used (nora=mally minio.<apihost>)
-                          type: string
-                      required:
-                      - s3-enabled
-                      - console-enabled                           
-                  required:
-                  - volume-size
-                  - admin
-                  - openserverless 
                 redis:
                   description: used to configure redis default credentials
                   type: object
@@ -777,7 +722,7 @@ spec:
                           description: ETCD milvus user password
                           type: string
                         s3:
-                          description: MINIO/S3 milvus user password
+                          description: S3 milvus user password
                           type: string                          
                       required:
                       - root
@@ -831,7 +776,7 @@ spec:
                   - auth
                   - hostname
                 seaweedfs:
-                  description: used to configure the internal saweedfs data storage service
+                  description: used to configure the internal seaweedfs data storage service
                   type: object
                   properties:
                     volume-size:
@@ -841,7 +786,7 @@ spec:
                       description: default bucket quota, default to 1024MB
                       type: integer
                     openserverless:
-                      description: used to configure the MINIO openserverless user used for non administrative purposes
+                      description: used to configure the SEAWEEDFS openserverless user used for non administrative purposes
                       type: object
                       properties:
                         user:
@@ -852,7 +797,7 @@ spec:
                       - user
                       - password
                     ingress:
-                      description: configuration option for global minio ingresses exposure
+                      description: configuration option for global seaweedfs ingresses exposure
                       type: object
                       properties:
                         s3-enabled:
@@ -895,8 +840,6 @@ spec:
               #       cron:
               #         type: string
               #       tls:
-              #         type: string
-              #       minio:
               #         type: string
               #       postgres:
               #         type: string              
@@ -946,11 +889,6 @@ spec:
           priority: 0
           jsonPath: .status.whisk_create.tls
           description: Tls 
-        - name: Minio
-          type: string
-          priority: 0
-          jsonPath: .status.whisk_create.minio
-          description: Minio 
         - name: Postgres
           type: string
           priority: 0

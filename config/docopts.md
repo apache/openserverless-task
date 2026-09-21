@@ -64,14 +64,13 @@ Usage:
   config disable          disable OpenServerless services to install
   config slack            configure Alert Manager over a given slack channel
   config mail             configure Alert Manager over a gmail account
-  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, minio storage, alerting, milvus)
+  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, seaweedfs storage, alerting, milvus)
   config controller       configure Openwhisk enterprise controller java options
   config ingress          configure OpenServerless ingress class
   config invoker          configure Openwhisk enterprise invoker options
   config limits           configure Openwhisk actions limits
   config storage          allows to customize storage persistence class and provider
   config postgres         allows to customize enterprise options for openserverless default postgres deployment
-  config minio            allows to customize MINIO options
   config milvus           allows to customize MILVUS options
   config etcd             allows to customize ETCD options
   config aws              configure Amazon Web Service (AWS) credentials and parameters
@@ -84,7 +83,7 @@ Usage:
   config status           show current configuration
   config export           export all the variables
   config use              use a different kubernetes cluster among those you created
-  config minimal          shortcut for ops config enabling only redis,mongodb,minio,cron,static,postgres
+  config minimal          shortcut for ops config enabling only redis,mongodb,seaweedfs,cron,static,postgres
   config slim             shortcut for ops config slim, but adding lightweight milvus and other sizing improvements
   config registry         configure the internal image registry for actions runtimes
   config externalregistry configure an external private image registry for action runtimes
@@ -96,7 +95,6 @@ Usage:
   --all                 select all services
   --redis               select redis
   --mongodb             select mongodb (FerretDB Proxy)
-  --minio               select minio
   --cron                select cron
   --static              select static
   --postgres            select postgres

@@ -39,13 +39,13 @@ spec:
     database: ${USERNAME}
     password: ${USER_SECRET_POSTGRES}
   object-storage:        
-    password: ${USER_SECRET_MINIO}
-    quota: "${MINIO_STORAGE_QUOTA:-auto}"
+    password: ${USER_SECRET_SEAWEEDFS}
+    quota: "${OBJECT_STORAGE_QUOTA:-auto}"
     data:
-      enabled: ${MINIO_DATA_ENABLED}
+      enabled: ${OBJECT_STORAGE_DATA_ENABLED}
       bucket: ${USERNAME}-data
     route:
-      enabled: ${MINIO_STATIC_ENABLED}
+      enabled: ${OBJECT_STORAGE_STATIC_ENABLED}
       bucket: ${USERNAME}-web      
   milvus:
     enabled: ${MILVUS_ENABLED}
