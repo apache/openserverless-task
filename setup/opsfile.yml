@@ -127,6 +127,7 @@ tasks:
       - ops setup openserverless add-user
       - ops setup openserverless streamer deploy
       - ops setup openserverless system-api deploy
+      - ops setup openserverless tika deploy
 
   devcluster:
     vars:
@@ -159,7 +160,11 @@ tasks:
       then  {{.RUN}} ops setup kubernetes delete CONTEXT="{{._context_}}"
       else
             {{.RUN}} ops setup kubernetes create CONTEXT="{{._context_}}"
+            {{.RUN}} ops setup openserverless streamer deploy
+            {{.RUN}} ops setup openserverless system-api deploy
+            {{.RUN}} ops setup openserverless tika deploy
             {{.RUN}} ops setup openserverless login
+            {{.RUN}} ops setup openserverless add-user
             config STATUS_LAST=cluster
             if test -n "{{._context_}}"
             then config STATUS_CONTEXT="{{._context_}}"
@@ -179,6 +184,7 @@ tasks:
           {{.RUN}} ops setup kubernetes create
           {{.RUN}} ops setup openserverless streamer deploy
           {{.RUN}} ops setup openserverless system-api deploy
+          {{.RUN}} ops setup openserverless tika deploy
           {{.RUN}} ops setup openserverless login
           {{.RUN}} ops setup openserverless add-user
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
