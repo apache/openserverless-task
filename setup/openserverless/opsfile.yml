@@ -270,7 +270,7 @@ tasks:
     desc: manage the system api deployment
 
   tika:
-    desc: manate tika deployment
+    desc: manage the tika deployment
 
   add-user:
     silent: true
