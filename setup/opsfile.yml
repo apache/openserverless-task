@@ -124,10 +124,10 @@ tasks:
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
       - ops setup devcluster
-      - ops setup openserverless add-user
       - ops setup openserverless streamer deploy
       - ops setup openserverless system-api deploy
       - ops setup openserverless tika deploy
+      - ops setup openserverless add-user
 
   devcluster:
     vars:
