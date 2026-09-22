@@ -177,7 +177,10 @@ tasks:
       else
           {{.RUN}} ops cloud k3s create {{._server_}} {{._user_}}
           {{.RUN}} ops setup kubernetes create
+          {{.RUN}} ops setup openserverless streamer deploy
+          {{.RUN}} ops setup openserverless system-api deploy
           {{.RUN}} ops setup openserverless login
+          {{.RUN}} ops setup openserverless add-user
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"

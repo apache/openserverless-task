@@ -68,14 +68,19 @@ tasks:
     cmds:
       - config OPERATOR_CONFIG_KUBE=k3s
       - task: install
-      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
+      - |
+        while ! kubectl --kubeconfig $OPS_TMP/kubeconfig get storageclass | rg default
+        do echo waiting default storage class ; sleep 1
+        done
       - ops util cert-manager
+      - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
 
   delete:
     silent: true
     desc: uninstall with ssh in <server> using <username> with sudo
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
+      - "{{.SSH}} '{{._user_}}@{{._server_}}' sudo /usr/local/bin/k3s-killall.sh"
       - "{{.SSH}} '{{._user_}}@{{._server_}}' sudo /usr/local/bin/k3s-uninstall.sh"
       - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
     vars:
