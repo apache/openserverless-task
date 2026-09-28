@@ -104,30 +104,6 @@ Copyright (c) 2005-2024, Eugene Lazutkin
 
 ---------------
 
-oplugins bundles, in the pre-built JavaScript file
-util/config/configurator.js, @clack/core and @clack/prompts which were
-released under an MIT license.
-
-Copyright (c) Nate Moore
-
----------------
-
-oplugins bundles, in the pre-built JavaScript file
-util/config/configurator.js, sisteransi which was released under an MIT
-license.
-
-Copyright (c) 2018 Terkel Gjervig Nielsen
-
----------------
-
-oplugins bundles, in the pre-built JavaScript file
-util/config/configurator.js, picocolors which was released under an ISC
-license.
-
-Copyright (c) 2021 Alexey Raspopov, Kostiantyn Denysov, Anton Verinov
-
----------------
-
 oplugins bundles, in the pre-built JavaScript file admin/usage/usage.js, yaml
 which was released under an ISC license.
 
