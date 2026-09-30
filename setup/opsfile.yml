@@ -180,6 +180,7 @@ tasks:
       elif {{.__uninstall}}
       then  {{.RUN}} ops cloud k3s delete {{._server_}} {{._user_}}
       else
+          {{.RUN}} ops config slim
           {{.RUN}} ops cloud k3s create {{._server_}} {{._user_}}
           {{.RUN}} ops setup kubernetes create
           {{.RUN}} ops setup openserverless streamer deploy
