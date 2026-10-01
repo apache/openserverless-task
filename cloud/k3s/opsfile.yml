@@ -76,15 +76,15 @@ tasks:
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
 
   delete:
+    vars:
+      INSTALL_USER: '{{._user_ | default "root"}}'
     silent: true
     desc: uninstall with ssh in <server> using <username> with sudo
     cmds:
       - test -n "{{._server_}}" || die "please use <server>"
-      - "{{.SSH}} '{{._user_}}@{{._server_}}' sudo /usr/local/bin/k3s-killall.sh"
-      - "{{.SSH}} '{{._user_}}@{{._server_}}' sudo /usr/local/bin/k3s-uninstall.sh"
+      - "{{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' sudo /usr/local/bin/k3s-killall.sh"
+      - "{{.SSH}} '{{.INSTALL_USER}}@{{._server_}}' sudo /usr/local/bin/k3s-uninstall.sh"
       - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
-    vars:
-      USERNAME: '{{.USERNAME | default "root"}}'
 
   status:
     desc: status of the server

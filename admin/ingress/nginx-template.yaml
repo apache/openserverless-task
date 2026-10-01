@@ -13,42 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: 48m
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-
-$T    cert-manager.io/cluster-issuer: letsencrypt-prod
-$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-
-  name: ${USERNAME}-my-streamer-ingress
-  namespace: openserverless
-
-spec:
-  ingressClassName: nginx
-
-$T  tls:
-$T  - hosts:
-$T      - ${USERNAME}.${BASE_HOST:-localhost}
-$T    secretName: streamer-api-tls
-
-  rules:
-  - host: ${USERNAME}.${BASE_HOST:-localhost}
-    http:
-      paths:
-      - backend:
-          service:
-            name: openserverless-streamer-api
-            port:
-              number: 8080
-        path: /
-        pathType: Prefix
-
----
 # /stream/web/... -> /web/${USERNAME}/...
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -61,9 +25,6 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /web/${USERNAME}/$$2
 
-$T    cert-manager.io/cluster-issuer: letsencrypt-prod
-$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-
   name: ${USERNAME}-my-streamer-web-ingress
   namespace: openserverless
 
@@ -73,7 +34,7 @@ spec:
 $T  tls:
 $T  - hosts:
 $T      - ${USERNAME}.${BASE_HOST:-localhost}
-$T    secretName: streamer-api-tls
+$T    secretName: ${USERNAME}-crt
 
   rules:
   - host: ${USERNAME}.${BASE_HOST:-localhost}
@@ -100,9 +61,6 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /action/${USERNAME}/$$2
 
-$T    cert-manager.io/cluster-issuer: letsencrypt-prod
-$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-
   name: ${USERNAME}-my-streamer-action-ingress
   namespace: openserverless
 
@@ -112,7 +70,7 @@ spec:
 $T  tls:
 $T  - hosts:
 $T      - ${USERNAME}.${BASE_HOST:-localhost}
-$T    secretName: streamer-api-tls
+$T    secretName: ${USERNAME}-crt
 
   rules:
   - host: ${USERNAME}.${BASE_HOST:-localhost}
@@ -142,9 +100,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 
-$T    cert-manager.io/cluster-issuer: letsencrypt-prod
-$T    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-
   name: ${USERNAME}-my-s3-ingress
   namespace: openserverless
 
@@ -154,7 +109,7 @@ spec:
 $T  tls:
 $T  - hosts:
 $T      - ${USERNAME}.${BASE_HOST:-localhost}
-$T    secretName: streamer-api-tls
+$T    secretName: ${USERNAME}-crt
 
   rules:
   - host: ${USERNAME}.${BASE_HOST:-localhost}
