@@ -21,7 +21,7 @@
 [worker.oci]
   enabled = true
   rootless = true
-  no-process-sandbox = true
+  noProcessSandbox = false
   snapshotter = "overlayfs"   # usa overlayfs se il kernel lo consente
 
 [worker.containerd]
