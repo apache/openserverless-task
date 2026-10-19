@@ -33,6 +33,19 @@ export async function ingress(kube: Kube, timeout?: number) {
     return obj?.spec?.rules?.[0]?.host;
   }, "ingress/apihost with a hostname", timeout);
 }
+export async function defaultUser(kube: Kube, create: () => Promise<void>, timeout?: number) {
+  const args = ["get", "wsku/devel", "--ignore-not-found", "-o", "json"];
+  const existing = await kube(args);
+  if (!existing) {
+    await create();
+  }
+  if (existing?.metadata?.deletionTimestamp) throw new Error("Default user devel is being deleted; retry setup after deletion completes");
+  await waitFor(async () => {
+    const user = await kube(args);
+    return user?.status?.conditions?.some((c: any) => c.type === "Ready" && c.status === "True");
+  }, "default user devel to become Ready", timeout);
+  console.log(existing ? "Default user devel already exists and is Ready; preserving its credentials and data." : "Default user devel is Ready.");
+}
 export async function registrySecret(kube: Kube, timeout?: number) {
   const whisk = await kube(["get", "whisk/controller", "-o", "json"]);
   if (whisk.spec.components.registry !== true) {
@@ -67,6 +80,12 @@ if (import.meta.main) {
   try {
     if (process.argv[2] === "ingress") await ingress(kube);
     else if (process.argv[2] === "registry-secret") await registrySecret(kube);
-    else throw new Error("Expected ingress or registry-secret");
+    else if (process.argv[2] === "default-user") await defaultUser(kube, async () => {
+      const child = Bun.spawn([process.env.OPS_CMD || "ops", "setup", "openserverless", "add-user"], {
+        stdin: "inherit", stdout: "inherit", stderr: "inherit"
+      });
+      if (await child.exited !== 0) throw new Error("Unable to create the default user devel");
+    });
+    else throw new Error("Expected ingress, registry-secret or default-user");
   } catch (e) { console.error(`ERROR: ${(e as Error).message}`); process.exitCode = 1; }
 }

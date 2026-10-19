@@ -16,7 +16,7 @@
 // under the License.
 
 import {test, expect} from "bun:test";
-import {ingress, registrySecret, waitFor} from "./cluster-ready";
+import {defaultUser, ingress, registrySecret, waitFor} from "./cluster-ready";
 test("ingress requires a hostname, not just an object", async () => {
   await expect(ingress(async () => ({spec: {rules: []}}), 0)).rejects.toThrow("Timed out");
   await ingress(async () => ({spec: {rules: [{host: "lab.test"}]}}), 0);
@@ -62,4 +62,32 @@ test("delayed resource becomes available", async () => {
   let reads = 0;
   expect(await waitFor(async () => ++reads === 3 ? "ready" : undefined, "resource", 100, async () => {})).toBe("ready");
   expect(reads).toBe(3);
+});
+test("default user is created only when missing", async () => {
+  let created = 0;
+  await defaultUser(async () => created ? {status:{conditions:[{type:"Ready",status:"True"}]}} : undefined, async () => {created++}, 0);
+  expect(created).toBe(1);
+});
+test("repeated setup preserves a ready default user's credentials and data", async () => {
+  let created = 0;
+  const calls: string[][] = [];
+  await defaultUser(async args => {calls.push(args);return {status:{conditions:[{type:"Ready",status:"True"}]}}}, async () => {created++}, 0);
+  expect(created).toBe(0);
+  expect(calls.every(args => args[0] === "get")).toBe(true);
+});
+test("default user read errors do not trigger creation", async () => {
+  let created = 0;
+  await expect(defaultUser(async () => {throw new Error("Forbidden")}, async () => {created++}, 0)).rejects.toThrow("Forbidden");
+  expect(created).toBe(0);
+});
+test("deleting default user is not recreated", async () => {
+  let created = 0;
+  await expect(defaultUser(async () => ({metadata:{deletionTimestamp:"2026-10-08"}}), async () => {created++}, 0)).rejects.toThrow("being deleted");
+  expect(created).toBe(0);
+});
+
+test("new default user must become Ready before setup succeeds", async () => {
+  let created=0;
+  await expect(defaultUser(async () => created ? {status:{conditions:[{type:"Ready",status:"False"}]}} : undefined, async () => {created++}, 0)).rejects.toThrow("default user devel to become Ready");
+  expect(created).toBe(1);
 });

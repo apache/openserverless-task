@@ -165,7 +165,7 @@ tasks:
             {{.RUN}} ops setup openserverless system-api deploy
             {{.RUN}} ops setup openserverless tika deploy
             {{.RUN}} ops setup openserverless login
-            {{.RUN}} ops setup openserverless add-user
+            bun "$OPS_ROOT/setup/cluster-ready.ts" default-user
             config STATUS_LAST=cluster
             if test -n "{{._context_}}"
             then config STATUS_CONTEXT="{{._context_}}"
