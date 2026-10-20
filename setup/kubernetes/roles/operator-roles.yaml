@@ -61,7 +61,7 @@ rules:
 
 # networking.k8s.io
 - apiGroups: ["networking.k8s.io"]
-  resources: ["ingresses"]
+  resources: ["ingresses", "networkpolicies"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 # required for mongodb
