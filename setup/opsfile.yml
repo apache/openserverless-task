@@ -124,9 +124,10 @@ tasks:
       - ops config slim
       - ops config apihost '{{.DOMAIN}}' --protocol={{.PROTO}}
       - ops setup devcluster
-      - ops setup openserverless add-user
       - ops setup openserverless streamer deploy
       - ops setup openserverless system-api deploy
+      - ops setup openserverless tika deploy
+      - ops setup openserverless add-user
 
   devcluster:
     vars:
@@ -159,7 +160,11 @@ tasks:
       then  {{.RUN}} ops setup kubernetes delete CONTEXT="{{._context_}}"
       else
             {{.RUN}} ops setup kubernetes create CONTEXT="{{._context_}}"
+            {{.RUN}} ops setup openserverless streamer deploy
+            {{.RUN}} ops setup openserverless system-api deploy
+            {{.RUN}} ops setup openserverless tika deploy
             {{.RUN}} ops setup openserverless login
+            {{.RUN}} ops setup openserverless add-user
             config STATUS_LAST=cluster
             if test -n "{{._context_}}"
             then config STATUS_CONTEXT="{{._context_}}"
@@ -175,9 +180,14 @@ tasks:
       elif {{.__uninstall}}
       then  {{.RUN}} ops cloud k3s delete {{._server_}} {{._user_}}
       else
+          {{.RUN}} ops config slim
           {{.RUN}} ops cloud k3s create {{._server_}} {{._user_}}
           {{.RUN}} ops setup kubernetes create
+          {{.RUN}} ops setup openserverless streamer deploy
+          {{.RUN}} ops setup openserverless system-api deploy
+          {{.RUN}} ops setup openserverless tika deploy
           {{.RUN}} ops setup openserverless login
+          {{.RUN}} ops setup openserverless add-user
           config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
           if test -n "{{._user_}}"
           then config STATUS_USERNAME="{{._user_}}"

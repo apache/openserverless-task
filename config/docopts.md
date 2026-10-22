@@ -24,23 +24,22 @@ Configure OpenServerless
 
 ```text
 Usage:
-  config (enable|disable) [--all] [--redis] [--mongodb] [--minio] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
+  config (enable|disable) [--all] [--redis] [--mongodb] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config sso
-  config runtimes [<runtimesjson>]  
+  config runtimes [<runtimesjson>]
   config slack [--apiurl=<slackapiurl>] [--channel=<slackchannel>]
   config mail  [--mailuser=<mailuser>] [--mailpwd=<mailpwd>] [--mailfrom=<mailfrom>] [--mailto=<mailto>]
-  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongodbvol=<mongodb>] [--etcdvol=<etcd>] [--mvvol=<milvus>] [--mvzookvol=<milvuszook>] [--pulsarjournalvol=<pulsarjournal>] [--pulsarledgelvol=<pulsarledge>] [--seaweedfsvol=<seaweedfsvol>]  
+  config volumes [--couchdb=<couchdb>] [--kafka=<kafka>] [--pgvol=<postgres>] [--storage=<storage>] [--alerting=<alerting>] [--zookeeper=<zookeeper>] [--redisvol=<redis>] [--mongodbvol=<mongodb>] [--etcdvol=<etcd>] [--mvvol=<milvus>] [--mvzookvol=<milvuszook>] [--pulsarjournalvol=<pulsarjournal>] [--pulsarledgelvol=<pulsarledge>] [--seaweedfsvol=<seaweedfsvol>]
   config controller [--javaopts=<javaopts>] [--loglevel=<loglevel>] [--replicas=<replicas>]
   config ingress [--class=<auto|nginx|traefik|public>]
   config invoker [--javaopts=<javaopts>] [--poolmemory=<poolmemory>] [--timeoutsrun=<timeoutsrun>] [--timeoutslogs=<timeoutslogs>] [--loglevel=<loglevel>] [--replicas=<replicas>]
   config limits [--time=<time>] [--memory=<memory>] [--sequencelength=<sequencelength>] [--perminute=<perminute>] [--concurrent=<concurrent>] [--triggerperminute=<triggerperminute>] [--activation_max_payload=<activation_max_payload>] [--blackbox_fraction=<blackbox_fraction>]
   config storage [--class=<storage_class>] [--provisioner=<storage_provisioner>]
   config postgres [--failover] [--backup] [--schedule=<cron_expression>] [--replicas=<replicas>]
-  config minio [--s3] [--console]
   config milvus [--maxdbnum=<maxdbnum>]
-  config etcd [--replicas=<replicas>] [--quota_backend_bytes=<bytes>] [--auto_compaction_retention=<retention_period>]  
-  config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>] 
+  config etcd [--replicas=<replicas>] [--quota_backend_bytes=<bytes>] [--auto_compaction_retention=<retention_period>]
+  config aws [--access=<access>] [--secret=<secret>] [--region=<region>] [--image=<image>] [--vm=<vm>] [--vmuser=<vmuser>] [--disk=<disk>] [--key=<key>]
   config eks [--project=<project>] [--access=<access>] [--secret=<secret>] [--region=<region>] [--name=<name>] [--count=<count>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--kubever=<kubever>]
   config gcloud [--project=<project>] [--region=<region>] [--vm=<vm>] [--disk=<disk>] [--key=<key>] [--image=<image>]
   config gke [--name=<name>] [--project=<project>] [--region=<region>] [--count=<count>] [--vm=<vm>] [--disk=<disk>]
@@ -52,7 +51,7 @@ Usage:
   config (status|export|reset)
   config use [<n>] [--delete] [--rename=<rename>]
   config minimal
-  config slim  
+  config slim
 ```
 
 ## Commands
@@ -65,14 +64,13 @@ Usage:
   config disable          disable OpenServerless services to install
   config slack            configure Alert Manager over a given slack channel
   config mail             configure Alert Manager over a gmail account
-  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, minio storage, alerting, milvus)
+  config volumes          configure the volume size distinguished in 3 categories (openwhisk couchdb & kafka, database, seaweedfs storage, alerting, milvus)
   config controller       configure Openwhisk enterprise controller java options
   config ingress          configure OpenServerless ingress class
   config invoker          configure Openwhisk enterprise invoker options
   config limits           configure Openwhisk actions limits
   config storage          allows to customize storage persistence class and provider
-  config postgres         allows to customize enterprise options for openserverless default postgres deployment  
-  config minio            allows to customize MINIO options
+  config postgres         allows to customize enterprise options for openserverless default postgres deployment
   config milvus           allows to customize MILVUS options
   config etcd             allows to customize ETCD options
   config aws              configure Amazon Web Service (AWS) credentials and parameters
@@ -85,7 +83,7 @@ Usage:
   config status           show current configuration
   config export           export all the variables
   config use              use a different kubernetes cluster among those you created
-  config minimal          shortcut for ops config enabling only redis,mongodb,minio,cron,static,postgres
+  config minimal          shortcut for ops config enabling only redis,mongodb,seaweedfs,cron,static,postgres
   config slim             shortcut for ops config slim, but adding lightweight milvus and other sizing improvements
   config registry         configure the internal image registry for actions runtimes
   config externalregistry configure an external private image registry for action runtimes
@@ -97,13 +95,12 @@ Usage:
   --all                 select all services
   --redis               select redis
   --mongodb             select mongodb (FerretDB Proxy)
-  --minio               select minio
   --cron                select cron
   --static              select static
   --postgres            select postgres
   --tls=<email>         enable tls with let's encrypt, contact email required
   --access=<access>     specify access key
-  --secret=<secret>     specify secret key  
+  --secret=<secret>     specify secret key
   --name=<name>         specify name
   --region=<region>     specify region (AWS) location (Azure) or zone (GKE)
   --count=<count>       specify node count

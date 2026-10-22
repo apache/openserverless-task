@@ -43,8 +43,7 @@ tasks:
 
   update-yaml:
     cmds:
-    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
-    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml" >ingress-deploy.yaml
+    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/aws/deploy.yaml" >ingress-deploy.yaml
 
   wait:
     #desc: util wait for objects - user OBJECT= to specify what
@@ -84,14 +83,6 @@ tasks:
         then eksctl create cluster -f _eks-cluster.yml --kubeconfig $OPS_TMP/kubeconfig
         fi
 
-  certman: 
-    cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f cert-manager.yaml
-        else kubectl apply -f cert-manager.yaml
-        fi
-
   ingress:
     cmds:
       - |
@@ -110,7 +101,7 @@ tasks:
       vars:
         OBJECT: nodes
     - task: ingress
-    - task: certman
+    - ops util cert-manager
     - task: kubeconfig
 
   lb:

@@ -39,10 +39,7 @@ vars:
       else
         echo $AUTH
       fi
-  # unused
-  #USERNAME:
-  #  sh: |
-  #    wsk property get --namespace | awk '{ print $3 }'
+  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
 tasks:
   config:
@@ -118,7 +115,6 @@ tasks:
       - config SECRET_COUCHDB_ADMIN="$(random --str 12)" SECRET_COUCHDB_CONTROLLER="$(random --str 12)"  SECRET_COUCHDB_INVOKER="$(random --str 12)"
       - config SECRET_REDIS_DEFAULT="$(random --str 12)" SECRET_REDIS_OPENSERVERLESS="$(random --str 12)"
       - config SECRET_MONGODB_ADMIN="$(random --str 12)" SECRET_MONGODB_OPENSERVERLESS="$(random --str 12)"
-      - config SECRET_MINIO_ADMIN="$(random --str 40)" SECRET_MINIO_OPENSERVERLESS="$(random --str 40)"
       - config SECRET_POSTGRES_ADMIN="$(random --str 12)" SECRET_POSTGRES_REPLICA="$(random --str 12)" SECRET_POSTGRES_OPENSERVERLESS="$(random --str 12)"
       - config SECRET_ETCD_ROOT="$(random --str 12)" SECRET_MILVUS_ROOT="$(random --str 12)" SECRET_MILVUS_S3="$(random --str 12)" SECRET_MILVUS_OPENSERVERLESS="$(random --str 12)"
       - config SECRET_OPENSERVERLESS_METADATA="$(random --str 12)"
@@ -126,7 +122,7 @@ tasks:
       - echo "Generated $(config -d | rg SECRET_ | wc -l) secrets."
 
   user-secrets:
-    desc: generate user secrets (auth, couchdb, redis, mongodb, minio, postgres)
+    desc: generate user secrets (auth, couchdb, redis, mongodb, seaweedfs, postgres)
     silent: true
     cmds:
       - |
@@ -135,7 +131,7 @@ tasks:
         config "${USR}_SECRET_COUCHDB"="$(random --str 12)"
         config "${USR}_SECRET_REDIS"="$(random --str 12)"
         config "${USR}_SECRET_MONGODB"="$(random --str 12)"
-        config "${USR}_SECRET_MINIO"="$(random --str 40)"
+        config "${USR}_SECRET_SEAWEEDFS"="$(random --str 40)"
         config "${USR}_SECRET_POSTGRES"="$(random --str 12)"
         config "${USR}_SECRET_MILVUS"="$(random --str 12)"
         echo "Generated ${USR} user secrets."
@@ -148,10 +144,10 @@ tasks:
       - config -r SECRET_COUCHDB_ADMIN SECRET_COUCHDB_CONTROLLER  SECRET_COUCHDB_INVOKER
       - config -r SECRET_REDIS_DEFAULT SECRET_REDIS_OPENSERVERLESS
       - config -r SECRET_MONGODB_ADMIN SECRET_MONGODB_OPENSERVERLESS
-      - config -r SECRET_MINIO_ADMIN SECRET_MINIO_OPENSERVERLESS
       - config -r SECRET_POSTGRES_ADMIN SECRET_POSTGRES_REPLICA SECRET_POSTGRES_OPENSERVERLESS
       - config -r SECRET_ETCD_ROOT SECRET_MILVUS_ROOT SECRET_MILVUS_S3 SECRET_MILVUS_OPENSERVERLESS
       - config -r SECRET_OPENSERVERLESS_METADATA
+      - config -r SECRET_SEAWEEDFS_OPENSERVERLESS
       - config -r SECRET_REGISTRY_PUSH_PULL
       - config -d | rg SECRET_
 
@@ -166,8 +162,9 @@ tasks:
         config -r "${USR}_SECRET_COUCHDB"
         config -r "${USR}_SECRET_REDIS"
         config -r "${USR}_SECRET_MONGODB"
-        config -r "${USR}_SECRET_MINIO"
+        config -r "${USR}_SECRET_SEAWEEDFS"
         config -r "${USR}_SECRET_POSTGRES"
+        config -r "${USR}_SECRET_MILVUS"
         echo "Removed ${USR} user secrets."
 
   kubectl:
@@ -303,6 +300,13 @@ tasks:
           echo "$PLUGIN not found"
           exit 1
         fi
+
+  cert-manager:
+    desc: install the cert-manager
+    silent: true
+    cmds:
+    - curl -L "{{.CERTMANAGER}}" >_cert-manager.yaml
+    - kubectl --kubeconfig $OPS_TMP/kubeconfig apply -f _cert-manager.yaml
 
   freeze:
     desc: freeze util

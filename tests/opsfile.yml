@@ -64,11 +64,11 @@ tasks:
     silent: true
     desc: k3sup test
     cmds:
-    - k3sup version | rg 0.13.6
+    - k3sup version | rg 0.13.13
 
   rg:
     silent: true
     desc: ripgrep test
     cmds:
     - rg --version | rg 14.1.0
-   
+

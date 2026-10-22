@@ -312,18 +312,6 @@ tasks:
             sh: echo "$OPERATOR_COMPONENT_POSTGRES"
       - task: wait-pod
         vars:
-          SELECTOR: "-l app=minio"
-          COND:
-            sh: echo "$OPERATOR_COMPONENT_MINIO"
-          FILE: _minio
-      #- task: wait
-      #  vars:
-      #    OBJECT:
-      #      sh: echo "pod/$(cat _minio)"
-      #    COND:
-      #      sh: echo "$OPERATOR_COMPONENT_MINIO"
-      - task: wait-pod
-        vars:
           SELECTOR: "-l app=seaweedfs"
           COND:
             sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"

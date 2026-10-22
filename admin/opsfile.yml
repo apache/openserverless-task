@@ -99,16 +99,16 @@ tasks:
         export USER_SECRET_REDIS=$($OPS -config "${upperCaseUser}_SECRET_REDIS")
         export USER_SECRET_POSTGRES=$($OPS -config "${upperCaseUser}_SECRET_POSTGRES")
         export USER_SECRET_MONGODB=$($OPS -config "${upperCaseUser}_SECRET_MONGODB")
-        export USER_SECRET_MINIO=$($OPS -config "${upperCaseUser}_SECRET_MINIO")
+        export USER_SECRET_SEAWEEDFS=$($OPS -config "${upperCaseUser}_SECRET_SEAWEEDFS")
         export USER_SECRET_MILVUS=$($OPS -config "${upperCaseUser}_SECRET_MILVUS")
 
         export REDIS_ENABLED=false
         export MONGODB_ENABLED=false
-        export MINIO_DATA_ENABLED=false
-        export MINIO_STATIC_ENABLED=false
+        export OBJECT_STORAGE_DATA_ENABLED=false
+        export OBJECT_STORAGE_STATIC_ENABLED=false
         export POSTGRES_ENABLED=false
         export MILVUS_ENABLED=false
-        export MINIO_STORAGE_QUOTA=auto
+        export OBJECT_STORAGE_QUOTA=auto
 
         if {{.__redis}} || {{.__all}}
         then
@@ -130,20 +130,20 @@ tasks:
           fi
         fi
 
-        if {{.__minio}} || {{.__seaweedfs}} || {{.__all}}
+        if {{.__seaweedfs}} || {{.__all}}
         then
-          if $OPERATOR_COMPONENT_MINIO || $OPERATOR_COMPONENT_SEAWEEDFS
+          if $OPERATOR_COMPONENT_SEAWEEDFS
           then
-            MINIO_DATA_ENABLED=true
-            MINIO_STATIC_ENABLED=true
+            OBJECT_STORAGE_DATA_ENABLED=true
+            OBJECT_STORAGE_STATIC_ENABLED=true
           else
-            die "Error! Minio or Seaweedfs are not enabled in OpenServerless"
+            die "Error! Seaweedfs is not enabled in OpenServerless"
           fi
         fi
 
 
         if test -n "{{.__storagequota}}"
-        then MINIO_STORAGE_QUOTA={{.__storagequota}}
+        then OBJECT_STORAGE_QUOTA={{.__storagequota}}
         fi
 
         if {{.__postgres}} || {{.__all}}

@@ -41,7 +41,7 @@ env:
   OW_APIHOST:
     sh: |
       HOST=$(ops util kubeget ingress/apihost .spec.rules[0].host)
-      if [ $OPERATOR_COMPONENT_INVOKER = true ];
+      if [ "$OPERATOR_COMPONENT_INVOKER" = "true" ];
         then echo "$HOST"
         else echo "http://controller:3233"
       fi

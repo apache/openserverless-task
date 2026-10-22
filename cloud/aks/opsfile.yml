@@ -37,8 +37,7 @@ tasks:
 
   update-yaml:
     cmds:
-    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
-    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
+    - curl -L "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/cloud/deploy.yaml" >ingress-deploy.yaml
 
   kubeconfig:
     desc: extract the kubeconfig to access
@@ -75,7 +74,7 @@ tasks:
       --ssh-key-value="$AKS_SSHKEY"
     - task: kubeconfig
     - task: ingress
-    - task: certman
+    - ops util cert-manager
     - config OPERATOR_CONFIG_KUBE=auto
 
   delete:
@@ -86,14 +85,6 @@ tasks:
     - az account set --subscription $(az account show --query 'id' -o tsv)
     - az aks delete --name $AKS_NAME --resource-group $AKS_PROJECT
     - rm "$OPS_TMP/kubeconfig" "$OPS_TMP/aks-$AKS_NAME.kubeconfig"
-
-  certman: 
-    cmds:
-      - |
-        if test -z "{{.DEL}}"
-        then retry -t 1000 -m 1800 kubectl --kubeconfig "$OPS_TMP/kubeconfig" apply -f cert-manager.yaml
-        else kubectl apply -f cert-manager.yaml
-        fi
 
   ingress:
     cmds:

@@ -269,10 +269,19 @@ tasks:
   system-api:
     desc: manage the system api deployment
 
+  tika:
+    desc: manage the tika deployment
+
   add-user:
     silent: true
     desc: create a new U=user (default 'devel') with P=password, (default a random pw)
     vars:
+      APIHOST:
+        sh: ops util kubeget cm/config .metadata.annotations.apihost
+      PROTO:
+        sh:  echo '{{.APIHOST}}' | rg -o '(https?)://' -r '$1'
+      DOMAIN:
+        sh:  echo '{{.APIHOST}}' | rg -o 'https?://((?:[a-zA-Z0-9-]+\.)+[a-zA-Z]+)/?' -r '$1'
       USR: '{{or .U "devel" }}'
       PSW:
         sh: |
@@ -281,14 +290,10 @@ tasks:
             else echo "{{.P}}"
             fi
       FLAGS: '{{or .F "--all"}}'
-
     env:
-      APIHOST:
-        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://$OPERATOR_CONFIG_APIHOST"
-      HOST:
-        sh: echo "$OPERATOR_CONFIG_HOSTPROTOCOL://{{.USR}}.$OPERATOR_CONFIG_APIHOST"
+      APIHOST: '{{.APIHOST}}'
+      HOST: '{{.PROTO}}://{{.USR}}.{{.DOMAIN}}'
     cmds:
-    #- test ! -e ~/.ops/{{.USR}}.password || die "User {{.USR}} already exists - check .ops/{{.USR}}.password in your home for password"
     - |
       if kubectl -n openserverless get wsku/{{.USR}} 2>/dev/null
       then die "User {{.USR}} already exists - check ~/.ops/{{.USR}}.password in your home for password"

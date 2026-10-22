@@ -28,15 +28,15 @@ tasks:
       - config OPERATOR_CONFIG_APIHOST="{{._apihost_}}"
       - config -dump | rg OPERATOR_CONFIG_APIHOST
       - |
-        if test -n "{{.__tls}}" 
+        if test -n "{{.__tls}}"
         then config OPERATOR_CONFIG_TLSEMAIL="{{.__tls}}" OPERATOR_COMPONENT_TLS=true
         else config OPERATOR_CONFIG_TLSEMAIL="none" OPERATOR_COMPONENT_TLS=false
         fi
       - |
-        if test -n "{{.__protocol}}" 
+        if test -n "{{.__protocol}}"
         then config OPERATOR_CONFIG_HOSTPROTOCOL="{{.__protocol}}"
         else config OPERATOR_CONFIG_HOSTPROTOCOL="auto"
-        fi        
+        fi
       - config -dump | rg OPERATOR_COMPONENT_TLS
       - config -dump | rg OPERATOR_CONFIG_HOSTPROTOCOL
 
@@ -46,22 +46,18 @@ tasks:
       - |
         if {{.__redis}} || {{.__all}}
         then config OPERATOR_COMPONENT_REDIS=true
-        fi        
-      - |  
+        fi
+      - |
         if {{.__mongodb}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_MONGODB=true
 
           if {{.__mongodb}}
           then echo 'MongoDB (FerretDB) deployment requires PosgresSQL. Enabling it.'
             config OPERATOR_COMPONENT_POSTGRES=true
-          fi    
+          fi
         fi
-      - | 
-        if {{.__minio}} || {{.__all}}
-        then config OPERATOR_COMPONENT_MINIO=true
-        fi
-      - |  
+      - |
         if {{.__cron}} || {{.__all}}
         then config OPERATOR_COMPONENT_CRON=true
         fi
@@ -69,7 +65,7 @@ tasks:
         if {{.__static}} || {{.__all}}
         then config OPERATOR_COMPONENT_STATIC=true
         fi
-      - | 
+      - |
         if {{.__postgres}} || {{.__all}}
         then config OPERATOR_COMPONENT_POSTGRES=true
         fi
@@ -77,59 +73,59 @@ tasks:
         if {{.__prometheus}} || {{.__all}}
         then config OPERATOR_COMPONENT_PROMETHEUS=true
         fi
-      - |  
+      - |
         if {{.__slack}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_ALERTSLACK=true        
-        fi 
-      - | 
+        then
+          config OPERATOR_CONFIG_ALERTSLACK=true
+        fi
+      - |
         if {{.__mail}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_ALERTGMAIL=true        
+        then
+          config OPERATOR_CONFIG_ALERTGMAIL=true
         fi
-      - | 
+      - |
         if {{.__affinity}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_AFFINITY=true        
+        then
+          config OPERATOR_CONFIG_AFFINITY=true
         fi
-      - | 
+      - |
         if {{.__tolerations}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_TOLERATIONS=true   
-        fi 
-      - | 
+        then
+          config OPERATOR_CONFIG_TOLERATIONS=true
+        fi
+      - |
         if {{.__quota}} || {{.__all}}
-        then 
-          config OPERATOR_COMPONENT_QUOTA=true   
-        fi                        
-      - | 
+        then
+          config OPERATOR_COMPONENT_QUOTA=true
+        fi
+      - |
         if {{.__slack}} || {{.__mail}} || {{.__all}}
         then echo 'Alert Manager deployment requires Prometheus. Enabling it.'
             config OPERATOR_COMPONENT_PROMETHEUS=true
             config OPERATOR_COMPONENT_AM=true
         fi
-      - |  
+      - |
         if {{.__milvus}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_MILVUS=true
           config OPERATOR_COMPONENT_ETCD=true
 
           if {{.__milvus}}
-          then echo 'Milvus deployment requires MINIO. Enabling it.'
-            config OPERATOR_COMPONENT_MINIO=true
+          then echo 'Milvus deployment requires SEAWEEDFS. Enabling it.'
+            config OPERATOR_COMPONENT_SEAWEEDFS=true
           fi
         fi
-      - | 
+      - |
         if {{.__registry}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_REGISTRY=true
           config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
-        fi  
-      - | 
+        fi
+      - |
         if {{.__seaweedfs}} || {{.__all}}
-        then 
-          config OPERATOR_COMPONENT_SEAWEEDFS=true          
-        fi                         
+        then
+          config OPERATOR_COMPONENT_SEAWEEDFS=true
+        fi
       - config CONFIGURED=true
       - task: status
 
@@ -140,23 +136,19 @@ tasks:
         if {{.__redis}} || {{.__all}}
         then config OPERATOR_COMPONENT_REDIS=false
         fi
-      - | 
+      - |
         if {{.__mongodb}} || {{.__all}}
         then config OPERATOR_COMPONENT_MONGODB=false
         fi
-      - | 
-        if {{.__minio}} || {{.__all}}
-        then config OPERATOR_COMPONENT_MINIO=false
-        fi
-      - | 
+      - |
         if {{.__cron}} || {{.__all}}
         then config OPERATOR_COMPONENT_CRON=false
         fi
-      - | 
+      - |
         if {{.__static}} || {{.__all}}
         then config OPERATOR_COMPONENT_STATIC=false
         fi
-      - | 
+      - |
         if {{.__postgres}} || {{.__all}}
         then config OPERATOR_COMPONENT_POSTGRES=false
           if {{.__postgres}}
@@ -174,47 +166,47 @@ tasks:
                 config OPERATOR_CONFIG_ALERTSLACK=false
           fi
         fi
-      - | 
-        if {{.__slack}} || {{.__all}} 
-        then 
+      - |
+        if {{.__slack}} || {{.__all}}
+        then
           config OPERATOR_CONFIG_ALERTSLACK=false
-        fi 
-      - | 
-        if {{.__mail}} || {{.__all}} 
-        then 
+        fi
+      - |
+        if {{.__mail}} || {{.__all}}
+        then
           config OPERATOR_CONFIG_ALERTGMAIL=false
-        fi 
-      - | 
-        if {{.__quota}} || {{.__all}} 
-        then 
+        fi
+      - |
+        if {{.__quota}} || {{.__all}}
+        then
           config OPERATOR_COMPONENT_QUOTA=false
         fi
-      - | 
+      - |
         if {{.__affinity}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_AFFINITY=false        
+        then
+          config OPERATOR_CONFIG_AFFINITY=false
         fi
-      - | 
+      - |
         if {{.__tolerations}} || {{.__all}}
-        then 
-          config OPERATOR_CONFIG_TOLERATIONS=false   
-        fi 
-      - | 
+        then
+          config OPERATOR_CONFIG_TOLERATIONS=false
+        fi
+      - |
         if {{.__milvus}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_MILVUS=false
           config OPERATOR_COMPONENT_ETCD=false
-        fi  
-      - | 
+        fi
+      - |
         if {{.__registry}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_REGISTRY=false
         fi
-      - | 
+      - |
         if {{.__seaweedfs}} || {{.__all}}
-        then 
+        then
           config OPERATOR_COMPONENT_SEAWEEDFS=false
-        fi                                            
+        fi
       - task: status
 
   status:
@@ -235,8 +227,8 @@ tasks:
       - config -dump | awk '{print "export "$0}'
       - |
         echo OPS_TMP=$OPS_TMP
-        echo 'DATA:() {' 
-        echo '  DATA="$(eval $@)"' 
+        echo 'DATA:() {'
+        echo '  DATA="$(eval $@)"'
         echo '}'
         echo alias RUN:=
 
@@ -257,7 +249,7 @@ tasks:
       - test -n "{{.DEF}}" || die "specify default DEF="
       - |
         if test -z "{{.VAL}}"
-        then  
+        then
           echo "*** Please, specify {{.MSG}} and press enter."
           test -n "{{.HINT}}" && echo "{{.HINT}}"
           if test -z "${{.VAR}}"
@@ -265,7 +257,7 @@ tasks:
           else def="${{.VAR}}"
           fi
           echo "Just press enter for default [$def]: "
-          {{if eq OS "windows"}} 
+          {{if eq OS "windows"}}
             input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
             input=${input%?} # For some reason, powershell adds a character (\n?) at the end
           {{else}}
@@ -288,15 +280,15 @@ tasks:
       - |
         input="{{.VAL}}"
         length=${#input}
-        while [ "$length" -eq "0" ]; do 
+        while [ "$length" -eq "0" ]; do
           echo "*** Please, specify {{.MSG}} and press enter."
           test -n "{{.HINT}}" && echo "{{.HINT}}"
-          {{if eq OS "windows"}} 
+          {{if eq OS "windows"}}
             input=$(powershell "(Read-Host -Prompt '{{.MSG}}')")
             input=${input%?} # For some reason, powershell adds a character (\n?) at the end
           {{else}}
             read -p "{{.MSG}}: " input
-          {{end}} 
+          {{end}}
           length=${#input}
           echo $length
         done
@@ -420,7 +412,7 @@ tasks:
           MSG: "EKS Kubernetes Version"
           VAR: "EKS_KUBERNETES_VERSION"
           VAL: "{{.__kubever}}"
-          DEF: "1.25"
+          DEF: "1.34"
       - config -d | rg AWS_
       - config -d | rg EKS_
 
@@ -472,7 +464,7 @@ tasks:
           MSG: "GCloud VM image"
           VAR: "GCLOUD_IMAGE"
           VAL: "{{.__image}}"
-          DEF: "ubuntu-minimal-2204-lts"        
+          DEF: "ubuntu-minimal-2204-lts"
       - config -d | rg GCLOUD_
 
   gke:
@@ -682,7 +674,7 @@ tasks:
           else
             if [[ "{{._n_}}" == "0" ]]
             then rm "$OPS_TMP"/kubeconfig
-                 echo using default kubeconfig "${KK}" 
+                 echo using default kubeconfig "${KK}"
             else
               N=1
               for i in "$OPS_TMP"/*.kubeconfig
@@ -699,9 +691,9 @@ tasks:
                               mv "$i" "$NEWNAME"
                         else
                           cp "$i" "$OPS_TMP"/kubeconfig
-                          echo now using kubeconfig "${KK}"  
+                          echo now using kubeconfig "${KK}"
                           if kubectl --kubeconfig "$OPS_TMP"/kubeconfig cluster-info
-                          then echo now using kubeconfig "${KK}" 
+                          then echo now using kubeconfig "${KK}"
                           else echo "problems using this kubeconfig - removed"
                               rm "$OPS_TMP"/kubeconfig
                               echo please remove it with "ops config use {{._n_}} --delete"
@@ -726,16 +718,16 @@ tasks:
       vars:
         MSG: "Slack Api URL"
         VAR: "OPERATOR_CONFIG_SLACK_APIURL"
-        VAL: "{{.__apiurl}}"    
+        VAL: "{{.__apiurl}}"
     - task: read
       vars:
         MSG: "Slack channel to be used"
         VAR: "OPERATOR_CONFIG_SLACK_CHANNELNAME"
-        HINT: | 
+        HINT: |
               Specific the channel name preceeded by a '#'
         VAL: "{{.__channel}}"
         DEF: "#monitoring-openserverless"
-  
+
   mail:
     silent: true
     cmds:
@@ -743,25 +735,25 @@ tasks:
       vars:
         MSG: "Gmail account username"
         VAR: "OPERATOR_CONFIG_GMAIL_USERNAME"
-        VAL: "{{.__mailuser}}" 
+        VAL: "{{.__mailuser}}"
     - task: readforce
       vars:
         MSG: "Gmail account password"
         VAR: "OPERATOR_CONFIG_GMAIL_PASSWORD"
-        VAL: "{{.__mailpwd}}"      
+        VAL: "{{.__mailpwd}}"
     - task: read
       vars:
         MSG: "Alert email from account "
         VAR: "OPERATOR_CONFIG_EMAIL_FROM"
-        HINT: | 
+        HINT: |
               Specific an email address sending alert
         VAL: "{{.__mailfrom}}"
-        DEF: "msciabarra@apache.org"    
+        DEF: "msciabarra@apache.org"
     - task: read
       vars:
         MSG: "Slack channel to be used"
         VAR: "OPERATOR_CONFIG_EMAIL_TO"
-        HINT: | 
+        HINT: |
               Comma separated list of email recipient receiving alerts
         VAL: "{{.__mailto}}"
         DEF: "nomail@mail.com"
@@ -773,7 +765,7 @@ tasks:
       vars:
         MSG: "Openwhisk CouchDB Volume size"
         VAR: "STORAGE_SIZE_COUCHDB"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__couchdb}}"
         DEF: "30"
@@ -781,7 +773,7 @@ tasks:
       vars:
         MSG: "Kafka Volume size"
         VAR: "STORAGE_SIZE_KAFKA"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__kafka}}"
         DEF: "30"
@@ -789,39 +781,31 @@ tasks:
       vars:
         MSG: "Redis Database Volume size"
         VAR: "STORAGE_SIZE_REDIS"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__redisvol}}"
-        DEF: "25"                 
+        DEF: "25"
     - task: read
       vars:
         MSG: "MongoDB Database Volume size"
         VAR: "STORAGE_SIZE_MONGODB"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__mongodbvol}}"
-        DEF: "50"         
+        DEF: "50"
     - task: read
       vars:
         MSG: "Postgres Database Volume size"
         VAR: "STORAGE_SIZE_POSTGRES"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__pgvol}}"
-        DEF: "50" 
-    - task: read
-      vars:
-        MSG: "Minio Storage Volume size"
-        VAR: "STORAGE_SIZE_MINIO"
-        HINT: | 
-              Specifies an integer value
-        VAL: "{{.__storage}}"
         DEF: "50"
     - task: read
       vars:
         MSG: "Promehteus Volume size"
         VAR: "STORAGE_SIZE_MONITORING"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__alerting}}"
         DEF: "30"
@@ -829,7 +813,7 @@ tasks:
       vars:
         MSG: "Zookeeper Volume size"
         VAR: "STORAGE_SIZE_ZOOKEEPER"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__zookeeper}}"
         DEF: "5"
@@ -837,7 +821,7 @@ tasks:
       vars:
         MSG: "ETCD Volume size"
         VAR: "STORAGE_SIZE_ETCD"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__mvzookvol}}"
         DEF: "25"
@@ -845,7 +829,7 @@ tasks:
       vars:
         MSG: "MILVUS Cluster Volume size"
         VAR: "STORAGE_SIZE_MILVUS_CLUSTER"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__mvvol}}"
         DEF: "20"
@@ -853,42 +837,42 @@ tasks:
       vars:
         MSG: "MILVUS Cluster Volume size"
         VAR: "STORAGE_SIZE_MILVUS_CLUSTER"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__mvvol}}"
-        DEF: "20" 
+        DEF: "20"
     - task: read
       vars:
         MSG: "MILVUS Zookeeper Volume size"
         VAR: "STORAGE_SIZE_MILVUS_ZOOKEEPER"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__mvzookvol}}"
-        DEF: "10" 
+        DEF: "10"
     - task: read
       vars:
         MSG: "MILVUS Pulsar Journal Volume size"
         VAR: "STORAGE_SIZE_MILVUS_PULSAR_JOURNAL"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__pulsarjournalvol}}"
-        DEF: "25" 
+        DEF: "25"
     - task: read
       vars:
         MSG: "MILVUS Pulsar Ledgers Volume size"
         VAR: "STORAGE_SIZE_MILVUS_PULSAR_LEDGERS"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__pulsarledgelvol}}"
-        DEF: "20" 
+        DEF: "20"
     - task: read
       vars:
         MSG: "SEAWEEDFS Volume size"
         VAR: "STORAGE_SIZE_SEAWEEDFS"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__seaweedfsvol}}"
-        DEF: "60"         
+        DEF: "60"
 
 
   controller:
@@ -898,7 +882,7 @@ tasks:
       vars:
         MSG: "Openwhisk Controller Java Options"
         VAR: "OPENWHISK_CONTROLLER_JVMGB"
-        HINT: | 
+        HINT: |
               Specifies openserverless controller Java options in GB
         VAL: "{{.__javaopts}}"
         DEF: "2"
@@ -906,7 +890,7 @@ tasks:
       vars:
         MSG: "Openwhisk Controller Logging Level"
         VAR: "OPENWHISK_CONTROLLER_LOGGINGLEVEL"
-        HINT: | 
+        HINT: |
               Specifies openserverless controller Logging Level
         VAL: "{{.__loglevel}}"
         DEF: "INFO"
@@ -914,7 +898,7 @@ tasks:
       vars:
         MSG: "Openwhisk Controller Replicas"
         VAR: "OPENWHISK_CONTROLLER_REPLICAS"
-        HINT: | 
+        HINT: |
               Specifies openserverless controller sts replicas
         VAL: "{{.__replicas}}"
         DEF: "1"
@@ -926,15 +910,15 @@ tasks:
       vars:
         MSG: "Openwhisk Invoker Java Options"
         VAR: "OPENWHISK_INVOKER_JVMGB"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker Java options in GB
         VAL: "{{.__javaopts}}"
-        DEF: "2" 
+        DEF: "2"
     - task: read
       vars:
         MSG: "Openwhisk Invoker Pool Memory Settings"
         VAR: "OPENWHISK_INVOKER_CONTAINER_POOLMEMORYGB"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker pool memory Java options in GB
         VAL: "{{.__poolmemory}}"
         DEF: "2"
@@ -942,15 +926,15 @@ tasks:
       vars:
         MSG: "Openwhisk Invoker Kubernetes Pod Run timeout in minute"
         VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_RUN"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker kubernetes pod run timeout in minutes
         VAL: "{{.__timeoutsrun}}"
-        DEF: "1"  
+        DEF: "1"
     - task: read
       vars:
         MSG: "Openwhisk Invoker Kubernetes Pod Log timeout in minute"
         VAR: "OPENWHISK_INVOKER_KUBERNETES_TIMEOUT_LOGS"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker kubernetes pod logs timeout in minutes
         VAL: "{{.__timeoutslogs}}"
         DEF: "1"
@@ -958,7 +942,7 @@ tasks:
       vars:
         MSG: "Openwhisk Invoker Logging Level"
         VAR: "OPENWHISK_INVOKER_LOGGINGLEVEL"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker Logging Level
         VAL: "{{.__loglevel}}"
         DEF: "INFO"
@@ -966,7 +950,7 @@ tasks:
       vars:
         MSG: "Openwhisk Invoker Replicas"
         VAR: "OPENWHISK_INVOKER_REPLICAS"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker sts replicas
         VAL: "{{.__replicas}}"
         DEF: "1"
@@ -978,15 +962,15 @@ tasks:
       vars:
         MSG: "Actions Max Time limits"
         VAR: "OPENWHISK_TIME_LIMIT_MAX"
-        HINT: | 
+        HINT: |
               Specifies a time values e.g 5min
         VAL: "{{.__time}}"
-        DEF: "5min" 
+        DEF: "5min"
     - task: read
       vars:
         MSG: "Actions Max Memory limits"
         VAR: "OPENWHISK_ACTION_MEMORY_LIMIT_MAX"
-        HINT: | 
+        HINT: |
               Specifies a momeory value e.g 512m
         VAL: "{{.__memory}}"
         DEF: "2048m"
@@ -994,15 +978,15 @@ tasks:
       vars:
         MSG: "Actions Sequence max length"
         VAR: "OPENWHISK_ACTION_SEQUENCE_MAX_LENGTH"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__sequencelength}}"
-        DEF: "50" 
+        DEF: "50"
     - task: read
       vars:
         MSG: "Actions invoked per minute"
         VAR: "OPENWHISK_ACTION_INVOKE_PER_MINUTE"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__perminute}}"
         DEF: "999"
@@ -1010,15 +994,15 @@ tasks:
       vars:
         MSG: "Actions invoked concurrently"
         VAR: "OPENWHISK_ACTION_INVOKE_CONCURRENT"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__concurrent}}"
-        DEF: "250" 
+        DEF: "250"
     - task: read
       vars:
         MSG: "Triggers per minutes"
         VAR: "OPENWHISK_TRIGGER_PER_MINUTE"
-        HINT: | 
+        HINT: |
               Specifies an integer value
         VAL: "{{.__triggerperminute}}"
         DEF: "999"
@@ -1026,7 +1010,7 @@ tasks:
       vars:
         MSG: "Openwhisk Standalone Controller Activation Max Allowed Payload"
         VAR: "OPENWHISK_ACTIVATION_MAX_ALLOWED_PAYLOAD"
-        HINT: | 
+        HINT: |
               Specifies openserverless controller activation options (Defaults to 1Mb)
         VAL: "{{.__activation_max_payload}}"
         DEF: "1048576"
@@ -1034,10 +1018,10 @@ tasks:
       vars:
         MSG: "Openwhisk Load Balancer BlackBox fraction"
         VAR: "OPENWHISK_LB_BLACKBOX_FRACTION"
-        HINT: | 
+        HINT: |
               Specifies OpenWhisk Load Balancer Blackbox fraction (Defaults to 100%)
         VAL: "{{.__blackbox_fraction}}"
-        DEF: "100%"        
+        DEF: "100%"
 
   storage:
     silent: true
@@ -1046,15 +1030,15 @@ tasks:
       vars:
         MSG: "Please assign a valid storage class"
         VAR: "OPERATOR_CONFIG_STORAGECLASS"
-        HINT: | 
+        HINT: |
               Specify a valid kubernetes storage class
         VAL: "{{.__class}}"
-        DEF: "auto"    
+        DEF: "auto"
     - task: read
       vars:
         MSG: "Please assign a valid kubernetes storage provisioner"
         VAR: "OPERATOR_CONFIG_STORAGEPROVISIONER"
-        HINT: | 
+        HINT: |
               Specify a valid storage provisioner
         VAL: "{{.__provisioner}}"
         DEF: "auto"
@@ -1065,39 +1049,28 @@ tasks:
     - |
       if {{.__backup}}
       then config POSTGRES_CONFIG_BACKUP_ENABLED=true
-      fi    
+      fi
     - |
       if {{.__failover}}
       then config POSTGRES_CONFIG_FAILOVER=true
-      fi 
+      fi
     - task: read
       vars:
         MSG: "Postgres Backup Schedule"
         VAR: "POSTGRES_CONFIG_BACKUP_SCHEDULE"
-        HINT: | 
+        HINT: |
               Specifies openserverless invoker Java options in GB
         VAL: "{{.__schedule}}"
-        DEF: "0 */1 * * *" 
+        DEF: "0 */1 * * *"
     - task: read
       vars:
         MSG: "Postgres Replicas"
         VAR: "POSTGRES_CONFIG_REPLICAS"
-        HINT: | 
+        HINT: |
               Specifies Posgres sts replicas
         VAL: "{{.__replicas}}"
         DEF: "2"
 
-  minio:
-    silent: true
-    cmds:
-    - |
-      if {{.__s3}}
-      then config MINIO_CONFIG_INGRESS_S3=true
-      fi    
-    - |
-      if {{.__console}}
-      then config MINIO_CONFIG_INGRESS_CONSOLE=true
-      fi 
 
   etcd:
     silent: true
@@ -1106,7 +1079,7 @@ tasks:
       vars:
         MSG: "ETCD Replicas"
         VAR: "ETCD_CONFIG_REPLICAS"
-        HINT: | 
+        HINT: |
               Specifies ETCD sts replicas
         VAL: "{{.__replicas}}"
         DEF: "3"
@@ -1158,7 +1131,7 @@ tasks:
         vars:
           MSG: "External Image Repo Push/Pull password"
           VAR: "REGISTRY_CONFIG_SECRET_PUSH_PULL"
-          VAL: "{{.__regpassword}}" 
+          VAL: "{{.__regpassword}}"
 
   registry:
     silent: true
@@ -1167,7 +1140,7 @@ tasks:
       - |
         if {{.__ingress}}
         then config REGISTRY_CONFIG_INGRESS_ENABLED=true
-        fi    
+        fi
       - task: read
         vars:
           MSG: "Registry Volume Size"
@@ -1183,11 +1156,11 @@ tasks:
     - |
       if {{.__s3}}
       then config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
-      fi    
+      fi
     - |
       if {{.__console}}
       then config SEAWEEDFS_CONFIG_INGRESS_CONSOLE_ENABLED=true
-      fi           
+      fi
 
   minimal:
     silent: true
@@ -1200,7 +1173,7 @@ tasks:
     - |
       config OPERATOR_COMPONENT_SEAWEEDFS=true
     - |
-      config OPERATOR_COMPONENT_CRON=true  
+      config OPERATOR_COMPONENT_CRON=true
     - |
       config OPERATOR_COMPONENT_STATIC=true
     - |
@@ -1214,16 +1187,15 @@ tasks:
     - |
       config OPERATOR_COMPONENT_INVOKER=false
       config OPERATOR_COMPONENT_ZOOKEEPER=false
-      config OPERATOR_COMPONENT_KAFKA=false  
+      config OPERATOR_COMPONENT_KAFKA=false
       config OPERATOR_COMPONENT_REDIS=true
       config OPERATOR_COMPONENT_MONGODB=true
-      config OPERATOR_COMPONENT_MINIO=false
       config OPERATOR_COMPONENT_SEAWEEDFS=true
       config OPERATOR_COMPONENT_CRON=true
       config OPERATOR_COMPONENT_STATIC=true
       config OPERATOR_COMPONENT_POSTGRES=true
       config OPERATOR_COMPONENT_ETCD=true
-      config OPERATOR_COMPONENT_MILVUS=true      
+      config OPERATOR_COMPONENT_MILVUS=true
       config SEAWEEDFS_CONFIG_INGRESS_S3_ENABLED=true
       config ETCD_CONFIG_REPLICAS=1
       config POSTGRES_CONFIG_REPLICAS=1
@@ -1243,7 +1215,7 @@ tasks:
       vars:
         MSG: "Ingress Class"
         VAR: "OPERATOR_CONFIG_INGRESSCLASS"
-        HINT: | 
+        HINT: |
               Specify the ingress class.
         VAL: "{{.__class}}"
         DEF: "auto"

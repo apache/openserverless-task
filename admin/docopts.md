@@ -27,7 +27,7 @@ You can create namespaces and choose which services to enable.
 
 ```text
 Usage:
-  admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--minio|--seaweedfs] [--postgres] [--milvus] [--storagequota=<quota>|auto] 
+  admin adduser <username> <email> <password> [--all] [--redis] [--mongodb] [--seaweedfs] [--postgres] [--milvus] [--storagequota=<quota>|auto]
   admin deleteuser <username> [--confirm-namespace-delete]
   admin listuser [<username>]
   admin sso unbind <username>
@@ -50,7 +50,6 @@ Usage:
   --all                   enable all services
   --redis                 enable redis
   --mongodb               enable mongodb
-  --minio                 enable minio
   --seaweedfs             enable seaweedfs
   --postgres              enable postgres
   --milvus                enable milvus vector db

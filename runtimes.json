@@ -27,7 +27,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.27-26i10j35-snapshot"
+                    "tag": "v1.27-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -41,7 +41,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.26-26i10j35-snapshot"
+                    "tag": "v1.26-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -55,7 +55,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-go",
-                    "tag": "v1.25-26i10j35-snapshot"
+                    "tag": "v1.25-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -71,7 +71,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v21-26i10j35-snapshot"
+                    "tag": "v21-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -86,7 +86,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v17-26i10j35-snapshot"
+                    "tag": "v17-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -101,7 +101,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v11-26i10j35-snapshot"
+                    "tag": "v11-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -116,7 +116,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-java",
-                    "tag": "v8-26i10j35-snapshot"
+                    "tag": "v8-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -133,7 +133,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v24-26i10j35-snapshot"
+                    "tag": "v24-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -147,7 +147,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v22-26i10j35-snapshot"
+                    "tag": "v22-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -174,7 +174,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-nodejs",
-                    "tag": "v20-26i10j35-snapshot"
+                    "tag": "v20-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -190,7 +190,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "sys-26i10j35-snapshot"
+                    "tag": "sys-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -204,7 +204,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.13-26i10j35-snapshot"
+                    "tag": "v3.13-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -218,7 +218,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.12-26i10j35-snapshot"
+                    "tag": "v3.12-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
@@ -245,7 +245,7 @@
                 "image": {
                     "prefix": "docker.io/apache",
                     "name": "openserverless-runtime-python",
-                    "tag": "v3.11-26i10j35-snapshot"
+                    "tag": "v3.11-26i22h40-snapshot"
                 },
                 "deprecated": false,
                 "attached": {
