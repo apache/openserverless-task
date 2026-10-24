@@ -73,7 +73,17 @@ tasks:
         do echo waiting default storage class ; sleep 1
         done
       - ops util cert-manager
+      - ops cloud k3s rbac
       - cp "$OPS_TMP/kubeconfig" "$OPS_TMP/k3s-{{._server_}}.kubeconfig"
+
+  rbac:
+    desc: install Admin API user provisioning permissions
+    silent: true
+    cmds:
+      - >
+        kubectl get namespace openserverless >/dev/null 2>&1 ||
+        kubectl create namespace openserverless
+      - kubectl apply -f "$OPS_ROOT/cloud/k3s/user-provisioning-rbac.yaml"
 
   delete:
     vars:

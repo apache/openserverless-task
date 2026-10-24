@@ -28,6 +28,7 @@ Usage:
   k3s delete <server> [<user>]
   k3s info
   k3s kubeconfig <server> [<user>]
+  k3s rbac
   k3s status
 ```
 
@@ -38,5 +39,17 @@ Usage:
   delete     uninstall k3s with ssh in <server> using <username> with sudo
   info       info on the server
   kubeconfig recover the kubeconfig from a k3s server <server> with user <username>
+  rbac       install Admin API user provisioning permissions
   status     status of the server
 ```
+
+`create` also installs the user provisioning RBAC. To apply it to an existing
+cluster, run `ops cloud k3s rbac` with that cluster's kubeconfig selected.
+The task creates the `openserverless` namespace if absent, then applies the
+bundled Role and RoleBinding for the Admin API service account
+`openserverless-wsku`. The service account is created by the OpenServerless
+installation; the binding may be installed before it exists.
+
+This grants permissions for the provisioning feature. The provisioning token
+Secret must still be supplied separately; the task does not generate or
+overwrite it. Existing broader roles are unchanged.
