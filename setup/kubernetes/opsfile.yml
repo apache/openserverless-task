@@ -414,6 +414,8 @@ tasks:
     desc: update the operator using the latest version configured in nuvroot.json if it is different than the current deployed one
     cmds:
       - "kubectl apply -f crds"
+      # Cluster-scoped collector RBAC must be reconciled by the admin client.
+      - "kubectl apply -f roles/openserverless-monitoring-roles.yaml"
       - task: operator
       - kubectl -n openserverless rollout restart statefulset openserverless-operator
     preconditions:
