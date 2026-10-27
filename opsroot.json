@@ -25,7 +25,7 @@
       "seaweedfs": "docker.io/chrislusf/seaweedfs:3.97",
       "busybox": "docker.io/library/busybox:1.36.0",
       "registry": "docker.io/library/registry:3.0.0",
-      "milvus": "docker.io/milvusdb/milvus:v2.5.2",
+      "milvus": "docker.io/milvusdb/milvus:v2.5.27",
       "nginx": "docker.io/nginxinc/nginx-unprivileged:1.24",
       "pgvector": "docker.io/pgvector/pgvector:pg16",
       "kubegres": "docker.io/reactivetechio/kubegres:1.18",
