@@ -24,7 +24,7 @@ Configure OpenServerless
 
 ```text
 Usage:
-  config (enable|disable) [--all] [--redis] [--mongodb] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs]
+  config (enable|disable) [--all] [--redis] [--mongodb] [--cron] [--static] [--postgres] [--prometheus] [--slack] [--mail] [--affinity] [--tolerations] [--quota] [--milvus] [--registry] [--seaweedfs] [--etcd] [--alertmanager]
   config apihost (<apihost>|auto) [--tls=<email>] [--protocol=<http/https>|auto]
   config sso
   config runtimes [<runtimesjson>]
@@ -50,6 +50,7 @@ Usage:
   config seaweedfs [--s3] [--console]
   config (status|export|reset)
   config use [<n>] [--delete] [--rename=<rename>]
+  config full
   config minimal
   config slim
 ```
@@ -60,6 +61,7 @@ Usage:
   config apihost          configure the apihost (auto: auto assign) and enable tls
   config sso              configure SSO/OIDC integration for admin-api; run `ops config sso --help` for details
   config runtime          show the current runtime.json or import the <runtime-json> if provided
+  config full             enable all services without automatically enabling notification destinations or scheduling policies
   config enable           enable OpenServerless services to install
   config disable          disable OpenServerless services to install
   config slack            configure Alert Manager over a given slack channel
@@ -92,7 +94,9 @@ Usage:
 ## Options
 
 ```
-  --all                 select all services
+  --etcd                select etcd (required by Milvus)
+  --alertmanager        select Alert Manager (requires Prometheus)
+  --all                 select all services; enable excludes Slack/mail unless explicitly selected
   --redis               select redis
   --mongodb             select mongodb (FerretDB Proxy)
   --cron                select cron
@@ -125,3 +129,11 @@ Usage:
   --class               specify the ingress class. It can be auto, traefik, nginx. On microk8s it should be public.
   --seaweedfs           activate the support of SEAWEEDFS as S3 api and buckets provider
 ```
+
+Enable automatically includes dependencies. Disable cascades to dependent services:
+PostgreSQL → MongoDB/FerretDB; etcd → Milvus; SeaweedFS → Milvus/static;
+Prometheus → Alert Manager → Slack/mail. Disabling a dependent does not disable
+its prerequisites. Slack/mail require explicit selection and configured destinations.
+`config full` preserves existing notification/scheduling selections; it does not
+activate them. `disable --all` disables every selectable flag, including Alert Manager.
+These commands change local configuration, not running Kubernetes resources.
