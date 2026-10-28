@@ -238,7 +238,11 @@ tasks:
         then ARGS="--batchsize={{.__batchsize}}"
         else ARGS="$ARGS --batchsize=5"
         fi
+        if test -n "$OPSDEV_S3"
+        then export S3_API_URL="$OPSDEV_S3"
+        fi
         bun upload.js "$FOLDER_PATH" $ARGS
+
     env:
       FOLDER_PATH:
         sh: |
