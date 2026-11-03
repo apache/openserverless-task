@@ -20,7 +20,7 @@ import {createServer} from 'net';
 import process from 'process';
 import {program} from 'commander';
 import {scan} from './scan.js';
-import {watchAndDeploy, globalWatcher} from './watch.js';
+import {watchAndDeploy, globalWatcher, requirementsWatcher} from './watch.js';
 import {setDryRun, deploy} from './deploy.js';
 import {undeploy, setDryRun as setUndeployDryRun} from './undeploy.js';
 import {build} from './client.js';
@@ -31,8 +31,13 @@ async function signalHandler() {
     console.log('Termination requested.');
 
     if (globalWatcher) {
-        console.log("☠️ SIGKILL - Stopping watcher");
+        console.log("☠️ SIGKILL - Stopping package watcher");
         await globalWatcher.close();
+    }
+
+    if (requirementsWatcher) {
+        console.log("☠️ SIGKILL - Stopping requirements watcher");
+        await requirementsWatcher.close();
     }
 
     const pidPath = expanduser('~/.ops/tmp/deploy.pid');
@@ -99,6 +104,9 @@ async function main() {
         if (options.single !== '') {
             // If a single action is specified, undeploy just that action
             let action = options.single;
+            // Remove surrounding quotes if present (from shell)
+            action = action.replace(/^['"](.*)['"]$/, '$1');
+
             if (!action.startsWith('packages/')) {
                 action = `packages/${action}`;
             }
@@ -136,6 +144,9 @@ async function main() {
         process.exit(0);
     } else if (options.single !== '') {
         let action = options.single;
+        // Remove surrounding quotes if present (from shell)
+        action = action.replace(/^['"](.*)['"]$/, '$1');
+
         if (!action.startsWith('packages/')) {
             action = `packages/${action}`;
         }
@@ -143,6 +154,11 @@ async function main() {
             console.log(`❌ action ${action} not found: must be either a file or a directory under packages`);
             return;
         }
+
+        // Import buildImageForAction to build only the required image
+        const {buildImageForAction} = await import('./builder.js');
+        await buildImageForAction(action);
+
         console.log(`Deploying ${action}`);
         await deploy(action);
         process.exit(0);

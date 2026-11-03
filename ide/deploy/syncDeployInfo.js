@@ -30,6 +30,7 @@ import {existsSync, mkdirSync, writeFileSync, readFileSync} from "fs";
  * @return {void}
  */
 export function syncDeployInfo(packages, deployments) {
+    console.log("Calling syncDeployInfo: ", JSON.stringify(packages),JSON.stringify(deployments))
     if (!existsSync('.ops')) {
         mkdirSync('.ops', { recursive: true });
     }
@@ -66,6 +67,46 @@ export function syncDeployInfo(packages, deployments) {
 
     writeFileSync('.ops/deployment.json', JSON.stringify(deploymentInfo, null, 2));
     console.log("> Saved deployment information to .ops/deployment.json");
+}
+
+/**
+ * Adds a single action to the deployment information, merging it into whatever
+ * `.ops/deployment.json` already contains. Used by individual action deploys
+ * (single action deploy, watch mode) where a full `syncDeployInfo` rewrite
+ * would otherwise wipe out the entries of previously deployed actions.
+ *
+ * @param {string} pkg - The package name the action belongs to.
+ * @param {string} actionName - The action name (without package prefix).
+ * @return {void}
+ */
+export function addActionToDeployInfo(pkg, actionName) {
+    if (!existsSync('.ops')) {
+        mkdirSync('.ops', { recursive: true });
+    }
+
+    let deploymentInfo = { packages: [], packageActions: {} };
+    if (existsSync('.ops/deployment.json')) {
+        try {
+            deploymentInfo = JSON.parse(readFileSync('.ops/deployment.json', 'utf8'));
+        } catch (error) {
+            console.error("Error reading deployment information:", error);
+        }
+    }
+    if (!deploymentInfo.packages) deploymentInfo.packages = [];
+    if (!deploymentInfo.packageActions) deploymentInfo.packageActions = {};
+
+    if (!deploymentInfo.packages.includes(pkg)) {
+        deploymentInfo.packages.push(pkg);
+    }
+    if (!deploymentInfo.packageActions[pkg]) {
+        deploymentInfo.packageActions[pkg] = [];
+    }
+    if (!deploymentInfo.packageActions[pkg].includes(actionName)) {
+        deploymentInfo.packageActions[pkg].push(actionName);
+    }
+
+    writeFileSync('.ops/deployment.json', JSON.stringify(deploymentInfo, null, 2));
+    console.log(`> Recorded ${pkg}/${actionName} in deployment information.`);
 }
 
 /**

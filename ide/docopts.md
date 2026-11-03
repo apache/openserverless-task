@@ -54,6 +54,9 @@ Usage:
     ide poll                poll for logs
     ide shell               start a shell with current env
     ide devcontainer        add a devcontainer configuration
+    ide go                  go subcommands
+    ide java                java subcommands
+    ide php                 php subcommands
     ide python              python subcommands
     ide nodejs              nodejs subcommands
     ide init                initialize executing all actions in the init package
