@@ -47,10 +47,6 @@ env:
     #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n openserverless get ingress/apihost -o jsonpath='{.spec.rules[0].host}'
     sh: ops util kubeget ingress/apihost .spec.rules[0].host
 
-  REGISTRY_PASS:
-    #sh: ops util kubectl -- --kubeconfig "$KUBECONFIG" -n openserverless get cm/config  -o jsonpath='{.metadata.annotations.registry_password}'
-    sh: ops util kubeget cm/config .metadata.annotations.registry_password
-
   INGRESS_TYPE:
     sh: ops util ingress-type
 
@@ -75,11 +71,7 @@ tasks:
     desc: Create secret to push to internal registry
     silent: true
     cmds:
-      - task: remove-secret
-      - |
-        if ! kubectl -n openserverless get secret registry-pull-secret-int >/dev/null 2>&1;
-        then kubectl -n openserverless create secret docker-registry registry-pull-secret-int --docker-server=http://openserverless-registry-svc:5000 --docker-username=opsuser --docker-password=${REGISTRY_PASS}
-        fi
+      - bun "$OPS_ROOT/setup/cluster-ready.ts" registry-secret
 
   remove-secret:
     desc: Delete secret to push to internal registry

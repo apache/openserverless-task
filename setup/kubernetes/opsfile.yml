@@ -319,7 +319,8 @@ tasks:
       - task: wait
         vars:
           OBJECT:
-            sh: echo "pod/$(cat _seaweedfs)"
+            sh: |
+              if [ "$OPERATOR_COMPONENT_SEAWEEDFS" = "true" ]; then echo "pod/$(cat _seaweedfs)"; fi
           COND:
             sh: echo "$OPERATOR_COMPONENT_SEAWEEDFS"
       - task: wait-pod
@@ -331,7 +332,8 @@ tasks:
       - task: wait
         vars:
           OBJECT:
-            sh: echo "pod/$(cat _milvus)"
+            sh: |
+              if [ "$OPERATOR_COMPONENT_MILVUS" = "true" ]; then echo "pod/$(cat _milvus)"; fi
           COND:
             sh: echo "$OPERATOR_COMPONENT_MILVUS"
 
@@ -366,11 +368,19 @@ tasks:
       - task: secrets
       - task: runtimes
 
+  wait-ingress:
+    silent: true
+    status:
+      - config SKIP_OPERATOR_LAUNCH
+    cmds:
+      - bun "$OPS_ROOT/setup/cluster-ready.ts" ingress
+
   post-deploy:
     desc: wait results
     cmds:
       - task: wait-openwhisk
       - task: wait-services
+      - task: wait-ingress
 
   deploy:
     silent: true

@@ -44,87 +44,12 @@ tasks:
     silent: true
     cmds:
       - |
-        if {{.__redis}} || {{.__all}}
-        then config OPERATOR_COMPONENT_REDIS=true
-        fi
-      - |
-        if {{.__mongodb}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_MONGODB=true
-
-          if {{.__mongodb}}
-          then echo 'MongoDB (FerretDB) deployment requires PosgresSQL. Enabling it.'
-            config OPERATOR_COMPONENT_POSTGRES=true
+        CHANGES=$(bun "$OPS_ROOT/config/components.ts" enable --all={{.__all}} --redis={{.__redis}} --mongodb={{.__mongodb}} --cron={{.__cron}} --static={{.__static}} --postgres={{.__postgres}} --prometheus={{.__prometheus}} --slack={{.__slack}} --mail={{.__mail}} --affinity={{.__affinity}} --tolerations={{.__tolerations}} --quota={{.__quota}} --milvus={{.__milvus}} --registry={{.__registry}} --seaweedfs={{.__seaweedfs}} --etcd={{.__etcd}} --alertmanager={{.__alertmanager}}) || exit 1
+        for SETTING in $CHANGES; do config "$SETTING"; done
+        if echo "$CHANGES" | rg -q '^OPERATOR_COMPONENT_REGISTRY=true$'; then
+          if test -z "$REGISTRY_CONFIG_SECRET_PUSH_PULL"; then
+            config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
           fi
-        fi
-      - |
-        if {{.__cron}} || {{.__all}}
-        then config OPERATOR_COMPONENT_CRON=true
-        fi
-      - |
-        if {{.__static}} || {{.__all}}
-        then config OPERATOR_COMPONENT_STATIC=true
-        fi
-      - |
-        if {{.__postgres}} || {{.__all}}
-        then config OPERATOR_COMPONENT_POSTGRES=true
-        fi
-      - |
-        if {{.__prometheus}} || {{.__all}}
-        then config OPERATOR_COMPONENT_PROMETHEUS=true
-        fi
-      - |
-        if {{.__slack}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_ALERTSLACK=true
-        fi
-      - |
-        if {{.__mail}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_ALERTGMAIL=true
-        fi
-      - |
-        if {{.__affinity}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_AFFINITY=true
-        fi
-      - |
-        if {{.__tolerations}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_TOLERATIONS=true
-        fi
-      - |
-        if {{.__quota}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_QUOTA=true
-        fi
-      - |
-        if {{.__slack}} || {{.__mail}} || {{.__all}}
-        then echo 'Alert Manager deployment requires Prometheus. Enabling it.'
-            config OPERATOR_COMPONENT_PROMETHEUS=true
-            config OPERATOR_COMPONENT_AM=true
-        fi
-      - |
-        if {{.__milvus}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_MILVUS=true
-          config OPERATOR_COMPONENT_ETCD=true
-
-          if {{.__milvus}}
-          then echo 'Milvus deployment requires SEAWEEDFS. Enabling it.'
-            config OPERATOR_COMPONENT_SEAWEEDFS=true
-          fi
-        fi
-      - |
-        if {{.__registry}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_REGISTRY=true
-          config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
-        fi
-      - |
-        if {{.__seaweedfs}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_SEAWEEDFS=true
         fi
       - config CONFIGURED=true
       - task: status
@@ -133,80 +58,22 @@ tasks:
     silent: true
     cmds:
       - |
-        if {{.__redis}} || {{.__all}}
-        then config OPERATOR_COMPONENT_REDIS=false
-        fi
+        CHANGES=$(bun "$OPS_ROOT/config/components.ts" disable --all={{.__all}} --redis={{.__redis}} --mongodb={{.__mongodb}} --cron={{.__cron}} --static={{.__static}} --postgres={{.__postgres}} --prometheus={{.__prometheus}} --slack={{.__slack}} --mail={{.__mail}} --affinity={{.__affinity}} --tolerations={{.__tolerations}} --quota={{.__quota}} --milvus={{.__milvus}} --registry={{.__registry}} --seaweedfs={{.__seaweedfs}} --etcd={{.__etcd}} --alertmanager={{.__alertmanager}}) || exit 1
+        for SETTING in $CHANGES; do config "$SETTING"; done
+      - task: status
+
+  full:
+    silent: true
+    cmds:
       - |
-        if {{.__mongodb}} || {{.__all}}
-        then config OPERATOR_COMPONENT_MONGODB=false
-        fi
-      - |
-        if {{.__cron}} || {{.__all}}
-        then config OPERATOR_COMPONENT_CRON=false
-        fi
-      - |
-        if {{.__static}} || {{.__all}}
-        then config OPERATOR_COMPONENT_STATIC=false
-        fi
-      - |
-        if {{.__postgres}} || {{.__all}}
-        then config OPERATOR_COMPONENT_POSTGRES=false
-          if {{.__postgres}}
-            then echo 'Disabling PosgresSQL forces deactivation of MongoDB (FerretDB)'
-                config OPERATOR_COMPONENT_MONGODB=false
+        CHANGES=$(bun "$OPS_ROOT/config/components.ts" full ) || exit 1
+        for SETTING in $CHANGES; do config "$SETTING"; done
+        if echo "$CHANGES" | rg -q '^OPERATOR_COMPONENT_REGISTRY=true$'; then
+          if test -z "$REGISTRY_CONFIG_SECRET_PUSH_PULL"; then
+            config REGISTRY_CONFIG_SECRET_PUSH_PULL="$(random --str 12)"
           fi
         fi
-      - |
-        if {{.__prometheus}} || {{.__all}}
-        then config OPERATOR_COMPONENT_PROMETHEUS=false
-          if {{.__prometheus}}
-            then echo 'Disabing Prometheus forces deactivation of Alert Manager.'
-                config OPERATOR_COMPONENT_AM=false
-                config OPERATOR_CONFIG_ALERTGMAIL=false
-                config OPERATOR_CONFIG_ALERTSLACK=false
-          fi
-        fi
-      - |
-        if {{.__slack}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_ALERTSLACK=false
-        fi
-      - |
-        if {{.__mail}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_ALERTGMAIL=false
-        fi
-      - |
-        if {{.__quota}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_QUOTA=false
-        fi
-      - |
-        if {{.__affinity}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_AFFINITY=false
-        fi
-      - |
-        if {{.__tolerations}} || {{.__all}}
-        then
-          config OPERATOR_CONFIG_TOLERATIONS=false
-        fi
-      - |
-        if {{.__milvus}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_MILVUS=false
-          config OPERATOR_COMPONENT_ETCD=false
-        fi
-      - |
-        if {{.__registry}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_REGISTRY=false
-        fi
-      - |
-        if {{.__seaweedfs}} || {{.__all}}
-        then
-          config OPERATOR_COMPONENT_SEAWEEDFS=false
-        fi
+      - config CONFIGURED=true
       - task: status
 
   status:
