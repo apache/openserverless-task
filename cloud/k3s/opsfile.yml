@@ -53,7 +53,7 @@ tasks:
           valuesContent: |-
             image:
               registry: docker.io
-              repository: library/traefik
+              repository: rancher/mirrored-library-traefik
               tag: "3.7.18"
               digest: "sha256:9c437ac4f09ce6f4980a8544902d3475fdf70a1a7c578729581d2535dfa7d635"
             versionOverride: v3.7.18
